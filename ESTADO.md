@@ -33,7 +33,7 @@ aquí mismo.
 
 ## 4. Bloqueadores
 
-- [ ] **#1 — Confirmar que GitHub Pages sirve la URL en vivo tras el primer push** (el deploy tarda 1-2 min tras habilitar Pages por primera vez en un repo nuevo) — verificar con `curl`/`gh api` antes de reportarlo como "ya está en línea".
+- [x] **#1 — RESUELTO 13 sep 2026:** verificado con `curl` real — `/` y `/fichas/` responden HTTP 200, contenido correcto (`<h1>NOOK — Herramientas</h1>` y `<title>NOOK · Fichas de Platillos</title>`), build de Pages en estado `built` sin error (`gh api .../pages/builds/latest`).
 - [ ] **#2 — Contenido público a propósito, sin dato sensible** — antes de subir la próxima herramienta a este repo, confirmar que tampoco lleva precios de costeo interno, credenciales, ni dato de cliente real (ver regla del CLAUDE.md).
 
 ## 5. Qué sigue
