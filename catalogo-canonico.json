@@ -1,0 +1,1443 @@
+[
+  {
+    "id": "",
+    "platillo": "Avocado Toast",
+    "familia": "BREAKFAST",
+    "receta": "R-01",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOURDOUGH BREAD — 2 pcs",
+      "OLIVE OIL — 1 oz",
+      "AVOCADO — 4 oz",
+      "LEMON JUICE — 1 oz",
+      "SALT — 0.2 oz",
+      "CHERRY TOMATO — 1 oz",
+      "ARUGULA — 0.2 oz",
+      "RADISH — 0.2 oz",
+      "PICKLED ONION — 0.2 oz",
+      "GARBANZO / CHICKPEAS — 0.1 oz",
+      "EGGS — 2 pcs"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Florentine Eggs",
+    "familia": "BREAKFAST",
+    "receta": "R-02",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ENGLISH MUFFIN — 1 pcs",
+      "POACHED EGG — 2 pcs",
+      "SPINACH — 4 oz",
+      "SALMON — 2.5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Acai Bowl",
+    "familia": "BREAKFAST",
+    "receta": "R-03",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ACAI MIX — 1.7 oz",
+      "BACOBA / BANANA — 3.5 oz",
+      "ORANGE JUICE — 4 oz",
+      "STRAWBERRIES — 2.4 oz",
+      "BANANA — 1.6 oz",
+      "COCONUT MILK — 0.05 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Enchiladas Suizas",
+    "familia": "BREAKFAST",
+    "receta": "R-04",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CORN TORTILLA — 3 pcs",
+      "CHICKEN BREAST — 3.5 oz",
+      "SWISS RED SAUCE — 8 oz",
+      "MOZZARELLA SHREDDED — 3 oz",
+      "AVOCADO — 1.5 oz",
+      "PICKLED ONION — 0.5 oz",
+      "RADISH — 0.05 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Eggs Benedict",
+    "familia": "BREAKFAST",
+    "receta": "R-05",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ENGLISH MUFFIN — 1 pcs",
+      "HAM COOKED — 3 oz",
+      "POACHED EGG — 2 pcs",
+      "ARUGULA — 0.05 oz",
+      "PAPRIKA — 0 oz",
+      "HOLLANDAISE SAUCE — 3 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tuna Patacón",
+    "familia": "POOL",
+    "receta": "R-06",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOURDOUGH BREAD — 2 pcs",
+      "TUNA LOIN — 8 oz",
+      "GREEN LETTUCE — 0.2 oz",
+      "CHERRY TOMATO — 0.5 oz",
+      "PICKLED ONION — 0.02 oz",
+      "CAPERS — 0.4 oz",
+      "MAYONAISE — 0.5 oz",
+      "MUSTARD PORTION — 0.2 pcs",
+      "PAPAYA DIP — 0.2 oz",
+      "SALT — 0.01 oz",
+      "BLACK PEPPER GROUND — 0.01 oz",
+      "GARLIC POWDER — 0.01 oz",
+      "ONION POWDER — 0.01 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Quinoa / Rice Bowl",
+    "familia": "POOL",
+    "receta": "R-07",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Guacamole Chips",
+    "familia": "POOL",
+    "receta": "R-08",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHERRY TOMATO — 1.5 oz",
+      "RED ONION — 0.3 oz",
+      "AVOCADO — 7 oz",
+      "TORTILLA CHIPS — 3 pcs",
+      "LEMON JUICE — 1 oz",
+      "CILANTRO — 0.01 oz",
+      "PICKLED ONION — 0.2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Elote Ribs",
+    "familia": "POOL",
+    "receta": "R-09",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SWEET CORN BABY — 6 oz",
+      "NOOK PAPER — 1 pcs",
+      "GARLIC BUTTER — 0.5 oz",
+      "PAPAYA DIP — 1.5 oz",
+      "PARMESAN — 0.5 oz",
+      "PARSLEY — 0 oz",
+      "LEMON PEPPER — 0 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Crudités Con Salsa Limón",
+    "familia": "POOL",
+    "receta": "R-10",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "BABY CARROT — 2 oz",
+      "CUCUMBER — 2 oz",
+      "GREEN LETTUCE — 2 oz",
+      "LEMON CREAM — 1.5 oz",
+      "LEMON — 1.5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Spinach Artichoke Dip",
+    "familia": "POOL",
+    "receta": "R-11",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ARTICHOKE — 3 oz",
+      "WHITE ONION — 1 oz",
+      "SPINACH — 2 oz",
+      "UNSALTED BUTTER — 0.5 oz",
+      "HEAVY CREAM — 1.5 oz",
+      "SOUR CREAM — 1.5 oz",
+      "MOZZARELLA SHREDDED — 2 oz",
+      "GARLIC POWDER — 0.02 oz",
+      "SOURDOUGH BREAD — 2 pcs",
+      "PARMESAN — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Wrap Carne O Pollo",
+    "familia": "POOL",
+    "receta": "R-12",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "GREEN LETTUCE — 5 oz",
+      "CAESAR DRESSING — 1.5 oz",
+      "CHICKEN BREAST — 6 oz",
+      "FLOUR WRAP 12IN — 1 pcs",
+      "FRENCH FRIES — 4 oz",
+      "KETCHUP HEINZ MINI — 1.5 pcs",
+      "MAYO PORTION — 1.5 pcs",
+      "CHERRY TOMATO — 1 oz",
+      "RED ONION — 0.2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Aruba Sampler",
+    "familia": "POOL",
+    "receta": "R-13",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PASTECHI — 2 pcs",
+      "EMPANADA — 2 pcs",
+      "CHEESE BALL — 2 pcs",
+      "BEEF BALL — 2 pcs",
+      "BBQ SAUCE — 1 oz",
+      "HOT SAUCE — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Chicken Wings Bbq",
+    "familia": "POOL",
+    "receta": "R-14",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN WINGS — 9 oz",
+      "BBQ SAUCE — 2 oz",
+      "MUSTARD SAUCE — 2 oz",
+      "TRUFFLE MAYO — 1.5 oz",
+      "SALT — 0.1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Chicken Wings Hot Sauce",
+    "familia": "POOL",
+    "receta": "R-15",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN WINGS — 18 oz",
+      "HOT SAUCE — 3 oz",
+      "MUSTARD SAUCE — 2 oz",
+      "TRUFFLE MAYO — 2 oz",
+      "SALT — 0.1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Ceviche Peruano",
+    "familia": "POOL",
+    "receta": "R-16",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 3 oz",
+      "LECHE DE TIGRE — 2 oz",
+      "TORTILLA CHIPS — 5.29 oz",
+      "RED ONION — 1 oz",
+      "CANCHA / CORN NUTS — 1.5 oz",
+      "SWEET POTATO / CAMOTE — 2 oz",
+      "CILANTRO — 0.2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "French Fries",
+    "familia": "POOL",
+    "receta": "R-17",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "FRENCH FRIES — 8 oz",
+      "KETCHUP HEINZ MINI — 1 pcs",
+      "MAYO PORTION — 1 pcs",
+      "VEGETABLE OIL — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Mahi Sandwich",
+    "familia": "POOL",
+    "receta": "R-18",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 6 oz",
+      "BRIOCHE BUN — 1 pcs",
+      "FRYING FLOUR — 1.5 oz",
+      "TEMPURA BATTER — 1.5 oz",
+      "PANKO — 1 oz",
+      "REMOULADE — 1 oz",
+      "FRENCH FRIES — 6 oz",
+      "KETCHUP HEINZ MINI — 1 pcs",
+      "MAYO PORTION — 1 pcs",
+      "GREEN LETTUCE — 0.5 oz",
+      "CHERRY TOMATO — 1 oz",
+      "WHITE ONION — 0.2 oz",
+      "NOOK PAPER — 1 pcs"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Fish & Chips",
+    "familia": "POOL",
+    "receta": "R-19",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 6 oz",
+      "FRYING FLOUR — 1.5 oz",
+      "TEMPURA BATTER — 1.5 oz",
+      "FRENCH FRIES — 6 oz",
+      "PICKLED ONION — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tender",
+    "familia": "POOL",
+    "receta": "R-20",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN BREAST — 6 oz",
+      "FRYING FLOUR — 1.5 oz",
+      "TEMPURA BATTER — 1.5 oz",
+      "FRENCH FRIES — 8 oz",
+      "HONEY MUSTARD — 1.5 oz",
+      "KETCHUP HEINZ MINI — 1 pcs"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Yogurt Bread (batch)",
+    "familia": "OTROS",
+    "receta": "R-21",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ALL-PURPOSE FLOUR — 42.33 oz",
+      "PLAIN YOGURT — 25 oz",
+      "OLIVE OIL — 4 oz",
+      "SALT — 1.5 oz",
+      "BAKING POWDER — 1 oz",
+      "WATER — 4 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Sourdough Bread (batch)",
+    "familia": "OTROS",
+    "receta": "R-22",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ALL-PURPOSE FLOUR — 54.69 oz",
+      "WHOLE WHEAT FLOUR — 25.29 oz",
+      "WATER — 52.21 oz",
+      "WATER — 5.82 oz",
+      "SOURDOUGH STARTER — 17.64 oz",
+      "SALT — 2.12 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Beef Carpaccio",
+    "familia": "LUNCH",
+    "receta": "R-23",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 2.5 oz",
+      "SOURDOUGH BREAD — 1 oz",
+      "LEMON JUICE — 0.3 oz",
+      "ARUGULA — 0.2 oz",
+      "PARMESAN — 0.3 oz",
+      "LEMON — 0.3 oz",
+      "OLIVE OIL — 0.5 oz",
+      "SALT — 0.05 oz",
+      "TRUFFLE OIL — 0.5 oz",
+      "HORSE RADISH — 0.3 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tuna Tiradito",
+    "familia": "LUNCH",
+    "receta": "R-24",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TUNA LOIN — 3 oz",
+      "PONZU SAUCE — 2 oz",
+      "TORTILLA CHIPS — 5.29 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Peruvian Ceviche",
+    "familia": "LUNCH",
+    "receta": "R-25",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 3 oz",
+      "LECHE DE TIGRE — 2 oz",
+      "TORTILLA CHIPS — 5.29 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Octopus & Shrimp Cocktail",
+    "familia": "LUNCH",
+    "receta": "R-26",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SHRIMPS RAW 8-12 — 1.5 oz",
+      "OCTOPUS — 1.5 oz",
+      "COCKTAIL SAUCE — 2 oz",
+      "TORTILLA CHIPS — 5.29 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Fried Calamari",
+    "familia": "LUNCH",
+    "receta": "R-27",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SQUID TUBE U10 — 4.5 oz",
+      "TEMPURA BATTER — 2 oz",
+      "LEMON — 0.5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Soup of the Day",
+    "familia": "LUNCH",
+    "receta": "R-28",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOUP BASE — 5 oz",
+      "SOURDOUGH BREAD — 1 oz",
+      "GARLIC BUTTER — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Sopa de Tortilla",
+    "familia": "LUNCH",
+    "receta": "R-29",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOPA DE TORTILLA BASE — 5 oz",
+      "TORTILLA CHIPS — 1 oz",
+      "SOURDOUGH BREAD — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Caesar Salad",
+    "familia": "LUNCH",
+    "receta": "R-30",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ROMAINE HEART — 1 pcs",
+      "CAESAR DRESSING — 2 oz",
+      "PARMESAN — 2 oz",
+      "CROUTONS — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "House Salad (chef Style)",
+    "familia": "LUNCH",
+    "receta": "R-31",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MIXED LETTUCE — 6 oz",
+      "GOUDA CHEESE — 1.5 oz",
+      "HAM COOKED — 1.5 oz",
+      "CHERRY TOMATO — 2 oz",
+      "CUCUMBER — 2 oz",
+      "WHITE ONION — 1 oz",
+      "BOILED EGG — 1 pcs",
+      "HOUSE VINAIGRETTE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Ham & Cheese Sandwich",
+    "familia": "LUNCH",
+    "receta": "R-32",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PULLMAN BREAD — 3 oz",
+      "TURKEY BREAST SMOKED — 1.5 oz",
+      "GOUDA CHEESE — 1.5 oz",
+      "GREEN LETTUCE — 1 oz",
+      "CHERRY TOMATO — 2 oz",
+      "MAYO PORTION — 1 pcs",
+      "MUSTARD PORTION — 1 pcs"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Voco Club Sandwich",
+    "familia": "LUNCH",
+    "receta": "R-33",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PULLMAN BREAD — 3 oz",
+      "CHERRY TOMATO — 1.5 oz",
+      "BACON — 1.5 oz",
+      "GREEN LETTUCE — 1 oz",
+      "GOUDA CHEESE — 1 oz",
+      "TURKEY BREAST SMOKED — 1.5 oz",
+      "FRENCH FRIES — 3 oz",
+      "KETCHUP HEINZ MINI — 1 pcs",
+      "MAYO PORTION — 1 pcs",
+      "MUSTARD PORTION — 1 pcs"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Grilled Chicken Wrap",
+    "familia": "LUNCH",
+    "receta": "R-34",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "FLOUR WRAP 12IN — 1 pcs",
+      "CHICKEN BREAST — 6 oz",
+      "GREEN LETTUCE — 2 oz",
+      "CHERRY TOMATO — 1 oz",
+      "RED ONION — 1 oz",
+      "CUCUMBER — 1 oz",
+      "CAESAR DRESSING — 2 oz",
+      "FRENCH FRIES — 4 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Nook Burger",
+    "familia": "LUNCH",
+    "receta": "R-35",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "BEEF PATTY — 1 pcs",
+      "BRIOCHE BUN — 1 pcs",
+      "GREEN LETTUCE — 1 oz",
+      "CHERRY TOMATO — 1.5 oz",
+      "RED ONION — 1 oz",
+      "PICKLES — 1.5 oz",
+      "CARAMELIZED ONIONS — 1.5 oz",
+      "FRENCH FRIES — 6 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Nook Vegetarian Burger",
+    "familia": "LUNCH",
+    "receta": "R-36",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "VEGETARIAN PATTY — 1 pcs",
+      "BRIOCHE BUN — 1 pcs",
+      "GREEN LETTUCE — 1 oz",
+      "CHERRY TOMATO — 1.5 oz",
+      "RED ONION — 1 oz",
+      "MIXED LETTUCE — 5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Grilled Chicken Breast",
+    "familia": "LUNCH",
+    "receta": "R-37",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN BREAST — 6 oz",
+      "MIXED VEGETABLES — 4 oz",
+      "FRENCH FRIES — 5 oz",
+      "HOUSE SAUCE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Grilled Mahi Mahi",
+    "familia": "LUNCH",
+    "receta": "R-38",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 6 oz",
+      "MIXED VEGETABLES — 4 oz",
+      "FRENCH FRIES — 5 oz",
+      "HOUSE SAUCE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Grilled Salmon",
+    "familia": "LUNCH",
+    "receta": "R-39",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SALMON — 6 oz",
+      "MIXED VEGETABLES — 4 oz",
+      "FRENCH FRIES — 5 oz",
+      "HOUSE SAUCE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Pork Tenderloin (sv Then Grilled)",
+    "familia": "LUNCH",
+    "receta": "R-40",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PORK TENDERLOIN — 6 oz",
+      "MIXED VEGETABLES — 4 oz",
+      "FRENCH FRIES — 5 oz",
+      "HOUSE SAUCE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Grilled Tenderloin",
+    "familia": "LUNCH",
+    "receta": "R-41",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 6 oz",
+      "MIXED VEGETABLES — 4 oz",
+      "FRENCH FRIES — 5 oz",
+      "HOUSE SAUCE — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Creamy Mushroom Pasta",
+    "familia": "LUNCH",
+    "receta": "R-42",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SPAGHETTI — 6 oz",
+      "MUSHROOM SAUCE — 4 oz",
+      "PARMESAN — 1 oz",
+      "SOURDOUGH BREAD — 1 oz",
+      "GARLIC BUTTER — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Torta Basca (150g Portion)",
+    "familia": "OTROS",
+    "receta": "R-43",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TARTA BASCA PORTION — 1 pcs",
+      "COOKIE CRUMBLE — 0.71 oz",
+      "BERRY SAUCE — 1.06 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Brownie a La Mode",
+    "familia": "OTROS",
+    "receta": "R-44",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "Cake / pastry flour (9–10% protein) — 150 g",
+      "Cocoa powder (Dutch-processed) — 50 g",
+      "Dark chocolate (65–70% cocoa) — 250 g",
+      "Unsalted butter — 200 g",
+      "Whole eggs (room temperature) — 250 g",
+      "White granulated sugar — 300 g",
+      "Brown / Muscovado sugar — 100 g",
+      "Pure vanilla extract — 10 g",
+      "Fine salt — 5 g"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Coconut Flan",
+    "familia": "OTROS",
+    "receta": "R-45",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "COCONUT FLAN PORTION — 1 pcs",
+      "CARAMEL SAUCE — 1.06 oz",
+      "ROASTED COCONUT FLAKES — 0.35 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tuna Wonton Taco",
+    "familia": "DIN",
+    "receta": "R-46",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TUNA LOIN — 3.53 oz",
+      "WONTON WRAPPER — 0.7 oz",
+      "SRIRACHA SAUCE — 0.88 oz",
+      "SESAME BLACK — 0.04 oz",
+      "GREEN ONION / SCALLION — 0.04 oz",
+      "YELLOW PEPPER — 0.04 oz",
+      "ORANGE PEPPER — 0.04 oz",
+      "RED PEPPER — 0.04 oz",
+      "REMOULADE — 1.06 oz",
+      "CILANTRO CREAM — 0.18 oz",
+      "ORANGE TARE — 0.18 oz",
+      "PONZU SAUCE — 3.17 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Fried Calamari",
+    "familia": "DIN",
+    "receta": "R-47",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SQUID TUBE U10 — 4.23 oz",
+      "LEMON — 1.41 oz",
+      "BANANA PEPPER — 1.41 oz",
+      "VEGETABLE OIL — 6.76 oz",
+      "SALT — 0.11 oz",
+      "FRYING FLOUR — 3.53 oz",
+      "MAYO MADAME JANET — 1.41 oz",
+      "LEMON CREAM — 1.41 oz",
+      "BEER BATTER — 1.76 oz",
+      "REMOULADE — 1.41 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Rustic Beef Carpaccio",
+    "familia": "DIN",
+    "receta": "R-48",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "OLIVE OIL — 1.35 oz",
+      "PARMESAN — 1.06 oz",
+      "ARUGULA — 0.18 oz",
+      "CAPERS — 0.18 oz",
+      "TENDERLOIN — 4 oz",
+      "MAYO HORSERADISH — 0.7 oz",
+      "PRANGATTATO — 0.53 oz",
+      "ROASTED GARLIC SAUCE — 0.53 oz",
+      "SOURDOUGH BREAD — 1 pcs",
+      "GASTRIQUE — 0.68 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Peruvian Ceviche",
+    "familia": "DIN",
+    "receta": "R-49",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "MAHI MAHI — 4.23 oz",
+      "CANCHA / CORN NUTS — 1.06 oz",
+      "HUANCAINA SAUCE — 0.7 oz",
+      "OLIVE OIL — 0.34 oz",
+      "SALT — 0.18 oz",
+      "LECHE DE TIGRE — 2.12 oz",
+      "SWEET POTATO / CAMOTE — 1.41 oz",
+      "LEMON JUICE — 2.12 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tiradito de Pulpo",
+    "familia": "DIN",
+    "receta": "R-50",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "OCTOPUS — 4.23 oz",
+      "HUANCAINA SAUCE — 1.06 oz",
+      "GASTRIQUE — 0.51 oz",
+      "RED ONION — 0.07 oz",
+      "CHILE OIL — 0.18 oz",
+      "FUNCHI — 0.7 oz",
+      "CILANTRO — 0.07 oz",
+      "SALT — 0.07 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Octopus & Shrimp Cocktail",
+    "familia": "DIN",
+    "receta": "R-51",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SHRIMPS 21/25 — 2.47 oz",
+      "OCTOPUS — 2.47 oz",
+      "CORN CHIPS / MAIZ — 1.06 oz",
+      "RED ONION — 0.53 oz",
+      "OLIVE OIL — 0.17 oz",
+      "COCKTAIL SAUCE — 5.64 oz",
+      "CHERRY TOMATO — 0.7 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Sopa de Tortilla",
+    "familia": "DIN",
+    "receta": "R-52",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOPA DE TORTILLA BASE — 8.45 oz",
+      "CORN TORTILLA STRIPS — 0.7 oz",
+      "GUAJILLO CHILE DRIED — 0.07 oz",
+      "CILANTRO — 0.07 oz",
+      "CHICHARRON — 1.06 oz",
+      "SOUR CREAM / CREMA — 1.41 oz",
+      "AVOCADO — 1.41 oz",
+      "QUESO FRESCO — 1.41 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Roasted Pear Salad",
+    "familia": "DIN",
+    "receta": "R-53",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PEAR — 1.41 oz",
+      "GOAT CHEESE — 0.06 pcs",
+      "BALSAMIC REDUCTION — 0.17 oz",
+      "CUCUMBER — 0.7 oz",
+      "CHERRY TOMATO — 0.7 oz",
+      "RED ONION — 0.18 oz",
+      "OLIVE OIL — 0.34 oz",
+      "SALT — 0.07 oz",
+      "SPRING MIX — 2.12 oz",
+      "GASTRIQUE — 0.68 oz",
+      "SALT — 0.07 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Shrimp Spaghetti",
+    "familia": "DIN",
+    "receta": "R-54",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SPAGHETTI — 4.23 oz",
+      "SHRIMPS RAW 8-12 — 5.29 oz",
+      "WHITE ONION — 0.18 oz",
+      "GARLIC PEELED — 0.07 oz",
+      "WHITE WINE — 1.01 oz",
+      "UNSALTED BUTTER — 0.53 oz",
+      "PARSLEY — 0.11 oz",
+      "SOUR CREAM / CREMA — 4.23 oz",
+      "LEMON — 1.41 oz",
+      "PARMESAN — 1.41 oz",
+      "SALT — 0.07 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Beef Tenderloin in Bearnaise",
+    "familia": "DIN",
+    "receta": "R-55",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 6 oz",
+      "FRENCH FRIES — 2.12 oz",
+      "TRUFFLE OIL — 0.34 oz",
+      "PARMESAN — 0.35 oz",
+      "SOURDOUGH BREAD — 1 pcs",
+      "BEARNAISE SAUCE — 2.12 oz",
+      "SALT — 0.07 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Octopus with Plantain Puree",
+    "familia": "DIN",
+    "receta": "R-56",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "OCTOPUS — 5.64 oz",
+      "PLANTAIN PUREE — 3.17 oz",
+      "COUSCOUS — 2.12 oz",
+      "PERSILLADE — 2.12 oz",
+      "OLIVE OIL — 1.01 oz",
+      "UNSALTED BUTTER — 0.53 oz",
+      "GARBANZO CAN — 0.18 oz",
+      "MIXED VEGETABLES — 0.7 oz",
+      "BEET / BETABEL — 0.7 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Rib Eye in Three Chile Sauce",
+    "familia": "DIN",
+    "receta": "R-57",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "RIB EYE — 10.58 oz",
+      "THREE CHILE SAUCE — 6.35 oz",
+      "SWEET CORN BABY — 1.76 oz",
+      "MAYONAISE — 0.53 oz",
+      "PECORINO ROMANO — 0.35 oz",
+      "LEMON — 2.65 oz",
+      "BABY CARROT — 1.76 oz",
+      "GREEN BEANS / EJOTE — 1.06 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Beef Tenderloin in Mushroom Sauce",
+    "familia": "DIN",
+    "receta": "R-58",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 6 oz",
+      "MUSHROOM SAUCE — 5.64 oz",
+      "SPINACH POTATO PUREE — 3.53 oz",
+      "MIXED VEGETABLES — 1.76 oz",
+      "POTATO / PAPA — 1.76 oz",
+      "GREEN BEANS / EJOTE — 1.06 oz",
+      "OLIVE OIL — 0.51 oz",
+      "UNSALTED BUTTER — 0.53 oz",
+      "SALT — 0.18 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Stuffed Chicken Breast",
+    "familia": "DIN",
+    "receta": "R-59",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN BREAST — 6.35 oz",
+      "STUFFED CHICKEN FILLING — 3.17 oz",
+      "ROASTED GARLIC SAUCE — 5.64 oz",
+      "BABY CARROT — 1.06 oz",
+      "GREEN BEANS / EJOTE — 1.06 oz",
+      "RED PEPPER — 1.06 oz",
+      "OLIVE OIL — 0.51 oz",
+      "SALT — 0.18 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tuna Steak",
+    "familia": "DIN",
+    "receta": "R-60",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TUNA LOIN — 8.47 oz",
+      "CABBAGE JAM — 2.47 oz",
+      "BOK CHOY — 1.76 oz",
+      "MISO REDUCTION — 1.76 oz",
+      "UNSALTED BUTTER — 1.06 oz",
+      "SALT — 0.07 oz",
+      "BLACK PEPPER GROUND — 0.04 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Keshi Yena",
+    "familia": "DIN",
+    "receta": "R-61",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "GUISO POLLO — 10 oz",
+      "GOUDA CHEESE — 3.5 oz",
+      "RICE / ARROZ — 6 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Oxtail Stew",
+    "familia": "DIN",
+    "receta": "R-62",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PLATANO MADURO / RIPE PLANTAIN — 3.5 oz",
+      "GUISO OAXTAIL — 6 oz",
+      "CEBOLLA CROCANTE — 0.5 oz",
+      "FUNCHI — 3.5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Croissant Caramel Sundae",
+    "familia": "OTROS",
+    "receta": "R-63",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CROISSANT — 3 pcs",
+      "CARAMEL ICE CREAM — 3 oz",
+      "RED FRUIT COULIS — 0.5 oz",
+      "CARAMEL SAUCE — 0.2 oz",
+      "MINT — 0.02 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Carpaccio de Pera",
+    "familia": "DIN",
+    "receta": "R-64",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PEAR — 3 oz",
+      "CUCUMBER — 0.5 oz",
+      "HOUSE VINAIGRETTE — 1.5 oz",
+      "PISTACHO CRUST — 0.5 oz",
+      "BALSAMIC VINEGAR — 0.2 oz",
+      "RED PEPPER — 0.2 oz",
+      "ARUGULA — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Tosta Camarón Enamorado",
+    "familia": "DIN",
+    "receta": "R-65",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SHRIMPS RAW 8-12 — 3 oz",
+      "CELERY / APIO — 0.5 oz",
+      "APPLE — 0.5 oz",
+      "RED ONION — 0.3 oz",
+      "JITOMATE / TOMATO — 0.5 oz",
+      "MAYONAISE — 0.9 oz",
+      "SOUR CREAM / CREMA — 0.5 oz",
+      "HOUSE VINAIGRETTE — 0.3 oz",
+      "CORN TORTILLA — 1 pcs",
+      "LEMON — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Camarones Zarandeados",
+    "familia": "DIN",
+    "receta": "R-66",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SHRIMPS RAW 8-12 — 6 oz",
+      "ZARANDEADO — 1.5 oz",
+      "SWEET CORN BABY — 4 oz",
+      "POTATO / PAPA — 4 oz",
+      "MAYONAISE — 0.5 oz",
+      "PARMESAN — 0.2 oz",
+      "CILANTRO — 0.01 oz",
+      "PICKLED ONION — 0.5 oz",
+      "PINE APPLE — 0.1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Steak Tarta",
+    "familia": "DIN",
+    "receta": "R-67",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 6 oz",
+      "CAPERS — 0.5 oz",
+      "PICKLES — 0.5 oz",
+      "PARSLEY — 0.2 oz",
+      "EGGS — 1 pcs",
+      "HOUSE VINAIGRETTE — 0.5 oz",
+      "WORCESTERSHIRE SAUCE — 0.5 oz",
+      "SALT — 0.01 oz",
+      "BLACK PEPPER GROUND — 0.01 oz",
+      "FRENCH FRIES — 2 oz",
+      "SOURDOUGH BREAD — 1 pcs",
+      "TRUFFLE MAYO — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Cesar Salad Deconstrucción",
+    "familia": "DIN",
+    "receta": "R-68",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ROMAINE HEART — 1 pcs",
+      "SOURDOUGH BREAD — 1 pcs",
+      "PARMESAN — 2 oz",
+      "CAESAR DRESSING — 2 oz",
+      "CHERRY TOMATO — 1 oz",
+      "BACON — 2 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Salmon Smash Potato",
+    "familia": "DIN",
+    "receta": "R-69",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SALMON — 6 oz",
+      "PISTACHO CRUST — 1 oz",
+      "SMASH SWEET POTATO — 4 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Truffle Pasta",
+    "familia": "DIN",
+    "receta": "R-70",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SPAGHETTI — 6 oz",
+      "SALSA DE TRUFA — 5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Rib Eye Con Mantequilla Tuétano Y Coles de Bruselas",
+    "familia": "DIN",
+    "receta": "R-71",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "RIB EYE — 12 oz",
+      "MARROW BONE — 1.5 oz",
+      "UNSALTED BUTTER — 0.5 oz",
+      "BRUSSEL SPROUTS — 4 oz",
+      "SALT — 0.01 oz",
+      "BLACK PEPPER GROUND — 0.01 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Banana Bread (batch)",
+    "familia": "OTROS",
+    "receta": "R-72",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "BACOBA / BANANA — 31.75 oz",
+      "UNSALTED BUTTER — 8 oz",
+      "SUGAR — 12 oz",
+      "EGGS — 3 pcs",
+      "VANILLA EXTRACT — 0.5 oz",
+      "BAKING SODA — 0.5 oz",
+      "ALL PURPOSE FLOUR — 18 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Carrot Cake (batch)",
+    "familia": "OTROS",
+    "receta": "R-73",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ALL PURPOSE FLOUR — 8 oz",
+      "BAKING SODA — 0.34 oz",
+      "SALT — 0.08 oz",
+      "CINNAMON POWDER — 0.25 oz",
+      "VEGETABLE OIL — 10 oz",
+      "BROWN SUGAR — 8 oz",
+      "VANILLA EXTRACT — 0.17 oz",
+      "BABY CARROT — 12 oz",
+      "RAISINS — 2.65 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Bread Pudding (batch)",
+    "familia": "OTROS",
+    "receta": "R-74",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "SOURDOUGH BREAD — 17.64 oz",
+      "EGGS — 6 pcs",
+      "CONDENSED MILK — 14 oz",
+      "WHOLE MILK — 16.91 oz",
+      "CINNAMON POWDER — 0.17 oz",
+      "SUGAR — 8 oz",
+      "VANILLA EXTRACT — 0.17 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Chia Pudding (batch)",
+    "familia": "OTROS",
+    "receta": "R-75",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "COCONUT MILK — 40.5 oz",
+      "CHIA SEEDS — 3 oz",
+      "SALT — 0.08 oz",
+      "AGAVE SYRUP — 2 oz",
+      "VANILLA EXTRACT — 0.17 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Overnight Oats (batch)",
+    "familia": "OTROS",
+    "receta": "R-76",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "ALMOND MILK — 33.81 oz",
+      "OATMEAL / ROLLED OATS — 5.29 oz",
+      "CHIA SEEDS — 1 oz",
+      "VANILLA EXTRACT — 0.17 oz",
+      "SALT — 0.08 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Beef Fajita / Pulled Beef (batch)",
+    "familia": "OTROS",
+    "receta": "R-77",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "TENDERLOIN — 16 oz",
+      "RED PEPPER — 2.64 oz",
+      "GREEN PEPPER — 2.64 oz",
+      "WHITE ONION — 5.29 oz",
+      "SALT — 3 oz",
+      "BEEF STOCK — 5 oz",
+      "SOY SAUCE — 1 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Chicken Fajita / Pulled Chicken (batch)",
+    "familia": "OTROS",
+    "receta": "R-78",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "CHICKEN BREAST — 16 oz",
+      "RED PEPPER — 2.64 oz",
+      "GREEN PEPPER — 2.64 oz",
+      "WHITE ONION — 5.29 oz",
+      "SALT — 3 oz",
+      "CHICKEN STOCK — 5 oz",
+      "KETCHUP HEINZ MINI — 3 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Pancake Mix (sv 20 Pcs)",
+    "familia": "OTROS",
+    "receta": "R-79",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "PANCAKE MIX — 12 oz",
+      "WATER — 18 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Detox Juice #1 (batch 5 Sv)",
+    "familia": "OTROS",
+    "receta": "R-80",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "Ginger — 5 oz",
+      "APPLE — 50 oz",
+      "Celery / Apio — 30 oz",
+      "CUCUMBER — 20 oz",
+      "PARSLEY — 5 oz",
+      "SPINACH — 5 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Detox Juice #2 (batch 6 Sv)",
+    "familia": "OTROS",
+    "receta": "R-81",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "BABY CARROT — 30 oz",
+      "ORANGES — 18 oz",
+      "Ginger — 3 oz",
+      "TURMERIC POWDER — 0.33 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Salsa Roja / Verde (chef Mario)",
+    "familia": "OTROS",
+    "receta": "R-82",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "RECETA POR DEFINIR — CHEF MARIO — 0 oz"
+    ],
+    "disponible": true
+  },
+  {
+    "id": "",
+    "platillo": "Pulled Pork (buffet)",
+    "familia": "OTROS",
+    "receta": "R-83",
+    "precio": "",
+    "descripcion": "",
+    "insumos": [
+      "RECETA POR DEFINIR — CHEF MARIO — 0 oz"
+    ],
+    "disponible": true
+  }
+]
