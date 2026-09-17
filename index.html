@@ -4,15 +4,27 @@
 <title>NOOK — Herramientas</title>
 <style>
   body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:#faf9f6;color:#333;padding:40px;}
-  h1{color:#2b4a5e;}
-  a{display:block;margin:14px 0;padding:14px 18px;background:#fff;border:1px solid #e3e0d9;border-radius:8px;
-     color:#2b4a5e;text-decoration:none;font-weight:600;max-width:420px;}
+  h1{color:#2b4a5e;margin-bottom:4px;}
+  p.sub{color:#6b6459;margin:0 0 24px;max-width:460px;}
+  h2.section{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#8a8377;margin:28px 0 8px;}
+  a{display:flex;align-items:baseline;gap:10px;margin:10px 0;padding:14px 18px;background:#fff;border:1px solid #e3e0d9;border-radius:8px;
+     color:#2b4a5e;text-decoration:none;font-weight:600;max-width:460px;}
   a:hover{border-color:#b8935a;}
+  a .step{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#2b4a5e;color:#fff;font-size:12px;
+          display:flex;align-items:center;justify-content:center;font-weight:700;}
+  a.ref{opacity:.9}
+  a.ref .step{background:#b8935a;}
 </style>
 </head><body>
 <h1>NOOK — Herramientas</h1>
-<a href="fichas/">📋 Fichas de Platillos (fotos + recetario)</a>
-<a href="recetario/">📖 Recipe Master Book (83 recetas, edición + conversión de unidades)</a>
-<a href="organizador/">🗂️ Organizador de Fotos (nombra, asigna familia y orden)</a>
-<a href="generador/">🖨️ Generador de Ficheros (arma y exporta las fichas finales)</a>
+<p class="sub">Flujo de trabajo para producir una ficha: 3 pasos en orden. El Recipe Master Book es la
+fuente de referencia (insumos/procedimiento) y se consulta aparte, no es un paso numerado.</p>
+
+<h2 class="section">Flujo (en orden)</h2>
+<a href="organizador/"><span class="step">1</span> 🗂️ Organizador de Fotos (nombra, asigna familia y orden)</a>
+<a href="fichas/"><span class="step">2</span> 📋 Fichas de Platillos (descripción + insumos + disponibilidad)</a>
+<a href="generador/"><span class="step">3</span> 🖨️ Generador de Ficheros (arma y exporta las fichas finales)</a>
+
+<h2 class="section">Referencia</h2>
+<a class="ref" href="recetario/"><span class="step">R</span> 📖 Recipe Master Book (83 recetas, edición + conversión de unidades)</a>
 </body></html>

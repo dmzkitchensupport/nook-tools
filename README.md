@@ -3,21 +3,33 @@
 Herramientas internas de NOOK World Cuisine (VOCO Surfside Aruba), hospedadas como
 páginas estáticas vía GitHub Pages (público, gratis — sin repo privado, sin plan pago).
 
-## Herramientas
+## Herramientas — flujo de trabajo en 3 pasos
 
-- `fichas/` — Fichas de Platillos: captura de foto + platillo + insumos, con casilla de
-  "no disponible". Se guarda solo (localStorage del navegador). Botón "Descargar copia
-  actualizada" para respaldar el progreso. Su catálogo de platillos (autocompletar
-  descripción/insumos al elegir un platillo) ahora se genera desde `catalogo-canonico.json`.
+El Generador de Ficheros es el que dicta el rumbo: es el producto final (la ficha
+exportada), y su esquema JSON universal es el que las otras herramientas deben poder
+hablar. `organizador/` y `fichas/` existen para llegar preparados a ese paso 3; el
+Recipe Master Book es la fuente de referencia (insumos/procedimiento) y se consulta
+aparte — no es un paso numerado, porque ya está completo (83 recetas) y no se rehace
+por cada foto nueva.
+
+- **Paso 1 — `organizador/`** (Organizador de Fotos): organiza fotos sueltas —
+  renombra el platillo, arrastra para asignar familia (LUN/POOL/DIN/OTROS/SIN) y
+  orden. Exporta/importa el esquema universal (solo `id`/`platillo`/`familia` — no
+  maneja receta/precio/descripción/insumos).
+- **Paso 2 — `fichas/`** (Fichas de Platillos): captura de foto + platillo + insumos,
+  con casilla de "no disponible". Se guarda solo (localStorage del navegador). Botón
+  "Descargar copia actualizada" para respaldar el progreso. Su catálogo de platillos
+  (autocompletar descripción/insumos al elegir un platillo) se genera desde
+  `catalogo-canonico.json`.
+- **Paso 3 — `generador/`** (Generador de Ficheros): arma las fichas finales con foto
+  + texto y las exporta como PNG (ZIP) o PDF. Tiene su propio `.json` de proyecto (con
+  fotos, sin tocar) y exporta/importa el esquema universal (sin fotos).
+
+### Referencia (fuera de la secuencia)
+
 - `recetario/` — Recipe Master Book: 83 recetas + 56 sub-recetas, con modo edición,
   registro de cambios y conversión de unidades (oz/g/lb). **Fuente única de verdad**
   del catálogo — auditada 1:1 contra Cockpit.
-- `organizador/` — organiza fotos sueltas: renombra el platillo, arrastra para asignar
-  familia (LUN/POOL/DIN/OTROS/SIN) y orden. Exporta/importa el esquema universal
-  (solo `id`/`platillo`/`familia` — no maneja receta/precio/descripción/insumos).
-- `generador/` — Generador de Ficheros: arma las fichas finales con foto + texto y
-  las exporta como PNG (ZIP) o PDF. Tiene su propio `.json` de proyecto (con fotos,
-  sin tocar) y ahora también exporta/importa el esquema universal (sin fotos).
 
 ## Esquema JSON universal ("proyecto NOOK universal")
 
