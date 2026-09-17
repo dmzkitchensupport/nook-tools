@@ -14,8 +14,31 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
   movieron de la raíz** — `cocina/index.html` solo enlaza a ellos — para no romper
   ningún bookmark existente ni rutas internas.
 - **`bitacora/`** — Bitácora Diaria A&B, herramienta real (ver sección propia abajo).
-- **`formatos/`, `salon-barra/`** — secciones nuevas, en placeholder ("Próximamente")
-  hasta que Mario defina su contenido real. No se inventó funcionalidad para ellas.
+- **`salon-barra/`** — Generador de Ficheros para bebidas, herramienta real (ver
+  sección propia abajo).
+- **`formatos/`** — sección nueva, en placeholder ("Próximamente") hasta que Mario
+  defina su contenido real. No se inventó funcionalidad para ella.
+
+## Salón y Barra (`salon-barra/`)
+
+Copia exacta de `generador/index.html` (mismo diseño de fichero, mismos botones,
+misma mecánica de arrastrar fotos/exportar PNG-ZIP/PDF/proyecto), pero **arranca
+completamente en blanco** — a petición explícita de Mario ("plantilla en blanco del
+mismo formato, sin inventar ni modificar la estructura"). Se vaciaron 4 cosas que en
+`generador/` sí traen datos reales de cocina:
+
+- `SEED` (fichas ya armadas con fotos reales) → `{"v":1,"cards":[]}`.
+- `MIG_PROC` / `MIG_ING` (procedimientos/insumos de platillos reales) → `{}`.
+- `MENU` (el menú oficial de comida transcrito, "sin bebidas" según su propio
+  comentario en el código — no tenía sentido dejarlo en una herramienta de bebidas)
+  → mismas 4 categorías de servicio (Breakfast/Lunch/Pool·Bar/Dinner), cada una con
+  `groups: {}` vacío, para no romper el botón "Índice".
+
+Lo que **no se tocó** (es estructura, no dato, y Mario pidió preservarla verbatim):
+las categorías de servicio (`CATS`/`CODE`), el diseño del fichero, y toda la mecánica
+de edición/exportación. Si las categorías Breakfast/Lunch/Pool·Bar/Dinner no encajan
+con la taxonomía real de bebidas, es una decisión de negocio pendiente de Mario —no
+se inventó una nueva sin que él la pida.
 
 ## Bitácora Diaria A&B (`bitacora/`)
 
