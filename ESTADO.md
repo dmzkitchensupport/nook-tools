@@ -5,7 +5,7 @@
 > Regla: si no se puede verificar, se escribe "SIN VERIFICAR", no se inventa.
 
 **Última actualización:** 2026-09-17
-**Actualizado por:** TECH (Master Agent), vía Cla, a petición de Mario
+**Actualizado por:** disenio-creativo (subagente formal, `dmz-ecosystem/.claude/agents/disenio-creativo.md`, invocado dentro de esta sesión — ver nota abajo), vía Cla, a petición de Mario
 **Cliente:** NOOK World Cuisine (VOCO Surfside Aruba)
 
 > Nota: un intento anterior de interconectar las 4 herramientas se cayó por un error
@@ -50,6 +50,8 @@ Mario planea subir más herramientas aquí mismo.
 | 2026-09-17 | **Rediseño con color real** — el pulido anterior (fondo de puntos sutil, tarjetas blancas) le pareció a Mario "una página normal, sin vida" y pidió más color. Se reemplazó por bloques de color sólido tomados de la paleta oficial en las 5 páginas del menú: franja superior (hero) de color por sección, tarjetas del menú principal 100% a color (no blancas) cada una con su propio patrón decorativo tomado 1:1 de la sección "Patterns" del brandbook — rayos (Cocina, navy), puntos (Formatos, tostado), ondas (Bitácora, verde-navy profundo), diagonales (Salón y Barra, marrón). Se generó `assets/nook-logo-cream.png` (versión clara del logo, recoloreada a partir del navy transparente) para usar sobre los fondos oscuros del hero. Las 4 herramientas de producción siguen sin tocarse — verificado con `git diff --stat` (0 cambios) antes de subir. | *(este commit)* |
 
 | 2026-09-17 | **Bug real de caché (no de diseño), encontrado con evidencia — Mario mandó captura mostrando el menú sin ningún color.** Verificado con `curl` + `shasum` que el servidor SÍ tenía el CSS correcto (hash idéntico al archivo subido); el problema es que GitHub Pages manda `Cache-Control: max-age=600` en `assets/nook.css`, así que el navegador de Mario se quedó con la hoja de estilos vieja (blanca) mientras el HTML nuevo sí cargó — de ahí que se vieran elementos nuevos (la onda de Bitácora) sin ningún color de fondo. Corregido agregando `?v=3` al link del CSS en las 5 páginas del menú, para forzar que el navegador pida el archivo nuevo cada vez que se suba una versión distinta (subir el número la próxima vez que `nook.css` cambie). | *(este commit)* |
+
+| 2026-09-17 | **Segunda pasada de diseño, esta vez bajo el estándar del subagente `disenio-creativo`** (Mario recordó que sí existe — vive dentro del dominio de `vision-master`, definido en `dmz-ecosystem`; no es invocable por nombre desde este repo, así que esta sesión adoptó su brief/mandatos directo: "cero plantillas genéricas", RACREEA, coherencia de Director Creativo). Se reemplazó el grid parejo de 4 tarjetas iguales por una jerarquía real: **Cocina** (lo único ya construido) pasa a tarjeta destacada de ancho completo con chips de los 3 pasos; **Formatos/Bitácora/Salón y Barra** (vacíos) bajan a una fila secundaria más discreta con etiqueta "Próximamente" visible en la propia tarjeta. Se agregó un divisor de borde orgánico (SVG ondulado) entre el hero y el contenido en las 5 páginas, en vez del corte recto anterior. Bug real encontrado y corregido en el camino: la tarjeta destacada heredaba `flex-direction:column` de la regla genérica `.card` por no declararlo explícito en `.featured` — verificado visualmente antes/después con captura de pantalla real (Chromium). CSS versionado a `?v=4`. | *(este commit)* |
 
 ## 4. Bloqueadores
 
