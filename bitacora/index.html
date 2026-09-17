@@ -229,7 +229,7 @@ table.hist button:hover{color:var(--navy);}
   <div id="corteVentasWrap" style="margin-bottom:28px;"></div>
 
   <h2 style="font-size:14px;color:var(--navy);">Comparativo desayunos / ocupación</h2>
-  <p class="nota">SIN VERIFICAR: fórmula de "Total Guest" = Incluidos − No Show + Pay, "%" = Total Guest ÷ Guest in House. Confirmar con Roberto que coincide con el criterio real antes de usarlo como reporte oficial.</p>
+  <p class="nota">Fórmula verificada exacta contra las 17 filas reales del Excel de Roberto (1 al 17 de sept): Total Guest = Incluidos − No Show + Pay; % = (Total Guest + Locales) ÷ Guest in House.</p>
   <div id="corteOcupacionWrap"></div>
 </div>
 
@@ -520,8 +520,8 @@ function renderCortes(){
   fechas.forEach(f=>{
     const e = db.entries[f]; const n = e.num;
     const totalGuest = n['oc-incl'] - n['oc-noshow'] + n['oc-pay'];
-    const pct = n['oc-gih'] ? (totalGuest / n['oc-gih'] * 100) : 0;
     const total = totalGuest + n['oc-locales'];
+    const pct = n['oc-gih'] ? (total / n['oc-gih'] * 100) : 0;
     rowsOcup += `<tr><td>${f.slice(8)}-${mes.slice(5)}</td><td class="num">${n['oc-gih']}</td><td class="num">${n['oc-incl']}</td><td class="num">${n['oc-noshow']}</td><td class="num">${n['oc-pay']}</td><td class="num">${totalGuest}</td><td class="num">${pct.toFixed(0)}%</td><td class="num">${n['oc-locales']}</td><td class="num">${total}</td></tr>`;
   });
   rowsOcup += '</tbody></table>';
