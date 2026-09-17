@@ -55,16 +55,27 @@ solos los dos cortes que antes vivían en Excel aparte.
   como respaldo (mismo patrón que las otras 4 herramientas).
 - **Cortes**: "Ventas y proyección diaria" y "Comparativo desayunos/ocupación", ambos
   recalculados solos por mes a partir de lo ya capturado — nunca hay que llevarlos
-  aparte en Excel. **La fórmula del % de ocupación está marcada como SIN VERIFICAR**
-  en la propia herramienta (Total Guest = Incl. − No Show + Pay; % = Total Guest ÷
-  Guest in House) — no coincidió exacto contra el ejemplo real de Roberto al probarla;
-  no usar como reporte oficial hasta que él confirme el criterio real.
+  aparte en Excel. Fórmula del % de ocupación **verificada exacta contra las 17 filas
+  reales del Excel de Roberto** (1-17 sept): Total Guest = Incl. − No Show + Pay;
+  % = (Total Guest + Locales) ÷ Guest in House.
 - **PDF**: generado de verdad con jsPDF (vía CDN), no solo `window.print()`.
 - **Envío a WhatsApp**: un toque vía Web Share API — el botón abre el panel nativo de
   compartir del teléfono con el PDF ya adjunto, y WhatsApp aparece como opción (decisión
   explícita de Mario, frente a conectar el puente de WhatsApp/Baileys existente para
   cero-toques, que habría requerido decidir su hosting 24/7 — queda como posible
   mejora futura, no descartada, solo no construida todavía).
+- **Respaldo real en la nube (Supabase)**: proyecto propio `nook-tools` (separado de
+  Cockpit a propósito — Cockpit es otro producto, con su propio esquema de costeo, y
+  además usa login/RLS por rol mientras que `nook-tools` es público sin cuentas; mezclar
+  las dos habría expuesto la base de Cockpit a un anon key de un sitio sin login).
+  Protegida con una **contraseña compartida** (no hay sistema de cuentas): la tabla
+  `bitacora_entries` no tiene ninguna policy para `anon` — todo el acceso pasa por 3
+  funciones RPC (`bitacora_save`/`bitacora_list`/`bitacora_delete`, ver
+  `supabase/migrations/`) que verifican la contraseña con `SECURITY DEFINER` antes de
+  tocar la tabla. La contraseña **no vive en ningún archivo de este repo** (es público) —
+  pídela a Mario/Cla. `localStorage` se mantiene como caché/respaldo local si no hay
+  internet; al guardar, se sincroniza a la nube también, y al abrir con la contraseña
+  correcta se trae lo que haya en la nube (así dos dispositivos ven lo mismo).
 
 ## Cocina — flujo de trabajo en 3 pasos
 

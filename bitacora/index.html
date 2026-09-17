@@ -87,8 +87,30 @@ table.hist button:hover{color:var(--navy);}
 .mes-select{margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .mes-select select{border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:13.5px;}
 .nota{font-size:11.5px;color:var(--muted);margin:6px 0 16px;font-style:italic;}
+
+.gate{position:fixed;inset:0;background:var(--navy);color:var(--cream);display:flex;align-items:center;justify-content:center;z-index:100;}
+.gate .box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:36px 32px;max-width:320px;width:90%;text-align:center;}
+.gate img{height:34px;margin-bottom:18px;}
+.gate input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:var(--cream);font-family:inherit;font-size:15px;text-align:center;margin-bottom:12px;}
+.gate input::placeholder{color:rgba(250,247,238,.5);}
+.gate button{width:100%;padding:10px;border:none;border-radius:8px;background:var(--tan-line);color:#26221c;font-weight:700;font-family:inherit;font-size:14px;cursor:pointer;}
+.gate .err{color:#e8a3a3;font-size:12.5px;margin-top:10px;min-height:16px;}
+.gate .hint{font-size:11px;color:rgba(250,247,238,.55);margin-top:14px;}
+body.locked > *:not(.gate){display:none !important;}
+body:not(.locked) .gate{display:none !important;}
 </style>
-</head><body>
+</head><body class="locked">
+
+<div class="gate" id="gate">
+  <div class="box">
+    <img src="../assets/nook-logo-cream.png" alt="NOOK">
+    <div style="font-weight:700;margin-bottom:14px;">Acceso a la Bitácora</div>
+    <input type="password" id="gatePw" placeholder="Contraseña de acceso" autocomplete="off">
+    <button id="gateBtn">Entrar</button>
+    <div class="err" id="gateErr"></div>
+    <div class="hint">Compartida con gerencia A&amp;B — pídela si no la tienes.</div>
+  </div>
+</div>
 
 <header class="app">
   <div class="id">
@@ -203,6 +225,7 @@ table.hist button:hover{color:var(--navy);}
     <button class="btn accent" id="btnShare"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5M15.4 6.5 8.6 10.5"/></svg> Enviar a WhatsApp</button>
     <button class="btn ghost" id="btnNuevo">+ Nuevo día</button>
     <span id="saveState"></span>
+    <span id="cloudState" style="font-size:12px;color:var(--muted);align-self:center;"></span>
   </div>
   <p class="nota">"Ventas totales" se calcula solo (suma de las 5 áreas). "Ventas en efectivo" se captura a mano porque no se puede derivar de lo demás.</p>
 </div>
@@ -253,6 +276,71 @@ const $ = s => document.querySelector(s);
 let db = { entries: {} };
 let shift = { AM:false, PM:false };
 let saveT;
+
+/* ---------- respaldo real en la nube (Supabase) ---------- */
+const SUPA_URL = 'https://fcswffoilwqltkghlvff.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjc3dmZm9pbHdxbHRrZ2hsdmZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NjE5MzksImV4cCI6MjEwNTIzNzkzOX0.dMP-7fB3rwaYhYnMw4UQXFSiLNeKe963cnWl3w8fy1E';
+const PW_KEY = 'nook_bitacora_pw';
+
+async function supaRpc(fn, body){
+  const r = await fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    const err = await r.json().catch(()=>({message:r.statusText}));
+    throw new Error(err.message || 'error de red');
+  }
+  return r.json();
+}
+function getPw(){ return localStorage.getItem(PW_KEY) || ''; }
+
+async function cloudSave(e){
+  const pw = getPw(); if(!pw) return;
+  try{
+    await supaRpc('bitacora_save', {
+      p_password: pw, p_fecha: e.fecha, p_turno: e.turno, p_elaboro: e.elaboro,
+      p_campos: e.campos, p_num: e.num, p_efectivo: e.efectivo, p_ventas_totales: e.ventasTotales
+    });
+    $('#cloudState').textContent = 'Respaldado en la nube ✓';
+  }catch(err){ $('#cloudState').textContent = 'Sin nube (' + err.message + ') — quedó guardado local'; }
+}
+async function cloudDelete(fecha){
+  const pw = getPw(); if(!pw) return;
+  try{ await supaRpc('bitacora_delete', { p_password: pw, p_fecha: fecha }); }catch(err){}
+}
+async function cloudList(){
+  const pw = getPw(); if(!pw) return null;
+  try{ return await supaRpc('bitacora_list', { p_password: pw }); }
+  catch(err){ $('#cloudState').textContent = 'Sin nube (' + err.message + ') — usando lo local'; return null; }
+}
+function cloudRowToEntry(row){
+  return { fecha: row.fecha, turno: row.turno||{}, elaboro: row.elaboro||'', campos: row.campos||{}, num: row.num||{}, efectivo: Number(row.efectivo)||0, ventasTotales: Number(row.ventas_totales)||0 };
+}
+
+async function unlockGate(){
+  const pw = $('#gatePw').value.trim();
+  if(!pw){ $('#gateErr').textContent = 'Escribe la contraseña.'; return; }
+  $('#gateBtn').disabled = true; $('#gateBtn').textContent = 'Verificando…';
+  try{
+    await supaRpc('bitacora_list', { p_password: pw }); // valida contra el servidor de verdad
+    localStorage.setItem(PW_KEY, pw);
+    document.body.classList.remove('locked');
+    await hydrateFromCloud();
+  }catch(err){
+    $('#gateErr').textContent = 'Contraseña incorrecta.';
+  }
+  $('#gateBtn').disabled = false; $('#gateBtn').textContent = 'Entrar';
+}
+async function hydrateFromCloud(){
+  const rows = await cloudList();
+  if(rows){
+    rows.forEach(row => { db.entries[row.fecha] = cloudRowToEntry(row); });
+    localStorage.setItem(STORE_KEY, JSON.stringify(db));
+    loadDateIntoForm(); renderHistorial(); renderCortes();
+  }
+}
 
 function load(){
   try{ const raw = localStorage.getItem(STORE_KEY); if(raw) db = JSON.parse(raw); }catch(e){}
@@ -325,14 +413,18 @@ document.querySelectorAll('#view-captura input').forEach(inp=>{
 });
 $('#f-fecha').addEventListener('change', loadDateIntoForm);
 
+let cloudSaveT;
 function guardarSilencioso(){
   const e = collectForm(); if(!e) return;
   db.entries[e.fecha] = e; persist();
+  clearTimeout(cloudSaveT);
+  cloudSaveT = setTimeout(()=> cloudSave(e), 1200);
 }
 
 $('#btnGuardar').onclick = ()=>{
   const e = collectForm(); if(!e) return;
   db.entries[e.fecha] = e; persist();
+  cloudSave(e);
   alert('Guardado: ' + e.fecha);
   renderHistorial();
 };
@@ -462,7 +554,7 @@ function renderHistorial(){
   html += '</tbody></table>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-open]').forEach(b=> b.onclick = ()=>{ $('#f-fecha').value = b.dataset.open; loadDateIntoForm(); switchTab('captura'); });
-  wrap.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ if(confirm('¿Borrar la bitácora de ' + b.dataset.del + '? No se puede deshacer.')){ delete db.entries[b.dataset.del]; persist(); renderHistorial(); renderCortes(); } });
+  wrap.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ if(confirm('¿Borrar la bitácora de ' + b.dataset.del + '? No se puede deshacer.')){ delete db.entries[b.dataset.del]; persist(); cloudDelete(b.dataset.del); renderHistorial(); renderCortes(); } });
 }
 
 $('#btnExport').onclick = ()=>{
@@ -538,10 +630,18 @@ function switchTab(name){
 }
 document.querySelectorAll('nav.tabs button').forEach(b=> b.addEventListener('click', ()=> switchTab(b.dataset.tab)));
 
+/* ---------- gate de acceso ---------- */
+$('#gateBtn').onclick = unlockGate;
+$('#gatePw').addEventListener('keydown', e=>{ if(e.key==='Enter') unlockGate(); });
+
 /* ---------- arranque ---------- */
 load();
 $('#f-fecha').value = new Date().toISOString().slice(0,10);
 loadDateIntoForm();
 renderHistorial();
+if(getPw()){
+  document.body.classList.remove('locked');
+  hydrateFromCloud();
+}
 </script>
 </body></html>
