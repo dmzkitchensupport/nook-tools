@@ -3,28 +3,72 @@
 <meta charset="UTF-8">
 <title>NOOK — Herramientas</title>
 <style>
-  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:#faf9f6;color:#333;padding:40px;}
-  h1{color:#2b4a5e;margin-bottom:4px;}
-  p.sub{color:#6b6459;margin:0 0 24px;max-width:460px;}
-  h2.section{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#8a8377;margin:28px 0 8px;}
-  a{display:flex;align-items:baseline;gap:10px;margin:10px 0;padding:14px 18px;background:#fff;border:1px solid #e3e0d9;border-radius:8px;
-     color:#2b4a5e;text-decoration:none;font-weight:600;max-width:460px;}
-  a:hover{border-color:#b8935a;}
-  a .step{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#2b4a5e;color:#fff;font-size:12px;
-          display:flex;align-items:center;justify-content:center;font-weight:700;}
-  a.ref{opacity:.9}
-  a.ref .step{background:#b8935a;}
+  :root{
+    --navy:#2b4a5e; --tan:#9a7367; --tan-line:#b8935a; --cream:#faf9f6; --ink:#333;
+  }
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);
+       padding:48px 40px;}
+  .brand{display:block;height:40px;margin-bottom:22px;}
+  p.sub{color:#6b6459;margin:0 0 34px;max-width:520px;font-size:15px;line-height:1.5;}
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;max-width:760px;}
+  a.card{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 22px;background:#fff;
+         border:1px solid #e3e0d9;border-radius:10px;color:var(--navy);text-decoration:none;}
+  a.card:hover{border-color:var(--tan-line);box-shadow:0 4px 16px rgba(43,74,94,.08);}
+  a.card svg{width:38px;height:38px;color:var(--navy);}
+  a.card .label{font-weight:700;font-size:16px;letter-spacing:.01em;}
+  a.card .desc{font-size:12.5px;color:#8a8377;line-height:1.4;}
 </style>
 </head><body>
-<h1>NOOK — Herramientas</h1>
-<p class="sub">Flujo de trabajo para producir una ficha: 3 pasos en orden. El Recipe Master Book es la
-fuente de referencia (insumos/procedimiento) y se consulta aparte, no es un paso numerado.</p>
 
-<h2 class="section">Flujo (en orden)</h2>
-<a href="organizador/"><span class="step">1</span> 🗂️ Organizador de Fotos (nombra, asigna familia y orden)</a>
-<a href="fichas/"><span class="step">2</span> 📋 Fichas de Platillos (descripción + insumos + disponibilidad)</a>
-<a href="generador/"><span class="step">3</span> 🖨️ Generador de Ficheros (arma y exporta las fichas finales)</a>
+<img class="brand" src="assets/nook-logo-navy.png" alt="NOOK">
+<p class="sub">Herramientas internas de NOOK World Cuisine (VOCO Surfside Aruba).</p>
 
-<h2 class="section">Referencia</h2>
-<a class="ref" href="recetario/"><span class="step">R</span> 📖 Recipe Master Book (83 recetas, edición + conversión de unidades)</a>
+<div class="menu">
+
+  <a class="card" href="cocina/">
+    <svg viewBox="0 0 64 64" fill="currentColor">
+      <path d="M22 2 L27 2 L25 26 L24 26 Z"/>
+      <rect x="22.5" y="26" width="3" height="34" rx="1.5"/>
+      <rect x="37" y="2" width="2.5" height="16"/>
+      <rect x="41.5" y="2" width="2.5" height="16"/>
+      <rect x="46" y="2" width="2.5" height="16"/>
+      <path d="M36 18 L48.5 18 L48.5 20 C48.5 25 45 29 42.25 29 C39.5 29 36 25 36 20 Z"/>
+      <rect x="40.75" y="29" width="3" height="31" rx="1.5"/>
+    </svg>
+    <div class="label">Cocina</div>
+    <div class="desc">Fichas, recetario, fotos y generador de ficheros</div>
+  </a>
+
+  <a class="card" href="formatos/">
+    <svg viewBox="0 0 64 64" fill="currentColor">
+      <rect x="10" y="8" width="44" height="52" rx="4"/>
+      <rect x="24" y="4" width="16" height="10" rx="3" fill="#faf9f6" stroke="currentColor" stroke-width="2.5"/>
+      <g fill="#faf9f6">
+        <rect x="17" y="24" width="30" height="3.5"/>
+        <rect x="17" y="33" width="30" height="3.5"/>
+        <rect x="17" y="42" width="20" height="3.5"/>
+      </g>
+    </svg>
+    <div class="label">Formatos</div>
+    <div class="desc">Formatos operativos de NOOK</div>
+  </a>
+
+  <a class="card" href="bitacora/">
+    <svg viewBox="0 0 64 64" fill="currentColor">
+      <path d="M32 14 C27 9 16 8 8 10 L8 50 C16 48 27 49 32 54 C37 49 48 48 56 50 L56 10 C48 8 37 9 32 14 Z"/>
+      <rect x="30.5" y="13" width="3" height="42" fill="#faf9f6"/>
+    </svg>
+    <div class="label">Bitácora</div>
+    <div class="desc">Registro de novedades de NOOK</div>
+  </a>
+
+  <a class="card" href="salon-barra/">
+    <svg viewBox="0 0 64 64" fill="currentColor">
+      <path d="M18 4 H46 C46 20 38 28 33.5 29.5 V50 H42 V56 H22 V50 H30.5 V29.5 C26 28 18 20 18 4 Z"/>
+    </svg>
+    <div class="label">Salón y Barra</div>
+    <div class="desc">Herramientas de Salón y Barra</div>
+  </a>
+
+</div>
 </body></html>

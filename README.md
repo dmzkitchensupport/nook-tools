@@ -3,7 +3,21 @@
 Herramientas internas de NOOK World Cuisine (VOCO Surfside Aruba), hospedadas como
 páginas estáticas vía GitHub Pages (público, gratis — sin repo privado, sin plan pago).
 
-## Herramientas — flujo de trabajo en 3 pasos
+## Mapa del sitio
+
+`index.html` (raíz) es el menú principal, con 4 secciones — íconos propios (sin
+emojis), logo real recortado de `Nook_Brandbook.pdf` (`assets/nook-logo-navy.png`),
+paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`):
+
+- **`cocina/`** — el flujo de 3 pasos + Recetario, descrito abajo. Los archivos de
+  cada herramienta (`fichas/`, `recetario/`, `organizador/`, `generador/`) **no se
+  movieron de la raíz** — `cocina/index.html` solo enlaza a ellos — para no romper
+  ningún bookmark existente ni rutas internas.
+- **`formatos/`, `bitacora/`, `salon-barra/`** — secciones nuevas, en placeholder
+  ("Próximamente") hasta que Mario defina su contenido real. No se inventó
+  funcionalidad para ellas.
+
+## Cocina — flujo de trabajo en 3 pasos
 
 El Generador de Ficheros es el que dicta el rumbo: es el producto final (la ficha
 exportada), y su esquema JSON universal es el que las otras herramientas deben poder

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<title>NOOK — Cocina</title>
+<style>
+  :root{
+    --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a;
+    --cream:#faf9f6; --ink:#333;
+  }
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);padding:40px;}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--tan);text-decoration:none;font-size:13px;
+        font-weight:600;letter-spacing:.04em;margin-bottom:18px;}
+  .back:hover{color:var(--navy);}
+  h1{color:var(--navy);margin:0 0 4px;letter-spacing:.02em;}
+  p.sub{color:#6b6459;margin:0 0 24px;max-width:460px;}
+  h2.section{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#8a8377;margin:28px 0 8px;}
+  a.tool{display:flex;align-items:baseline;gap:10px;margin:10px 0;padding:14px 18px;background:#fff;border:1px solid #e3e0d9;border-radius:8px;
+     color:var(--navy);text-decoration:none;font-weight:600;max-width:460px;}
+  a.tool:hover{border-color:var(--tan-line);}
+  a.tool .step{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;
+          display:flex;align-items:center;justify-content:center;font-weight:700;}
+  a.tool.ref{opacity:.9}
+  a.tool.ref .step{background:var(--tan-line);}
+</style>
+</head><body>
+<a class="back" href="../">&larr; Menú principal</a>
+<h1>Cocina</h1>
+<p class="sub">Flujo de trabajo para producir una ficha: 3 pasos en orden. El Recipe Master Book es la
+fuente de referencia (insumos/procedimiento) y se consulta aparte, no es un paso numerado.</p>
+
+<h2 class="section">Flujo (en orden)</h2>
+<a class="tool" href="../organizador/"><span class="step">1</span> Organizador de Fotos (nombra, asigna familia y orden)</a>
+<a class="tool" href="../fichas/"><span class="step">2</span> Fichas de Platillos (descripción + insumos + disponibilidad)</a>
+<a class="tool" href="../generador/"><span class="step">3</span> Generador de Ficheros (arma y exporta las fichas finales)</a>
+
+<h2 class="section">Referencia</h2>
+<a class="tool ref" href="../recetario/"><span class="step">R</span> Recipe Master Book (83 recetas, edición + conversión de unidades)</a>
+</body></html>
