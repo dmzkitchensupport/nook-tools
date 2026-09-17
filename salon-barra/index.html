@@ -633,7 +633,7 @@ $('#univFile').addEventListener('change', e=>{
 function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
 
 /* ---------- autoguardado (IndexedDB — aguanta muchas fotos) ---------- */
-const DB_NAME='nook_ficheros', STORE='proj', BUILD=4;
+const DB_NAME='nook_ficheros_salonbarra', STORE='proj', BUILD=4;
 let loadedBuild=0;
 let _db=null, _idbok=true, _saveT=null, _booting=true;
 function idbOpen(){
