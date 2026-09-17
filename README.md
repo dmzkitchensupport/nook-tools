@@ -13,9 +13,35 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
   cada herramienta (`fichas/`, `recetario/`, `organizador/`, `generador/`) **no se
   movieron de la raíz** — `cocina/index.html` solo enlaza a ellos — para no romper
   ningún bookmark existente ni rutas internas.
-- **`formatos/`, `bitacora/`, `salon-barra/`** — secciones nuevas, en placeholder
-  ("Próximamente") hasta que Mario defina su contenido real. No se inventó
-  funcionalidad para ellas.
+- **`bitacora/`** — Bitácora Diaria A&B, herramienta real (ver sección propia abajo).
+- **`formatos/`, `salon-barra/`** — secciones nuevas, en placeholder ("Próximamente")
+  hasta que Mario defina su contenido real. No se inventó funcionalidad para ellas.
+
+## Bitácora Diaria A&B (`bitacora/`)
+
+Reemplaza el PDF/Excel que Roberto (Gerente A&B) llenaba a mano y mandaba por WhatsApp.
+Réplica 1:1 de los campos del PDF original (Área General, Cocina, Caja, Cheque
+Promedio, Gerencia, Barra, Venta por Áreas, Totales) más 5 campos de ocupación que el
+PDF no traía (Guest in House/Incl./No Show/Pay/Locales), agregados para poder generar
+solos los dos cortes que antes vivían en Excel aparte.
+
+- **Captura**: autoguardado en `localStorage`, una entrada por fecha. "Ventas totales"
+  se calcula solo (suma de Room Service+Bar+Market Place+Desayuno+Comidas y cenas);
+  "Ventas en efectivo" se captura a mano (no es derivable).
+- **Historial**: abrir/editar/borrar cualquier día capturado; Exportar/Importar JSON
+  como respaldo (mismo patrón que las otras 4 herramientas).
+- **Cortes**: "Ventas y proyección diaria" y "Comparativo desayunos/ocupación", ambos
+  recalculados solos por mes a partir de lo ya capturado — nunca hay que llevarlos
+  aparte en Excel. **La fórmula del % de ocupación está marcada como SIN VERIFICAR**
+  en la propia herramienta (Total Guest = Incl. − No Show + Pay; % = Total Guest ÷
+  Guest in House) — no coincidió exacto contra el ejemplo real de Roberto al probarla;
+  no usar como reporte oficial hasta que él confirme el criterio real.
+- **PDF**: generado de verdad con jsPDF (vía CDN), no solo `window.print()`.
+- **Envío a WhatsApp**: un toque vía Web Share API — el botón abre el panel nativo de
+  compartir del teléfono con el PDF ya adjunto, y WhatsApp aparece como opción (decisión
+  explícita de Mario, frente a conectar el puente de WhatsApp/Baileys existente para
+  cero-toques, que habría requerido decidir su hosting 24/7 — queda como posible
+  mejora futura, no descartada, solo no construida todavía).
 
 ## Cocina — flujo de trabajo en 3 pasos
 

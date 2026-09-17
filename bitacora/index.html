@@ -1,37 +1,547 @@
 <!DOCTYPE html>
 <html lang="es"><head>
 <meta charset="UTF-8">
-<title>NOOK — Bitácora</title>
+<title>NOOK · Bitácora Diaria</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/nook.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
+  --cream:#faf7ee; --ink:#333; --muted:#8a8377; --border:#e3e0d9; --ok:#3f7a4f; --warn:#a13a3a;
+}
+*{box-sizing:border-box;}
+body{font-family:'Poppins',-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);padding-bottom:60px;}
+header.app{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--cream);padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+header.app .id{display:flex;align-items:center;gap:10px;}
+header.app img{height:26px;}
+header.app .sub{font-size:11px;letter-spacing:.1em;color:var(--tan-line);text-transform:uppercase;}
+a.back{color:var(--tan-line);text-decoration:none;font-size:12px;font-weight:700;}
+a.back:hover{color:#fff;}
+nav.tabs{display:flex;gap:6px;}
+nav.tabs button{background:rgba(255,255,255,.12);border:none;color:var(--cream);padding:8px 16px;border-radius:999px;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s ease;}
+nav.tabs button:hover{background:rgba(255,255,255,.22);}
+nav.tabs button.on{background:var(--tan-line);color:#26221c;}
+
+main{max-width:920px;margin:0 auto;padding:22px 18px;}
+.view{display:none;}
+.view.on{display:block;}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin:-18px -20px 14px;padding:12px 20px;
+  border-radius:12px 12px 0 0;display:flex;justify-content:space-between;}
+.card.navy h2{background:var(--navy);}
+.card.brown h2{background:var(--brown);}
+.card h2 .col2{font-size:10px;letter-spacing:.12em;opacity:.75;font-weight:600;}
+
+.row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px dotted var(--border);}
+.row:last-child{border-bottom:none;}
+.row label{flex:1;font-size:13.5px;color:#4a453d;}
+.row input[type=text],.row input[type=number]{
+  flex:1;max-width:280px;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:inherit;
+  font-size:13.5px;color:var(--ink);background:#fefdfb;
+}
+.row input:focus{outline:none;border-color:var(--tan-line);}
+.row.money input{max-width:110px;text-align:right;}
+.row .prefix{color:var(--muted);font-size:13px;}
+
+.meta-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.meta-field{display:flex;flex-direction:column;gap:4px;}
+.meta-field label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;}
+.meta-field input[type=date],.meta-field input[type=text]{border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13.5px;}
+.shift-toggle{display:flex;gap:6px;}
+.shift-toggle button{border:1px solid var(--border);background:#fff;border-radius:6px;padding:7px 14px;font-family:inherit;
+  font-weight:700;font-size:12.5px;cursor:pointer;color:var(--muted);}
+.shift-toggle button.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.totales{background:var(--navy);color:var(--cream);border-radius:12px;padding:16px 20px;display:flex;gap:32px;flex-wrap:wrap;margin-bottom:16px;}
+.totales .t{display:flex;flex-direction:column;gap:2px;}
+.totales .t .n{font-size:22px;font-weight:700;}
+.totales .t .l{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tan-line);}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 6px;}
+button.btn{border:none;border-radius:8px;padding:11px 20px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease, box-shadow .12s ease;}
+button.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12);}
+button.btn.primary{background:var(--navy);color:#fff;}
+button.btn.accent{background:var(--tan-line);color:#26221c;}
+button.btn.ghost{background:#fff;border:1px solid var(--border);color:var(--ink);}
+button.btn.danger{background:#fff;border:1px solid var(--warn);color:var(--warn);}
+#saveState{font-size:12px;color:var(--muted);align-self:center;}
+
+/* historial */
+table.hist{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+table.hist th{background:var(--navy);color:var(--cream);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;text-align:left;}
+table.hist td{padding:10px 12px;font-size:13px;border-top:1px solid var(--border);}
+table.hist tr:hover td{background:#faf8f4;}
+table.hist td.num{text-align:right;font-variant-numeric:tabular-nums;}
+table.hist button{border:none;background:none;color:var(--tan);font-weight:700;cursor:pointer;font-size:12px;}
+table.hist button:hover{color:var(--navy);}
+.empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:10px;}
+
+/* cortes */
+.mes-select{margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.mes-select select{border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:13.5px;}
+.nota{font-size:11.5px;color:var(--muted);margin:6px 0 16px;font-style:italic;}
+</style>
 </head><body>
 
-<div class="hero deep">
-  <svg class="wave-deco" viewBox="0 0 150 110" fill="none" stroke="#faf7ee" stroke-width="5" stroke-linecap="round">
-    <path d="M0 20 Q15 8 30 20 T60 20 T90 20 T120 20 T150 20"/>
-    <path d="M0 45 Q15 33 30 45 T60 45 T90 45 T120 45 T150 45"/>
-    <path d="M0 70 Q15 58 30 70 T60 70 T90 70 T120 70 T150 70"/>
-    <path d="M0 95 Q15 83 30 95 T60 95 T90 95 T120 95 T150 95"/>
-  </svg>
-  <div class="hero-inner">
-    <a class="back" href="../" style="color:#e9c98f">&larr; Menú principal</a>
-    <div class="hero-icon">
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <path d="M32 14 C27 9 16 8 8 10 L8 50 C16 48 27 49 32 54 C37 49 48 48 56 50 L56 10 C48 8 37 9 32 14 Z"/>
-        <rect x="30.5" y="13" width="3" height="42" fill="#2f443d"/>
-      </svg>
+<header class="app">
+  <div class="id">
+    <img src="../assets/nook-logo-cream.png" alt="NOOK">
+    <div>
+      <div style="font-weight:700;font-size:14px;">Bitácora Diaria</div>
+      <div class="sub">VOCO Surf Side · A&amp;B</div>
     </div>
-    <h1 style="color:var(--cream);margin-top:6px;">Bitácora</h1>
   </div>
-  <svg class="hero-edge" viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C240,60 480,0 720,20 C960,40 1200,8 1440,28 L1440,60 L0,60 Z"/></svg>
+  <nav class="tabs">
+    <button class="on" data-tab="captura">Captura</button>
+    <button data-tab="historial">Historial</button>
+    <button data-tab="cortes">Cortes</button>
+  </nav>
+  <a class="back" href="../">&larr; Menú principal</a>
+</header>
+
+<main>
+
+<!-- ===== CAPTURA ===== -->
+<div class="view on" id="view-captura">
+
+  <div class="meta-row">
+    <div class="meta-field"><label>Fecha</label><input type="date" id="f-fecha"></div>
+    <div class="meta-field"><label>Turno</label>
+      <div class="shift-toggle">
+        <button type="button" data-shift="AM">AM</button>
+        <button type="button" data-shift="PM">PM</button>
+      </div>
+    </div>
+    <div class="meta-field"><label>Elaboró</label><input type="text" id="f-elaboro" placeholder="Nombre"></div>
+  </div>
+
+  <div class="card navy">
+    <h2>Área General <span class="col2">Notas</span></h2>
+    <div class="row"><label>Asistencia de personal / Retardos</label><input type="text" id="f-ag-asistencia"></div>
+    <div class="row"><label>Limpieza de baños</label><input type="text" id="f-ag-banos"></div>
+    <div class="row"><label>Uniforme del personal</label><input type="text" id="f-ag-uniforme"></div>
+    <div class="row"><label>Faltantes de stock</label><input type="text" id="f-ag-faltantes"></div>
+    <div class="row"><label>Problemas de operación</label><input type="text" id="f-ag-problemas"></div>
+    <div class="row"><label>Seguimiento de quejas o sugerencias</label><input type="text" id="f-ag-quejas"></div>
+    <div class="row"><label>Pendientes de mantenimiento</label><input type="text" id="f-ag-mantenimiento"></div>
+  </div>
+
+  <div class="card navy">
+    <h2>Cocina <span class="col2">Observación</span></h2>
+    <div class="row"><label>Display de sabores</label><input type="text" id="f-co-display"></div>
+    <div class="row"><label>Mermas</label><input type="text" id="f-co-mermas"></div>
+    <div class="row"><label>Faltantes stock</label><input type="text" id="f-co-faltantes"></div>
+    <div class="row"><label>Realizar requisición</label><input type="text" id="f-co-requisicion"></div>
+  </div>
+
+  <div class="card navy">
+    <h2>Caja <span class="col2">Observación</span></h2>
+    <div class="row"><label>Diferencias de caja</label><input type="text" id="f-ca-diferencias"></div>
+    <div class="row"><label>Facturas pendientes</label><input type="text" id="f-ca-facturas"></div>
+  </div>
+
+  <div class="card navy">
+    <h2>Cheque Promedio <span class="col2">Nº de pax</span></h2>
+    <div class="row money"><label>Desayuno</label><span class="prefix">$</span><input type="number" step="0.01" id="f-cp-desayuno-monto" placeholder="Monto">
+      <input type="number" id="f-cp-desayuno-pax" placeholder="Pax" style="max-width:80px;"></div>
+    <div class="row money"><label>Comidas y cenas</label><span class="prefix">$</span><input type="number" step="0.01" id="f-cp-comidas-monto" placeholder="Monto">
+      <input type="number" id="f-cp-comidas-pax" placeholder="Pax" style="max-width:80px;"></div>
+  </div>
+
+  <div class="card brown">
+    <h2>Gerencia <span class="col2">Notas</span></h2>
+    <div class="row"><label>Cortesías &amp; descuentos</label><input type="text" id="f-ge-cortesias" placeholder="$ y motivo"></div>
+    <div class="row"><label>Revisar pedido general y mandar requisición</label><input type="text" id="f-ge-pedido"></div>
+    <div class="row"><label>Faltantes de stock</label><input type="text" id="f-ge-faltantes"></div>
+  </div>
+
+  <div class="card brown">
+    <h2>Barra <span class="col2">Observación</span></h2>
+    <div class="row"><label>Display de sabores</label><input type="text" id="f-ba-display"></div>
+    <div class="row"><label>Mermas</label><input type="text" id="f-ba-mermas"></div>
+    <div class="row"><label>Faltantes stock</label><input type="text" id="f-ba-faltantes"></div>
+    <div class="row"><label>Realizar requisición</label><input type="text" id="f-ba-requisicion"></div>
+  </div>
+
+  <div class="card brown">
+    <h2>Venta Total por Áreas <span class="col2">Monto</span></h2>
+    <div class="row money"><label>Room Service</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-roomservice"></div>
+    <div class="row money"><label>Bar</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-bar"></div>
+    <div class="row money"><label>Market Place</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-marketplace"></div>
+    <div class="row money"><label>Desayuno</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-desayuno"></div>
+    <div class="row money"><label>Comidas y cenas</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-comidascenas"></div>
+  </div>
+
+  <div class="card brown">
+    <h2>Ocupación / Desayunos <span class="col2">para el corte mensual — no está en el PDF original</span></h2>
+    <div class="row"><label>Guest in House</label><input type="number" id="f-oc-gih"></div>
+    <div class="row"><label>Desayunos incluidos</label><input type="number" id="f-oc-incl"></div>
+    <div class="row"><label>No Show</label><input type="number" id="f-oc-noshow"></div>
+    <div class="row"><label>Pay (pagados aparte)</label><input type="number" id="f-oc-pay"></div>
+    <div class="row"><label>Locales</label><input type="number" id="f-oc-locales"></div>
+  </div>
+
+  <div class="totales">
+    <div class="t"><div class="n" id="t-ventastotales">$ 0.00</div><div class="l">Ventas totales (auto)</div></div>
+    <div class="t">
+      <div class="n"><input type="number" step="0.01" id="f-t-efectivo" placeholder="0.00"
+        style="background:transparent;border:none;color:var(--cream);font-size:22px;font-weight:700;width:110px;font-family:inherit;border-bottom:1px solid rgba(255,255,255,.4);"></div>
+      <div class="l">Ventas en efectivo</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" id="btnGuardar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Guardar</button>
+    <button class="btn accent" id="btnPdf"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg> Descargar PDF</button>
+    <button class="btn accent" id="btnShare"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5M15.4 6.5 8.6 10.5"/></svg> Enviar a WhatsApp</button>
+    <button class="btn ghost" id="btnNuevo">+ Nuevo día</button>
+    <span id="saveState"></span>
+  </div>
+  <p class="nota">"Ventas totales" se calcula solo (suma de las 5 áreas). "Ventas en efectivo" se captura a mano porque no se puede derivar de lo demás.</p>
 </div>
 
-<div class="container">
-<div class="placeholder">
-  <div class="pill">Próximamente</div>
-  <p>Aquí vivirá la bitácora de NOOK.</p>
+<!-- ===== HISTORIAL ===== -->
+<div class="view" id="view-historial">
+  <div class="actions" style="margin-top:0;">
+    <button class="btn ghost" id="btnExport">Exportar JSON (respaldo)</button>
+    <button class="btn ghost" id="btnImportBtn">Importar JSON</button>
+    <input type="file" id="btnImport" accept="application/json" style="display:none;">
+  </div>
+  <div id="histTableWrap"></div>
 </div>
+
+<!-- ===== CORTES ===== -->
+<div class="view" id="view-cortes">
+  <div class="mes-select">
+    <label style="font-size:13px;font-weight:700;color:var(--navy);">Mes:</label>
+    <select id="mesSelect"></select>
+  </div>
+
+  <h2 style="font-size:14px;color:var(--navy);">Ventas y proyección diaria</h2>
+  <p class="nota">Proyección = (acumulado ÷ días transcurridos) × días del mes. Se recalcula solo con cada día capturado.</p>
+  <div id="corteVentasWrap" style="margin-bottom:28px;"></div>
+
+  <h2 style="font-size:14px;color:var(--navy);">Comparativo desayunos / ocupación</h2>
+  <p class="nota">SIN VERIFICAR: fórmula de "Total Guest" = Incluidos − No Show + Pay, "%" = Total Guest ÷ Guest in House. Confirmar con Roberto que coincide con el criterio real antes de usarlo como reporte oficial.</p>
+  <div id="corteOcupacionWrap"></div>
 </div>
+
+</main>
+
+<script>
+const STORE_KEY = 'nook_bitacora_v1';
+const FIELDS = [
+  'ag-asistencia','ag-banos','ag-uniforme','ag-faltantes','ag-problemas','ag-quejas','ag-mantenimiento',
+  'co-display','co-mermas','co-faltantes','co-requisicion',
+  'ca-diferencias','ca-facturas',
+  'ge-cortesias','ge-pedido','ge-faltantes',
+  'ba-display','ba-mermas','ba-faltantes','ba-requisicion'
+];
+const NUM_FIELDS = [
+  'cp-desayuno-monto','cp-desayuno-pax','cp-comidas-monto','cp-comidas-pax',
+  'v-roomservice','v-bar','v-marketplace','v-desayuno','v-comidascenas',
+  'oc-gih','oc-incl','oc-noshow','oc-pay','oc-locales'
+];
+const $ = s => document.querySelector(s);
+let db = { entries: {} };
+let shift = { AM:false, PM:false };
+let saveT;
+
+function load(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) db = JSON.parse(raw); }catch(e){}
+}
+function persist(){
+  clearTimeout(saveT);
+  $('#saveState').textContent = 'Guardando…';
+  saveT = setTimeout(()=>{
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(db)); $('#saveState').textContent = 'Guardado ✓ ' + new Date().toLocaleTimeString(); }
+    catch(e){ $('#saveState').textContent = 'Error al guardar (localStorage lleno?)'; }
+  }, 400);
+}
+
+function currentEntry(){
+  const fecha = $('#f-fecha').value;
+  if(!fecha) return null;
+  return db.entries[fecha];
+}
+
+function collectForm(){
+  const fecha = $('#f-fecha').value;
+  if(!fecha){ alert('Elige una fecha primero.'); return null; }
+  const e = { fecha, turno: {...shift}, elaboro: $('#f-elaboro').value, campos:{}, num:{} };
+  FIELDS.forEach(k => e.campos[k] = $('#f-'+k).value);
+  NUM_FIELDS.forEach(k => e.num[k] = parseFloat($('#f-'+k).value) || 0);
+  e.efectivo = parseFloat($('#f-t-efectivo').value) || 0;
+  e.ventasTotales = e.num['v-roomservice'] + e.num['v-bar'] + e.num['v-marketplace'] + e.num['v-desayuno'] + e.num['v-comidascenas'];
+  return e;
+}
+
+function fillForm(e){
+  $('#f-fecha').value = e.fecha;
+  $('#f-elaboro').value = e.elaboro || '';
+  shift = {...e.turno};
+  document.querySelectorAll('.shift-toggle button').forEach(b=> b.classList.toggle('on', !!shift[b.dataset.shift]));
+  FIELDS.forEach(k => $('#f-'+k).value = (e.campos && e.campos[k]) || '');
+  NUM_FIELDS.forEach(k => $('#f-'+k).value = (e.num && e.num[k]) || '');
+  $('#f-t-efectivo').value = e.efectivo || '';
+  updateTotales();
+}
+
+function clearForm(keepDate){
+  const fecha = keepDate ? $('#f-fecha').value : new Date().toISOString().slice(0,10);
+  $('#f-fecha').value = fecha;
+  $('#f-elaboro').value = '';
+  shift = {AM:false, PM:false};
+  document.querySelectorAll('.shift-toggle button').forEach(b=> b.classList.remove('on'));
+  FIELDS.forEach(k => $('#f-'+k).value = '');
+  NUM_FIELDS.forEach(k => $('#f-'+k).value = '');
+  $('#f-t-efectivo').value = '';
+  updateTotales();
+}
+
+function updateTotales(){
+  const sum = NUM_FIELDS.filter(k=>k.startsWith('v-')).reduce((a,k)=> a + (parseFloat($('#f-'+k).value)||0), 0);
+  $('#t-ventastotales').textContent = '$ ' + sum.toFixed(2);
+}
+
+function loadDateIntoForm(){
+  const fecha = $('#f-fecha').value;
+  const e = db.entries[fecha];
+  if(e) fillForm(e); else { const f = fecha; clearForm(true); $('#f-fecha').value = f; }
+}
+
+document.querySelectorAll('.shift-toggle button').forEach(b=>{
+  b.addEventListener('click', ()=>{ shift[b.dataset.shift] = !shift[b.dataset.shift]; b.classList.toggle('on'); guardarSilencioso(); });
+});
+document.querySelectorAll('#view-captura input').forEach(inp=>{
+  inp.addEventListener('input', ()=>{ updateTotales(); guardarSilencioso(); });
+});
+$('#f-fecha').addEventListener('change', loadDateIntoForm);
+
+function guardarSilencioso(){
+  const e = collectForm(); if(!e) return;
+  db.entries[e.fecha] = e; persist();
+}
+
+$('#btnGuardar').onclick = ()=>{
+  const e = collectForm(); if(!e) return;
+  db.entries[e.fecha] = e; persist();
+  alert('Guardado: ' + e.fecha);
+  renderHistorial();
+};
+$('#btnNuevo').onclick = ()=>{ if(confirm('¿Empezar un día nuevo? (lo de hoy ya guardado no se pierde)')) clearForm(false); };
+
+/* ---------- PDF ---------- */
+function buildPdfDoc(e){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const navy = [43,74,94], brown=[91,70,54], ink=[40,40,40], muted=[120,110,95];
+  let y = 40;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...navy);
+  doc.text('BITÁCORA DIARIA', 40, y);
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...muted);
+  doc.text('VOCO SURF SIDE — ARUBA · A&B', 40, y+14);
+  doc.setTextColor(...ink);
+  doc.text('Fecha: ' + e.fecha + '    Turno: ' + (['AM','PM'].filter(s=>e.turno[s]).join('/') || '—') + '    Elaboró: ' + (e.elaboro||'—'), 300, y);
+  y += 30;
+
+  function section(title, rows, color){
+    doc.setFillColor(...color); doc.rect(40, y, 515, 16, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(title, 44, y+11);
+    y += 20;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...ink);
+    rows.forEach(([label, value])=>{
+      doc.text(label, 44, y);
+      doc.text(String(value ?? ''), 300, y);
+      y += 14;
+    });
+    y += 8;
+  }
+
+  section('ÁREA GENERAL', [
+    ['Asistencia de personal / Retardos', e.campos['ag-asistencia']],
+    ['Limpieza de baños', e.campos['ag-banos']],
+    ['Uniforme del personal', e.campos['ag-uniforme']],
+    ['Faltantes de stock', e.campos['ag-faltantes']],
+    ['Problemas de operación', e.campos['ag-problemas']],
+    ['Seguimiento de quejas o sugerencias', e.campos['ag-quejas']],
+    ['Pendientes de mantenimiento', e.campos['ag-mantenimiento']],
+  ], navy);
+
+  section('COCINA', [
+    ['Display de sabores', e.campos['co-display']],
+    ['Mermas', e.campos['co-mermas']],
+    ['Faltantes stock', e.campos['co-faltantes']],
+    ['Realizar requisición', e.campos['co-requisicion']],
+  ], navy);
+
+  section('CAJA', [
+    ['Diferencias de caja', e.campos['ca-diferencias']],
+    ['Facturas pendientes', e.campos['ca-facturas']],
+  ], navy);
+
+  section('CHEQUE PROMEDIO', [
+    ['Desayuno', '$' + e.num['cp-desayuno-monto'].toFixed(2) + '  ·  ' + e.num['cp-desayuno-pax'] + ' pax'],
+    ['Comidas y cenas', '$' + e.num['cp-comidas-monto'].toFixed(2) + '  ·  ' + e.num['cp-comidas-pax'] + ' pax'],
+  ], navy);
+
+  if(y > 650){ doc.addPage(); y = 40; }
+
+  section('GERENCIA', [
+    ['Cortesías & descuentos', e.campos['ge-cortesias']],
+    ['Revisar pedido general y mandar requisición', e.campos['ge-pedido']],
+    ['Faltantes de stock', e.campos['ge-faltantes']],
+  ], brown);
+
+  section('BARRA', [
+    ['Display de sabores', e.campos['ba-display']],
+    ['Mermas', e.campos['ba-mermas']],
+    ['Faltantes stock', e.campos['ba-faltantes']],
+    ['Realizar requisición', e.campos['ba-requisicion']],
+  ], brown);
+
+  section('VENTA TOTAL POR ÁREAS', [
+    ['Room Service', '$' + e.num['v-roomservice'].toFixed(2)],
+    ['Bar', '$' + e.num['v-bar'].toFixed(2)],
+    ['Market Place', '$' + e.num['v-marketplace'].toFixed(2)],
+    ['Desayuno', '$' + e.num['v-desayuno'].toFixed(2)],
+    ['Comidas y cenas', '$' + e.num['v-comidascenas'].toFixed(2)],
+  ], brown);
+
+  section('TOTALES DEL DÍA', [
+    ['Ventas totales', '$' + e.ventasTotales.toFixed(2)],
+    ['Ventas en efectivo', '$' + e.efectivo.toFixed(2)],
+  ], navy);
+
+  doc.setFontSize(8); doc.setTextColor(...muted);
+  doc.text('NOOK · De la Mora Zumarán — Kitchen Support', 40, 800);
+  return doc;
+}
+
+$('#btnPdf').onclick = ()=>{
+  const e = collectForm(); if(!e) return;
+  const doc = buildPdfDoc(e);
+  doc.save('Bitacora_NOOK_' + e.fecha + '.pdf');
+};
+
+$('#btnShare').onclick = async ()=>{
+  const e = collectForm(); if(!e) return;
+  const doc = buildPdfDoc(e);
+  const blob = doc.output('blob');
+  const file = new File([blob], 'Bitacora_NOOK_' + e.fecha + '.pdf', { type:'application/pdf' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], title:'Bitácora NOOK ' + e.fecha, text:'Bitácora Diaria NOOK — ' + e.fecha });
+    }catch(err){ /* usuario canceló, no hacer nada */ }
+  } else {
+    alert('Este navegador no soporta compartir archivos directo (funciona en celular, Safari/Chrome). Se descargará el PDF — adjúntalo manualmente en WhatsApp.');
+    doc.save('Bitacora_NOOK_' + e.fecha + '.pdf');
+  }
+};
+
+/* ---------- Historial ---------- */
+function renderHistorial(){
+  const fechas = Object.keys(db.entries).sort().reverse();
+  const wrap = $('#histTableWrap');
+  if(!fechas.length){ wrap.innerHTML = '<div class="empty">Sin bitácoras guardadas todavía.</div>'; return; }
+  let html = '<table class="hist"><thead><tr><th>Fecha</th><th>Turno</th><th>Elaboró</th><th>Ventas totales</th><th>Efectivo</th><th></th></tr></thead><tbody>';
+  fechas.forEach(f=>{
+    const e = db.entries[f];
+    const turno = ['AM','PM'].filter(s=>e.turno[s]).join('/') || '—';
+    html += `<tr><td>${f}</td><td>${turno}</td><td>${e.elaboro||'—'}</td><td class="num">$${e.ventasTotales.toFixed(2)}</td><td class="num">$${e.efectivo.toFixed(2)}</td>
+      <td><button data-open="${f}">Abrir</button> · <button data-del="${f}">Borrar</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-open]').forEach(b=> b.onclick = ()=>{ $('#f-fecha').value = b.dataset.open; loadDateIntoForm(); switchTab('captura'); });
+  wrap.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ if(confirm('¿Borrar la bitácora de ' + b.dataset.del + '? No se puede deshacer.')){ delete db.entries[b.dataset.del]; persist(); renderHistorial(); renderCortes(); } });
+}
+
+$('#btnExport').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'NOOK_bitacora_backup_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+};
+$('#btnImportBtn').onclick = ()=> $('#btnImport').click();
+$('#btnImport').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!data.entries) throw new Error('formato inválido');
+      Object.assign(db.entries, data.entries);
+      persist(); renderHistorial(); renderCortes();
+      alert('Importado. Total de días en historial: ' + Object.keys(db.entries).length);
+    }catch(err){ alert('No se pudo importar: ' + err.message); }
+  };
+  r.readAsText(file); e.target.value = '';
+});
+
+/* ---------- Cortes (semanal/mensual, auto-derivados del historial) ---------- */
+function mesesDisponibles(){
+  const set = new Set(Object.keys(db.entries).map(f=>f.slice(0,7)));
+  if(!set.size) set.add(new Date().toISOString().slice(0,7));
+  return [...set].sort().reverse();
+}
+function poblarMesSelect(){
+  const sel = $('#mesSelect'); const cur = sel.value;
+  sel.innerHTML = mesesDisponibles().map(m=>`<option value="${m}">${m}</option>`).join('');
+  if(cur) sel.value = cur;
+}
+function diasEnMes(mesStr){ const [y,m] = mesStr.split('-').map(Number); return new Date(y, m, 0).getDate(); }
+
+function renderCortes(){
+  poblarMesSelect();
+  const mes = $('#mesSelect').value || mesesDisponibles()[0];
+  const fechas = Object.keys(db.entries).filter(f=>f.startsWith(mes)).sort();
+  const totalDias = diasEnMes(mes);
+
+  let acumulado = 0;
+  let rowsVentas = '<table class="hist"><thead><tr><th>Día</th><th>Venta</th><th>Acumulado</th><th>Proyección</th></tr></thead><tbody>';
+  fechas.forEach((f,i)=>{
+    const e = db.entries[f];
+    acumulado += e.ventasTotales;
+    const proyeccion = (acumulado / (i+1)) * totalDias;
+    rowsVentas += `<tr><td>${f.slice(8)}-${mes.slice(5)}</td><td class="num">$${e.ventasTotales.toFixed(2)}</td><td class="num">$${acumulado.toFixed(2)}</td><td class="num">$${proyeccion.toFixed(2)}</td></tr>`;
+  });
+  rowsVentas += '</tbody></table>';
+  $('#corteVentasWrap').innerHTML = fechas.length ? rowsVentas : '<div class="empty">Sin bitácoras capturadas este mes.</div>';
+
+  let rowsOcup = '<table class="hist"><thead><tr><th>Día</th><th>Guest in House</th><th>Incl.</th><th>No Show</th><th>Pay</th><th>Total Guest</th><th>%</th><th>Locales</th><th>Total</th></tr></thead><tbody>';
+  fechas.forEach(f=>{
+    const e = db.entries[f]; const n = e.num;
+    const totalGuest = n['oc-incl'] - n['oc-noshow'] + n['oc-pay'];
+    const pct = n['oc-gih'] ? (totalGuest / n['oc-gih'] * 100) : 0;
+    const total = totalGuest + n['oc-locales'];
+    rowsOcup += `<tr><td>${f.slice(8)}-${mes.slice(5)}</td><td class="num">${n['oc-gih']}</td><td class="num">${n['oc-incl']}</td><td class="num">${n['oc-noshow']}</td><td class="num">${n['oc-pay']}</td><td class="num">${totalGuest}</td><td class="num">${pct.toFixed(0)}%</td><td class="num">${n['oc-locales']}</td><td class="num">${total}</td></tr>`;
+  });
+  rowsOcup += '</tbody></table>';
+  $('#corteOcupacionWrap').innerHTML = fechas.length ? rowsOcup : '<div class="empty">Sin bitácoras capturadas este mes.</div>';
+}
+$('#mesSelect').addEventListener('change', renderCortes);
+
+/* ---------- Tabs ---------- */
+function switchTab(name){
+  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('on', b.dataset.tab===name));
+  document.querySelectorAll('.view').forEach(v=> v.classList.toggle('on', v.id === 'view-'+name));
+  if(name==='historial') renderHistorial();
+  if(name==='cortes') renderCortes();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=> b.addEventListener('click', ()=> switchTab(b.dataset.tab)));
+
+/* ---------- arranque ---------- */
+load();
+$('#f-fecha').value = new Date().toISOString().slice(0,10);
+loadDateIntoForm();
+renderHistorial();
+</script>
 </body></html>
