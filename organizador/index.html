@@ -193,6 +193,7 @@
   <button class="secondary" onclick="exportJSON()">Exportar JSON</button>
   <button class="secondary" onclick="document.getElementById('importFile').click()">Importar JSON</button>
   <input type="file" id="importFile" accept=".json,application/json" hidden>
+  <span id="saveState" style="margin-left:auto;font-size:12px;color:#8a8377;align-self:center;"></span>
 </div>
 
 <div id="orderOutput"></div>
@@ -211,7 +212,31 @@ const FAMILY_NAMES = {
 };
 const FAMILY_ORDER = ["LUN", "POOL", "DIN", "OTROS", "SIN"];
 
-let state = JSON.parse(JSON.stringify(DISHES));
+/* ---------- autoguardado (localStorage) — mismo patrón que fichas/recetario/bitácora ---------- */
+const KEY = 'nook:organizador:v1';
+let _saveT = null;
+function scheduleSave(){
+  clearTimeout(_saveT);
+  const el = document.getElementById('saveState');
+  if (el) el.textContent = 'Guardando…';
+  _saveT = setTimeout(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      if (el) el.textContent = 'Guardado ✓ ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      if (el) el.textContent = 'Error al guardar';
+    }
+  }, 400);
+}
+function loadSavedState(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+let state = loadSavedState() || JSON.parse(JSON.stringify(DISHES));
 
 function groupByFamily(list) {
   const g = {};
@@ -221,6 +246,7 @@ function groupByFamily(list) {
 }
 
 function render() {
+  scheduleSave();
   const container = document.getElementById('container');
   container.innerHTML = '';
   const groups = groupByFamily(state);
@@ -293,6 +319,7 @@ function render() {
         const dish2 = state.find(d => d.id === dish.id);
         if (dish2) dish2.name = input.value;
         input.classList.toggle('empty', input.value.trim() === '');
+        scheduleSave();
       });
 
       grid.appendChild(card);
