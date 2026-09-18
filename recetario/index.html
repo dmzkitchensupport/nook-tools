@@ -196,8 +196,11 @@ body.edit-mode .proc-notes-box{min-height:28px;padding:4px 6px;}
 @media print{#changelogOverlay,#changelogPanel,.edit-toggle,#changelogBtn,.unit-group,#editStat{display:none!important;}}
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js"></script>
 </head>
 <body>
+<script>NookAuth.guard({ allow: ['gerencia','chef'], home: '../' });</script>
 
 <div class="mh">
   <div class="ms">NOOK · VOCO Surf Side · Aruba</div>

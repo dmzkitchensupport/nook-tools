@@ -58,8 +58,11 @@
        padding:14px 18px;font-size:12.5px;font-family:"SF Mono",Menlo,monospace;margin:14px 0;max-height:400px;overflow:auto;}
   .none{color:#aaa;font-style:italic;padding:24px;text-align:center;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js"></script>
 </head>
 <body>
+<script>NookAuth.guard({ allow: ['gerencia','chef'], home: '../' });</script>
 
 <h1>NOOK</h1>
 <div class="sub">Fichas de platillos · descripción e insumos automáticos desde el recetario · se guarda solo</div>

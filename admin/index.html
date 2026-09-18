@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<title>NOOK · Administración de cuentas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js"></script>
+<style>
+  :root{--navy:#2b4a5e;--tan:#9a7367;--tan-line:#b8935a;--brown:#5b4636;--cream:#faf7ee;--ink:#333;--muted:#8a8377;--border:#e3e0d9;--ok:#3f7a4f;--warn:#a13a3a;}
+  *{box-sizing:border-box;}
+  body{font-family:'Poppins',-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);padding-bottom:60px;}
+  header.app{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--cream);padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+  header.app .id{display:flex;flex-direction:column;}
+  header.app .id b{font-size:14px;}
+  header.app .id span{font-size:11px;letter-spacing:.08em;color:var(--tan-line);text-transform:uppercase;}
+  a.back{color:var(--tan-line);text-decoration:none;font-size:12px;font-weight:700;}
+  a.back:hover{color:#fff;}
+  main{max-width:980px;margin:0 auto;padding:22px 18px;}
+  .note{background:#fff;border:1px solid var(--border);border-left:4px solid var(--tan-line);border-radius:8px;
+    padding:12px 16px;font-size:12.5px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+  th{background:var(--navy);color:var(--cream);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:10px;text-align:left;}
+  td{padding:8px 10px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
+  tr.pendiente{background:#fff8ec;}
+  select,input[type=text]{border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12.5px;width:100%;}
+  .pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;}
+  .pill.pendiente{background:#f3d9a5;color:#5b4636;}
+  .pill.chef{background:#d6e3ea;color:var(--navy);}
+  .pill.gerencia{background:#c7dfc9;color:var(--ok);}
+  button.save{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:7px 12px;font-family:inherit;
+    font-weight:700;font-size:12px;cursor:pointer;}
+  button.save:hover{background:#1f3846;}
+  button.save:disabled{background:#c9c9c9;cursor:default;}
+  .empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:10px;}
+  #status{font-size:12px;color:var(--muted);margin-top:10px;}
+</style>
+</head><body>
+
+<header class="app">
+  <div class="id">
+    <b>Administración de cuentas</b>
+    <span>NOOK · Solo mario@delamorazumaran.com</span>
+  </div>
+  <a class="back" href="../">&larr; Menú principal</a>
+</header>
+
+<main>
+  <div class="note">
+    La seguridad real vive en la función <code>admin_set_profile</code> (Postgres, SECURITY DEFINER) —
+    verifica <code>auth.email() = 'mario@delamorazumaran.com'</code> del lado del servidor antes de permitir
+    cualquier cambio. Esta pantalla solo evita mostrar controles que de todos modos serían rechazados.
+  </div>
+  <div id="tableWrap"><div class="empty">Cargando…</div></div>
+  <div id="status"></div>
+</main>
+
+<script>
+async function cargar(){
+  const sb = NookAuth.client();
+  const { data, error } = await sb.rpc('admin_list_profiles');
+  const wrap = document.getElementById('tableWrap');
+  if(error){ wrap.innerHTML = '<div class="empty">Error al cargar: ' + error.message + '</div>'; return; }
+  if(!data || !data.length){ wrap.innerHTML = '<div class="empty">Sin cuentas registradas todavía.</div>'; return; }
+  let html = '<table><thead><tr><th>Email</th><th>Nombre</th><th>Teléfono</th><th>Puesto</th><th>Rol</th><th>Aprobado</th><th></th></tr></thead><tbody>';
+  data.forEach(p=>{
+    html += `<tr class="${p.rol==='pendiente'?'pendiente':''}" data-id="${p.id}">
+      <td>${esc(p.email)}</td>
+      <td>${esc(p.nombre||'—')}</td>
+      <td>${esc(p.telefono||'—')}</td>
+      <td><input type="text" class="f-puesto" value="${esc(p.puesto||'')}"></td>
+      <td><select class="f-rol">
+        <option value="pendiente" ${p.rol==='pendiente'?'selected':''}>pendiente</option>
+        <option value="chef" ${p.rol==='chef'?'selected':''}>chef</option>
+        <option value="gerencia" ${p.rol==='gerencia'?'selected':''}>gerencia</option>
+      </select></td>
+      <td style="text-align:center;"><input type="checkbox" class="f-aprobado" ${p.aprobado?'checked':''}></td>
+      <td><button class="save">Guardar</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('tr[data-id]').forEach(row=>{
+    row.querySelector('.save').onclick = () => guardarFila(row);
+  });
+}
+
+async function guardarFila(row){
+  const id = row.dataset.id;
+  const rol = row.querySelector('.f-rol').value;
+  const puesto = row.querySelector('.f-puesto').value;
+  const aprobado = row.querySelector('.f-aprobado').checked;
+  const btn = row.querySelector('.save');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const sb = NookAuth.client();
+  const { error } = await sb.rpc('admin_set_profile', {
+    target_id: id, nuevo_rol: rol, nuevo_puesto: puesto, nuevo_aprobado: aprobado
+  });
+  const status = document.getElementById('status');
+  if(error){ status.textContent = 'Error: ' + error.message; btn.disabled=false; btn.textContent='Guardar'; return; }
+  status.textContent = 'Guardado ' + new Date().toLocaleTimeString();
+  btn.disabled = false; btn.textContent = 'Guardar';
+  row.className = rol === 'pendiente' ? 'pendiente' : '';
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+NookAuth.guardAdmin({ home: '../' }).then(session => { if(session) cargar(); });
+</script>
+</body></html>

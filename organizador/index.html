@@ -175,8 +175,11 @@
     padding: 14px;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js"></script>
 </head>
 <body>
+<script>NookAuth.guard({ allow: ['gerencia','chef'], home: '../' });</script>
 
 <h1>NOOK</h1>
 <div class="subtitle">Acomoda los platillos y ponles nombre</div>
