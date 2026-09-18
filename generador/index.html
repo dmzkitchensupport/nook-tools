@@ -732,10 +732,31 @@ $('#univFile').addEventListener('change', e=>{
 
 function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
 
-/* ---------- autoguardado (IndexedDB — aguanta muchas fotos) ---------- */
+/* ---------- autoguardado: nube (Supabase, fuente real) + IndexedDB (respaldo local/offline) ----------
+ * 18-sep-2026: antes esto SOLO vivía en IndexedDB -- cada computadora tenía su propia copia,
+ * sin sincronizar entre sí. Un chef llenaba una ficha en su equipo y nadie más la veía. Ahora
+ * la nube (tabla generador_proyecto vía RPC generador_load/generador_save) es la fuente real;
+ * IndexedDB queda como caché local para que la app siga funcionando sin internet y no se pierda
+ * nada si falla el guardado en la nube. */
 const DB_NAME='nook_ficheros', STORE='proj', BUILD=4;
 let loadedBuild=0;
 let _db=null, _idbok=true, _saveT=null, _booting=true;
+let _cloudOk=true;
+async function cloudLoad(){
+  try{
+    const { data, error } = await NookAuth.client().rpc('generador_load');
+    if(error) throw error;
+    return data || null;
+  }catch(e){ _cloudOk=false; return null; }
+}
+async function cloudSave(payload){
+  try{
+    const { error } = await NookAuth.client().rpc('generador_save', { p_data: payload });
+    if(error) throw error;
+    _cloudOk=true;
+    return true;
+  }catch(e){ _cloudOk=false; return false; }
+}
 function idbOpen(){
   return new Promise((res,rej)=>{
     try{
@@ -750,17 +771,30 @@ async function idbSet(k,v){ if(!_db)_db=await idbOpen(); return new Promise((res
 async function idbGet(k){ if(!_db)_db=await idbOpen(); return new Promise((res,rej)=>{const tx=_db.transaction(STORE,'readonly'); const rq=tx.objectStore(STORE).get(k); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);}); }
 function setSaveState(t){ const el=$('#savestate'); if(el) el.textContent=t; }
 function scheduleSave(){
-  if(_booting || !_idbok) return;
+  if(_booting) return;
   setSaveState('Guardando…');
   clearTimeout(_saveT);
   _saveT=setTimeout(async ()=>{
-    try{
-      await idbSet('project',{v:1, build:BUILD, cards, ts:Date.now()});
-      setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
-    }catch(e){ _idbok=false; setSaveState('Sin autoguardado — usa “Guardar proyecto”'); }
+    const payload={v:1, build:BUILD, cards, ts:Date.now()};
+    const cloudOk = await cloudSave(payload);
+    try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
+    if(cloudOk) setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
+    else if(_idbok) setSaveState('Sin conexión — guardado solo local, se sincronizará después');
+    else setSaveState('Sin autoguardado — usa “Guardar proyecto”');
   }, 600);
 }
+// true si la nube ya tenía un proyecto real al cargar -- si es false, el primer
+// guardado de este dispositivo siembra la nube (ver autoload().then() más abajo).
+let _cloudHadData=false;
 async function autoload(){
+  const cloudData=await cloudLoad();
+  if(cloudData && cloudData.cards && cloudData.cards.length){
+    cards=cloudData.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=cloudData.build||0;
+    _cloudHadData=true;
+    return;
+  }
+  // La nube no tiene nada todavía (recién migrado) o no se pudo alcanzar -- usa
+  // el respaldo local de este dispositivo mientras tanto.
   try{
     const d=await idbGet('project');
     if(d && d.cards && d.cards.length){ cards=d.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=d.build||0; }
@@ -789,13 +823,22 @@ autoload().then(()=>{
   cards.forEach(ensureUniversalFields);
   _booting=false;
   render();
-  if(seeded || migrated){ scheduleSave(); }
-  if(!_idbok) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
+  // seeded/migrated: hay un cambio nuevo que grabar. !_cloudHadData: la nube estaba
+  // vacía -- este dispositivo se vuelve la fuente inicial (la sube aunque no haya
+  // cambiado nada localmente, para que el resto de dispositivos ya la vean).
+  if(seeded || migrated || !_cloudHadData){ scheduleSave(); }
+  if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
   else setSaveState(cards.length ? ('Guardado ✓ '+new Date().toLocaleTimeString()) : 'Guardado automático activo');
 });
 
 /* flush inmediato al cerrar/ocultar la pestaña (por si quedó un cambio sin grabar) */
-function flushNow(){ if(_booting||!_idbok) return; clearTimeout(_saveT); try{ idbSet('project',{v:1, build:BUILD, cards, ts:Date.now()}); }catch(e){} }
+function flushNow(){
+  if(_booting) return;
+  clearTimeout(_saveT);
+  const payload={v:1, build:BUILD, cards, ts:Date.now()};
+  try{ idbSet('project',payload); }catch(e){}
+  try{ cloudSave(payload); }catch(e){}
+}
 window.addEventListener('pagehide', flushNow);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });
 </script>
