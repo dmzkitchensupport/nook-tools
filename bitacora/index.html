@@ -241,6 +241,7 @@ table.hist button:hover{color:var(--navy);}
 
 <script>
 const STORE_KEY = 'nook_bitacora_v1';
+function hoyLocal(d){ return (d||new Date()).toLocaleDateString('en-CA'); } // fecha del dispositivo (hora Aruba), no UTC — toISOString() adelanta el día en la noche
 const FIELDS = [
   'ag-asistencia','ag-banos','ag-uniforme','ag-faltantes','ag-problemas','ag-quejas','ag-mantenimiento',
   'co-display','co-mermas','co-faltantes','co-requisicion',
@@ -339,7 +340,7 @@ function fillForm(e){
 }
 
 function clearForm(keepDate){
-  const fecha = keepDate ? $('#f-fecha').value : new Date().toISOString().slice(0,10);
+  const fecha = keepDate ? $('#f-fecha').value : hoyLocal();
   $('#f-fecha').value = fecha;
   $('#f-elaboro').value = '';
   shift = {AM:false, PM:false};
@@ -516,7 +517,7 @@ function renderHistorial(){
 $('#btnExport').onclick = ()=>{
   const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'NOOK_bitacora_backup_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  a.download = 'NOOK_bitacora_backup_' + hoyLocal() + '.json'; a.click();
 };
 $('#btnImportBtn').onclick = ()=> $('#btnImport').click();
 $('#btnImport').addEventListener('change', e=>{
@@ -537,7 +538,7 @@ $('#btnImport').addEventListener('change', e=>{
 /* ---------- Cortes (semanal/mensual, auto-derivados del historial) ---------- */
 function mesesDisponibles(){
   const set = new Set(Object.keys(db.entries).map(f=>f.slice(0,7)));
-  if(!set.size) set.add(new Date().toISOString().slice(0,7));
+  if(!set.size) set.add(hoyLocal().slice(0,7));
   return [...set].sort().reverse();
 }
 function poblarMesSelect(){
@@ -588,7 +589,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=> b.addEventListener('cli
 
 /* ---------- arranque ---------- */
 load();
-$('#f-fecha').value = new Date().toISOString().slice(0,10);
+$('#f-fecha').value = hoyLocal();
 loadDateIntoForm();
 renderHistorial();
 NookAuth.guard({ allow: ['gerencia'], home: '../' }).then(profile => {
