@@ -776,8 +776,17 @@ function scheduleSave(){
   clearTimeout(_saveT);
   _saveT=setTimeout(async ()=>{
     const payload={v:1, build:BUILD, cards, ts:Date.now()};
-    const cloudOk = await cloudSave(payload);
     try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
+    // Nunca mandar un proyecto vacío por el camino automático -- incidente real 18-sep-2026:
+    // una pestaña/dispositivo con datos locales desactualizados (vacío) ganó una carrera de
+    // guardado contra el proyecto real de otro chef y lo sobrescribió con 0 fichas. La base
+    // de datos también lo rechaza ahora (ver migración generador_save_no_overwrite_vacio),
+    // pero evitarlo aquí ahorra la llamada y da un mensaje claro en vez de un error genérico.
+    if(!cards.length){
+      setSaveState(_idbok ? 'Guardado local ✓ (proyecto vacío no se sube a la nube)' : 'Sin autoguardado — usa “Guardar proyecto”');
+      return;
+    }
+    const cloudOk = await cloudSave(payload);
     if(cloudOk) setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
     else if(_idbok) setSaveState('Sin conexión — guardado solo local, se sincronizará después');
     else setSaveState('Sin autoguardado — usa “Guardar proyecto”');
@@ -837,7 +846,7 @@ function flushNow(){
   clearTimeout(_saveT);
   const payload={v:1, build:BUILD, cards, ts:Date.now()};
   try{ idbSet('project',payload); }catch(e){}
-  try{ cloudSave(payload); }catch(e){}
+  if(cards.length){ try{ cloudSave(payload); }catch(e){} }
 }
 window.addEventListener('pagehide', flushNow);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });
