@@ -541,11 +541,23 @@ function buildRow(c, i){
   grpSel.onchange = () => { c.group = grpSel.value; render(); };
 
   // dish selector (depends on service+group) → sets title + carta description
+  // "+ Otro / nuevo platillo…" (18-sep-2026): el menú oficial (MENU) es una lista fija
+  // transcrita en el código -- un platillo nuevo (ej. "Voco Burger") no aparece ahí, y sin
+  // esta opción no había forma clara de agregarlo (el título SÍ es editable directo en el
+  // encabezado de la ficha, data-k="title", pero no era obvio ni descubrible). Al elegir
+  // "+ Otro", solo limpia título/descripción para escribir uno nuevo a mano -- no borra ni
+  // sobreescribe ningún platillo existente del menú oficial ni de otras fichas.
   const dishSel = document.createElement('select'); dishSel.className='catsel';
+  const dishesAqui = dishesOf(c.cat, c.group);
+  const esPlatilloNuevo = c.title && !dishesAqui.some(d=>d[0]===c.title);
   let dopts = `<option value="">— Platillo —</option>`;
-  dishesOf(c.cat, c.group).forEach(d => dopts += `<option value="${d[0].replace(/"/g,'&quot;')}" ${c.title===d[0]?'selected':''}>${d[0]}</option>`);
+  dishesAqui.forEach(d => dopts += `<option value="${d[0].replace(/"/g,'&quot;')}" ${c.title===d[0]?'selected':''}>${d[0]}</option>`);
+  dopts += `<option value="__nuevo__" ${esPlatilloNuevo?'selected':''}>+ Otro / nuevo platillo…</option>`;
   dishSel.innerHTML = dopts; dishSel.disabled = !c.group;
-  dishSel.onchange = () => { c.title = dishSel.value; c.carta = descOf(c.cat, c.group, dishSel.value); render(); };
+  dishSel.onchange = () => {
+    if(dishSel.value === '__nuevo__'){ c.title=''; c.carta=''; render(); return; }
+    c.title = dishSel.value; c.carta = descOf(c.cat, c.group, dishSel.value); render();
+  };
 
   const seg = document.createElement('div'); seg.className='seg'; seg.style.marginLeft='auto';
   seg.innerHTML = `<button data-fit="cover" class="${c.fit==='cover'?'on':''}">Llenar</button>

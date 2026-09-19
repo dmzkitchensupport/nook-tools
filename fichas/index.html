@@ -45,10 +45,11 @@
   .mini{font-size:10px;color:var(--navy);background:none;border:1px solid #dcdcdc;border-radius:4px;
         padding:2px 7px;cursor:pointer;font-weight:600;}
   .mini:hover{background:#f2efe8;border-color:var(--gold);}
-  select,textarea{width:100%;font-family:inherit;font-size:12.5px;border:1px solid #dcdcdc;border-radius:5px;
+  select,textarea,input[type="text"]{width:100%;font-family:inherit;font-size:12.5px;border:1px solid #dcdcdc;border-radius:5px;
         padding:6px 7px;color:#333;background:#fff;}
-  select:focus,textarea:focus{outline:none;border-color:var(--gold);}
+  select:focus,textarea:focus,input[type="text"]:focus{outline:none;border-color:var(--gold);}
   select.empty{border-color:#e0b4b4;background:#fffafa;}
+  .dishname{margin-top:6px;}
   textarea{resize:vertical;line-height:1.45;}
   .desc{min-height:62px;background:#fbfbf9;}
   .items{min-height:92px;background:#fbfbf9;}
@@ -174,6 +175,10 @@ function optionsHTML(sel){
     });
     h+='</optgroup>';
   });
+  // 18-sep-2026: CATALOG es una lista fija (viene de catalogo-canonico.json) -- un platillo
+  // nuevo (ej. "Voco Burger") no aparece ahí. "+ Otro" no borra ni toca el catálogo, solo
+  // permite capturar un nombre libre para esta ficha puntual (ver campo .dishname).
+  h+=`<option value="__nuevo__"${sel==='__nuevo__'?' selected':''}>+ Otro / nuevo platillo…</option>`;
   return h;
 }
 
@@ -197,8 +202,8 @@ function render(){
 
   slice.forEach(c=>{
     const d=data[c.id];
-    const sel=d.dish?(d.selFam+'||'+d.dish):'';
-    const info=d.dish?findDish(d.selFam,d.dish):null;
+    const sel=d.custom?'__nuevo__':(d.dish?(d.selFam+'||'+d.dish):'');
+    const info=d.dish&&!d.custom?findDish(d.selFam,d.dish):null;
     const hasIng=info&&info.ing&&info.ing.length;
 
     const card=document.createElement('div');
@@ -217,6 +222,7 @@ function render(){
           <div class="lrow"><label>Platillo</label>
             ${d.rid?`<span class="rid">${d.rid}</span>`:''}</div>
           <select class="dish${d.dish?'':' empty'}">${optionsHTML(sel)}</select>
+          ${d.custom?`<input type="text" class="dishname" placeholder="Nombre del platillo nuevo…" value="${(d.dish||'').replace(/"/g,'&quot;')}">`:''}
           ${info&&info.p?`<div class="price">Precio carta: $${info.p}</div>`:''}
           ${d.dish&&!hasIng?`<div class="warn">Sin receta en el recetario — captura los insumos a mano</div>`:''}
         </div>
@@ -232,6 +238,7 @@ function render(){
       </div>`;
 
     const selEl=card.querySelector('.dish');
+    const nameEl=card.querySelector('.dishname');
     const descEl=card.querySelector('.desc');
     const itemsEl=card.querySelector('.items');
     const reload=card.querySelector('[data-act="reload"]');
@@ -239,15 +246,21 @@ function render(){
 
     selEl.addEventListener('change',()=>{
       const v=selEl.value;
-      if(!v){ Object.assign(d,{dish:'',selFam:'',desc:'',items:'',rid:'',family:c.family}); }
+      if(!v){ Object.assign(d,{dish:'',selFam:'',desc:'',items:'',rid:'',family:c.family,custom:false}); }
+      else if(v==='__nuevo__'){
+        // No toca el catálogo ni ningún otro platillo -- solo habilita el campo de nombre
+        // libre de esta ficha (ver .dishname más abajo).
+        Object.assign(d,{dish:'',selFam:'',desc:'',items:'',rid:'',family:c.family||'SIN',custom:true});
+      }
       else{
         const [fam,name]=v.split('||');
         const o=findDish(fam,name);
-        d.dish=name; d.selFam=fam; d.family=fam; d.rid=o&&o.rid?o.rid:'';
+        d.dish=name; d.selFam=fam; d.family=fam; d.rid=o&&o.rid?o.rid:''; d.custom=false;
         if(o){ d.desc=o.d||''; d.items=(o.ing||[]).join('\n'); }
       }
       queueSave(); render();
     });
+    if(nameEl) nameEl.addEventListener('input',()=>{ d.dish=nameEl.value; queueSave(); });
     descEl.addEventListener('input',()=>{ d.desc=descEl.value; queueSave(); });
     itemsEl.addEventListener('input',()=>{ d.items=itemsEl.value; queueSave(); });
     if(reload) reload.addEventListener('click',()=>{
