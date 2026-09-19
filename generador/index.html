@@ -132,6 +132,8 @@
   .st-ok{background:#e3f0e8; color:#2f7d52}
   .idx-act{font:inherit; font-size:12px; border:1px solid var(--teal); background:transparent; color:var(--teal); padding:5px 13px; border-radius:6px; cursor:pointer}
   .idx-act:hover{background:rgba(37,68,88,.07)}
+  .idx-add{border-style:dashed; justify-content:center; background:transparent}
+  .idx-add .idx-act{width:100%}
 
   /* filter chips */
   .filterbar{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px}
@@ -375,11 +377,38 @@ const MENU = {
     ],
   }},
 };
-function groupsOf(svc){ return svc && MENU[svc] ? Object.keys(MENU[svc].groups) : []; }
-function dishesOf(svc,grp){ return (svc && grp && MENU[svc] && MENU[svc].groups[grp]) ? MENU[svc].groups[grp] : []; }
+// 18-sep-2026: MENU es el menú oficial transcrito, fijo en el código -- nunca se toca ni se
+// le agregan platillos por código (regla de esta sección: no inventar contenido de menú).
+// CUSTOM_MENU es la extensión real: platillos agregados desde el Índice por un chef/gerencia
+// (ej. "Voco Burger"), con la misma forma {svc:{grp:[[nombre,desc],...]}} -- se guarda y
+// se lee junto con `cards` en la misma fila de la nube (ver payload en scheduleSave/autoload),
+// así que una vez agregado un platillo aquí queda indexado igual que uno oficial: aparece en
+// el Índice, en los 3 desplegables de cada ficha, y su descripción se autocompleta igual.
+let CUSTOM_MENU = {};
+function groupsOf(svc){
+  const oficiales = svc && MENU[svc] ? Object.keys(MENU[svc].groups) : [];
+  const custom = svc && CUSTOM_MENU[svc] ? Object.keys(CUSTOM_MENU[svc]) : [];
+  return [...new Set([...oficiales, ...custom])];
+}
+function dishesOf(svc,grp){
+  const oficiales = (svc && grp && MENU[svc] && MENU[svc].groups[grp]) ? MENU[svc].groups[grp] : [];
+  const custom = (svc && grp && CUSTOM_MENU[svc] && CUSTOM_MENU[svc][grp]) ? CUSTOM_MENU[svc][grp] : [];
+  return [...oficiales, ...custom];
+}
 function descOf(svc,grp,name){ const d = dishesOf(svc,grp).find(x=>x[0]===name); return d ? d[1] : ''; }
 function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
 function findCard(svc,name){ return cards.find(c=> c.cat===svc && norm(c.title)===norm(name)); }
+// Agrega un platillo nuevo al índice (no oficial). Devuelve false sin hacer nada si falta un
+// dato o si ya existe uno con el mismo nombre en ese grupo (oficial o custom) -- nunca duplica.
+function addCustomDish(svc, grp, name, desc){
+  name=(name||'').trim();
+  if(!svc || !grp || !name) return false;
+  if(dishesOf(svc,grp).some(d=>norm(d[0])===norm(name))) return false;
+  if(!CUSTOM_MENU[svc]) CUSTOM_MENU[svc]={};
+  if(!CUSTOM_MENU[svc][grp]) CUSTOM_MENU[svc][grp]=[];
+  CUSTOM_MENU[svc][grp].push([name, (desc||'').trim()]);
+  return true;
+}
 function missingOf(c){
   const m=[];
   if(!c.img) m.push('foto');
@@ -455,9 +484,12 @@ function renderIndex(){
   const ip = $('#indexpanel'); ip.innerHTML='';
   CATS.forEach(ct=>{
     const svc = ct.k; const m = MENU[svc]; if(!m) return;
-    const groups = m.groups;
+    // 18-sep-2026: groupsOf/dishesOf ya incluyen CUSTOM_MENU además del MENU oficial -- el
+    // Índice muestra ambos igual, sin distinguir visualmente cuál es cuál (para el chef es
+    // el mismo índice, no dos listas separadas).
+    const grupos = groupsOf(svc);
     let total=0, done=0;
-    Object.values(groups).forEach(list => list.forEach(d=>{ total++; const c=findCard(svc,d[0]); if(c && missingOf(c).length===0) done++; }));
+    grupos.forEach(grp => dishesOf(svc,grp).forEach(d=>{ total++; const c=findCard(svc,d[0]); if(c && missingOf(c).length===0) done++; }));
 
     const sec = document.createElement('div'); sec.className='idx-svc';
     const h = document.createElement('h3');
@@ -467,7 +499,8 @@ function renderIndex(){
     bar.innerHTML = `<i style="width:${total? Math.round(done/total*100):0}%"></i>`;
     sec.appendChild(bar);
 
-    Object.entries(groups).forEach(([grp,list])=>{
+    grupos.forEach(grp=>{
+      const list = dishesOf(svc,grp);
       const gh=document.createElement('div'); gh.className='idx-grp'; gh.textContent=grp; sec.appendChild(gh);
       list.forEach(d=>{
         const name=d[0]; const card=findCard(svc,name);
@@ -488,6 +521,23 @@ function renderIndex(){
         }
         sec.appendChild(item);
       });
+      // 18-sep-2026: agregar un platillo NUEVO a este grupo del índice (ej. "Voco Burger")
+      // -- no toca ni reemplaza el menú oficial, solo suma. Queda disponible aquí y en los
+      // 3 desplegables de cualquier ficha de ese servicio/grupo, con autocompletado igual
+      // que uno oficial (ver CUSTOM_MENU/addCustomDish más arriba).
+      const addItem=document.createElement('div'); addItem.className='idx-item idx-add';
+      const addBtn=document.createElement('button'); addBtn.className='idx-act'; addBtn.textContent='+ Agregar platillo nuevo';
+      addBtn.onclick=()=>{
+        const name=prompt('Nombre del platillo nuevo (se agrega al grupo "'+grp+'"):');
+        if(name===null) return;
+        if(!name.trim()){ alert('Escribe un nombre.'); return; }
+        const desc=prompt('Descripción para la carta (opcional, se puede dejar en blanco):','') || '';
+        if(!addCustomDish(svc, grp, name, desc)){ alert('Ya existe un platillo con ese nombre en este grupo.'); return; }
+        scheduleSave();
+        renderIndex();
+      };
+      addItem.appendChild(addBtn);
+      sec.appendChild(addItem);
     });
     ip.appendChild(sec);
   });
@@ -787,7 +837,7 @@ function scheduleSave(){
   setSaveState('Guardando…');
   clearTimeout(_saveT);
   _saveT=setTimeout(async ()=>{
-    const payload={v:1, build:BUILD, cards, ts:Date.now()};
+    const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
     try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
     // Nunca mandar un proyecto vacío por el camino automático -- incidente real 18-sep-2026:
     // una pestaña/dispositivo con datos locales desactualizados (vacío) ganó una carrera de
@@ -809,6 +859,7 @@ function scheduleSave(){
 let _cloudHadData=false;
 async function autoload(){
   const cloudData=await cloudLoad();
+  if(cloudData){ CUSTOM_MENU = cloudData.customMenu || {}; }
   if(cloudData && cloudData.cards && cloudData.cards.length){
     cards=cloudData.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=cloudData.build||0;
     _cloudHadData=true;
@@ -818,6 +869,7 @@ async function autoload(){
   // el respaldo local de este dispositivo mientras tanto.
   try{
     const d=await idbGet('project');
+    if(!cloudData && d && d.customMenu) CUSTOM_MENU = d.customMenu;
     if(d && d.cards && d.cards.length){ cards=d.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=d.build||0; }
   }catch(e){ _idbok=false; }
 }
@@ -856,7 +908,7 @@ autoload().then(()=>{
 function flushNow(){
   if(_booting) return;
   clearTimeout(_saveT);
-  const payload={v:1, build:BUILD, cards, ts:Date.now()};
+  const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
   try{ idbSet('project',payload); }catch(e){}
   if(cards.length){ try{ cloudSave(payload); }catch(e){} }
 }
