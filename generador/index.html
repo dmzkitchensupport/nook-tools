@@ -844,12 +844,22 @@ const DB_NAME='nook_ficheros', STORE='proj', BUILD=4;
 let loadedBuild=0;
 let _db=null, _idbok=true, _saveT=null, _booting=true;
 let _cloudOk=true;
+// Incidente real, 18-sep-2026 (~9pm): un dispositivo que NUNCA había usado el Generador
+// (sin caché local real) tuvo una falla de red al cargar la nube justo después de que un
+// chef guardara 30 fichas reales. Antes, cloudLoad() devolvía null tanto si la nube estaba
+// REALMENTE vacía como si la llamada FALLÓ por conexión -- autoload() no podía distinguir
+// los 2 casos, así que ante la falla cayó al plan B (SEED, 26 fichas por default) y lo subió
+// como si la nube de verdad no tuviera nada, borrando las 30 fichas reales sin darse cuenta.
+// Ahora cloudLoad() dice explícitamente si la llamada tuvo éxito o no -- autoload() solo
+// siembra la nube cuando confirma que de verdad está vacía, nunca cuando simplemente no pudo
+// preguntarle.
 async function cloudLoad(){
   try{
     const { data, error } = await NookAuth.client().rpc('generador_load');
     if(error) throw error;
-    return data || null;
-  }catch(e){ _cloudOk=false; return null; }
+    _cloudOk=true;
+    return { ok:true, data: data || null };
+  }catch(e){ _cloudOk=false; return { ok:false, data:null }; }
 }
 async function cloudSave(payload){
   try{
@@ -894,19 +904,26 @@ function scheduleSave(){
     else setSaveState('Sin autoguardado — usa “Guardar proyecto”');
   }, 600);
 }
-// true si la nube ya tenía un proyecto real al cargar -- si es false, el primer
-// guardado de este dispositivo siembra la nube (ver autoload().then() más abajo).
+// _cloudHadData: true si la nube ya tenía un proyecto real al cargar.
+// _cloudReachable: true si la llamada a la nube tuvo éxito (aunque viniera vacía). Solo se
+// siembra la nube automáticamente (ver autoload().then() más abajo) cuando se CONFIRMÓ que
+// de verdad está vacía -- nunca cuando simplemente no se pudo alcanzar (ver incidente 18-sep).
 let _cloudHadData=false;
+let _cloudReachable=false;
 async function autoload(){
-  const cloudData=await cloudLoad();
+  const r = await cloudLoad();
+  _cloudReachable = r.ok;
+  const cloudData = r.data;
   if(cloudData){ CUSTOM_MENU = cloudData.customMenu || {}; }
   if(cloudData && cloudData.cards && cloudData.cards.length){
     cards=cloudData.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=cloudData.build||0;
     _cloudHadData=true;
     return;
   }
-  // La nube no tiene nada todavía (recién migrado) o no se pudo alcanzar -- usa
-  // el respaldo local de este dispositivo mientras tanto.
+  // La nube no tiene nada todavía (recién migrado) o no se pudo alcanzar -- usa el respaldo
+  // local de este dispositivo mientras tanto para poder seguir trabajando, pero el boot NO
+  // la sube sola a menos que _cloudReachable confirme que de verdad está vacía (no solo que
+  // falló la conexión) -- ver el `&& _cloudReachable` en autoload().then() más abajo.
   try{
     const d=await idbGet('project');
     if(!cloudData && d && d.customMenu) CUSTOM_MENU = d.customMenu;
@@ -936,10 +953,15 @@ autoload().then(()=>{
   cards.forEach(ensureUniversalFields);
   _booting=false;
   render();
-  // seeded/migrated: hay un cambio nuevo que grabar. !_cloudHadData: la nube estaba
-  // vacía -- este dispositivo se vuelve la fuente inicial (la sube aunque no haya
-  // cambiado nada localmente, para que el resto de dispositivos ya la vean).
-  if(seeded || migrated || !_cloudHadData){ scheduleSave(); }
+  // El guardado automático de arranque (seeded/migrado/sembrar la nube vacía) SOLO ocurre
+  // si _cloudReachable confirma que la nube respondió de verdad -- si la llamada inicial
+  // falló, no hay forma de saber si estaba vacía o solo falló la conexión, así que este
+  // arranque NO empuja nada solo. Incidente real 18-sep: un dispositivo sin caché real
+  // (SEED por default) sembró 26 fichas de plantilla sobre 30 fichas reales de un chef,
+  // justo porque el guardado de arranque no distinguía "vacía de verdad" de "no se pudo
+  // preguntar". Un guardado disparado por una acción real del usuario (escribir algo) sigue
+  // funcionando normal, esto solo bloquea el empuje automático silencioso del arranque.
+  if(_cloudReachable && (seeded || migrated || !_cloudHadData)){ scheduleSave(); }
   if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
   else setSaveState(cards.length ? ('Guardado ✓ '+new Date().toLocaleTimeString()) : 'Guardado automático activo');
 });
