@@ -65,6 +65,8 @@
       #nook-badge b{color:#e9c98f;}
       #nook-badge button{background:rgba(255,255,255,.15);border:none;color:#faf7ee;border-radius:6px;
         padding:4px 9px;font-size:11px;cursor:pointer;font-family:inherit;}
+      #nook-badge a{background:#b8935a;color:#26221c;border-radius:6px;padding:4px 9px;font-size:11px;
+        font-weight:700;text-decoration:none;font-family:inherit;white-space:nowrap;}
     `;
     document.head.appendChild(s);
   }
@@ -172,9 +174,11 @@
 
   function badge(profile, home) {
     if (document.getElementById('nook-badge')) return;
+    const esMario = (profile.email || '').toLowerCase() === MARIO_EMAIL;
     const el = document.createElement('div');
     el.id = 'nook-badge';
     el.innerHTML = `<span><b>${escapeHtml(profile.nombre || profile.email)}</b> · ${escapeHtml(profile.rol)}</span>
+      ${esMario ? `<a id="nook-badge-config" href="${(home || './')}admin/">Configuración</a>` : ''}
       <button id="nook-badge-out">Salir</button>`;
     document.body.appendChild(el);
     document.getElementById('nook-badge-out').onclick = () => signOut(home || './');
