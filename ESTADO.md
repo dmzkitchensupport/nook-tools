@@ -4,7 +4,37 @@
 > Se actualiza en el mismo commit que el cambio, nunca aparte.
 > Regla: si no se puede verificar, se escribe "SIN VERIFICAR", no se inventa.
 
-**Última actualización:** 2026-09-18 (incidente real de pérdida de datos en `generador/` -- 32 fichas de José sobrescritas por el proyecto de ejemplo -- causa raíz corregida en código y las 32 fichas reales restauradas y verificadas desde un respaldo manual que José sí había hecho. Ver bloqueador #13. Historial previo: agregado botón "❓ Cómo llenar" en `generador/` con demo de 6 pasos, a petición de Mario. Ver bloqueador #12. Historial previo: Índice de `generador/` ahora permite agregar platillos nuevos de verdad -- quedan indexados, autocompletados y disponibles en cualquier ficha, sin tocar el menú oficial. Ver bloqueador #11. Historial previo: agregada opción "+ Otro / nuevo platillo…" en `generador/` y `fichas/` -- el menú/catálogo era una lista cerrada, no se podían agregar platillos nuevos como "Voco Burger". Ver bloqueador #10. Historial previo: incidente real: minutos después de sembrar la nube de `generador/`, la fila quedó en 0 fichas -- probable carrera con otra pestaña desactualizada. Blindado en 2 capas: la base de datos rechaza guardados vacíos sobre un proyecto real, y el cliente ya no intenta subir un proyecto vacío por el camino automático. Ver bloqueador #9. Historial previo: Generador de Ficheros: guardado real en la nube -- antes solo IndexedDB por dispositivo, causa real de que Mario no viera lo que José llenó en su propia computadora. Ver bloqueador #8. Historial previo: Site URL de Authentication corregida de `localhost:3000` a la URL real de producción -- bloqueaba login/confirmación de usuarios reales, reportado por Roberto Calixto. Ver bloqueador #7)
+**Última actualización:** 2026-09-20 — **Sección de Configuración construida**: Mario pidió (20-sep) que
+siempre exista un apartado donde él, como "controlador absoluto", tenga la configuración de todo, además
+del panel de Usuarios que ya existía. Se agregó pestaña "Herramientas" en `admin/index.html` (tabla nueva
+`public.herramientas` en Supabase, migración `20260920000000_herramientas_config.sql`, mismo patrón
+"solo mario@delamorazumaran.com" que `admin_set_profile`) para: (1) editar color/roles/estado/orden de las
+3 tarjetas de la fila secundaria del menú (Formatos/Bitácora/Salón y Barra) sin tocar código, y (2) subir
+una herramienta nueva (.html autocontenido) directo desde el navegador, sin token de GitHub ni commit a
+git — se guarda en el bucket de Storage `herramientas-subidas` (escritura solo Mario, vía RLS) y se sirve
+aislada en `herramienta/?slug=...` dentro de un `<iframe sandbox>` cross-origin, para que el código subido
+nunca comparta sesión/localStorage con el resto del sitio. La tarjeta "Cocina" (destacada, 3 pasos) se dejó
+fuera a propósito — es el flujo ya construido, estructuralmente distinto, no una tarjeta suelta. `index.html`
+ahora pinta la fila secundaria en vivo desde `public_list_herramientas()` (RPC pública, sin login) en vez de
+tarjetas fijas en el HTML — se verificó con Playwright real contra el Supabase de producción que las 3
+herramientas siguen viéndose exactamente igual (mismo href, color, roles, texto) que antes del cambio.
+**Verificación real ejecutada, no solo supuesta:** `node --check` en los 3 scripts tocados/nuevos (0
+errores); lectura anónima de `public_list_herramientas` responde 200 con las 3 filas reales (curl); llamada
+anónima a `admin_list_herramientas` rechazada (`permission denied`); insert anónimo al bucket rechazado con
+403 real (`new row violates row-level security policy`); simulando la sesión de Mario (`request.jwt.claims`
+dentro de una transacción con rollback, mismo patrón ya usado el 18-sep para probar `generador_save`)
+`admin_upsert_herramienta` inserta y `admin_list_herramientas` lo lee de vuelta; simulando otra cuenta,
+la misma llamada se rechaza con el mensaje esperado; Playwright real contra el servidor local apuntando a
+producción confirmó las 3 tarjetas del menú (slug/href/color/roles/label exactos), los 2 mensajes de
+`herramienta/` (sin slug, slug inexistente) y que las 2 pestañas + el formulario de subida existen en
+`admin/`; 0 errores de consola/página en todas las pruebas. Fila de prueba (`zz-prueba-verificacion`) nunca
+persistió — todo corrió dentro de transacciones con rollback. La migración se aplicó con
+`supabase db query --linked --file` en vez de `db push` porque la tabla de tracking de migraciones del CLI
+está desincronizada de sesiones anteriores (hay una migración remota `20260917010000` sin archivo local) —
+no se tocó esa tabla de tracking, solo se corrió el SQL nuevo directo contra la base real, verificado
+objeto por objeto después. **Pendiente real, no de código:** el intento inicial de delegar esta
+construcción a un subagente fue bloqueado por el clasificador de permisos del modo automático — se
+construyó directo en esta sesión en su lugar. Historial previo: incidente real de pérdida de datos en `generador/` -- 32 fichas de José sobrescritas por el proyecto de ejemplo -- causa raíz corregida en código y las 32 fichas reales restauradas y verificadas desde un respaldo manual que José sí había hecho. Ver bloqueador #13. Historial previo: agregado botón "❓ Cómo llenar" en `generador/` con demo de 6 pasos, a petición de Mario. Ver bloqueador #12. Historial previo: Índice de `generador/` ahora permite agregar platillos nuevos de verdad -- quedan indexados, autocompletados y disponibles en cualquier ficha, sin tocar el menú oficial. Ver bloqueador #11. Historial previo: agregada opción "+ Otro / nuevo platillo…" en `generador/` y `fichas/` -- el menú/catálogo era una lista cerrada, no se podían agregar platillos nuevos como "Voco Burger". Ver bloqueador #10. Historial previo: incidente real: minutos después de sembrar la nube de `generador/`, la fila quedó en 0 fichas -- probable carrera con otra pestaña desactualizada. Blindado en 2 capas: la base de datos rechaza guardados vacíos sobre un proyecto real, y el cliente ya no intenta subir un proyecto vacío por el camino automático. Ver bloqueador #9. Historial previo: Generador de Ficheros: guardado real en la nube -- antes solo IndexedDB por dispositivo, causa real de que Mario no viera lo que José llenó en su propia computadora. Ver bloqueador #8. Historial previo: Site URL de Authentication corregida de `localhost:3000` a la URL real de producción -- bloqueaba login/confirmación de usuarios reales, reportado por Roberto Calixto. Ver bloqueador #7)
 **Actualizado por:** Cla (verificación con `generate_link` real contra producción). Historial previo: agente retomando sesión interrumpida (mismo encargo, sin repetir trabajo ya hecho), a petición de Mario
 **Cliente:** NOOK World Cuisine (VOCO Surfside Aruba)
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<title>NOOK · Herramienta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nook.css?v=4">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js"></script>
+<style>
+  body{margin:0;}
+  #frame{width:100%;height:100vh;border:0;display:none;}
+  .msg-wrap{max-width:520px;margin:80px auto;padding:0 20px;text-align:center;}
+  .msg-wrap h1{font-size:20px;}
+  .msg-wrap p{color:var(--muted);}
+  a.back-link{color:var(--tan-line);font-weight:700;text-decoration:none;}
+</style>
+</head><body>
+
+<iframe id="frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads" referrerpolicy="no-referrer"></iframe>
+<div class="msg-wrap" id="msg" style="display:none;">
+  <h1 id="msg-title">Herramienta no disponible</h1>
+  <p id="msg-body"></p>
+  <a class="back-link" href="../">&larr; Menú principal</a>
+</div>
+
+<script>
+function mostrarMensaje(titulo, cuerpo){
+  document.getElementById('msg-title').textContent = titulo;
+  document.getElementById('msg-body').textContent = cuerpo;
+  document.getElementById('msg').style.display = 'block';
+}
+
+async function cargar(){
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('slug');
+  if(!slug){ mostrarMensaje('Falta la herramienta', 'No se indicó qué herramienta abrir.'); return; }
+
+  const sb = NookAuth.client();
+  const { data, error } = await sb.rpc('public_list_herramientas');
+  if(error || !data){ mostrarMensaje('Error', 'No se pudo cargar el listado de herramientas.'); return; }
+  const h = data.find(x => x.slug === slug);
+  if(!h){ mostrarMensaje('No existe', 'Esta herramienta ya no está disponible.'); return; }
+  if(h.estado === 'proximamente'){ mostrarMensaje('Próximamente', 'Esta herramienta todavía no está activa.'); return; }
+  if(h.origen !== 'subida' || !h.storage_path){ mostrarMensaje('Error de configuración', 'Esta herramienta no tiene un archivo asociado.'); return; }
+
+  const profile = await NookAuth.guard({ allow: h.roles, home: '../' });
+  if(!profile) return; // guard ya mostró la pantalla que corresponde (pendiente/denegado)
+
+  const { data: pub } = sb.storage.from('herramientas-subidas').getPublicUrl(h.storage_path);
+  const frame = document.getElementById('frame');
+  frame.src = pub.publicUrl;
+  frame.style.display = 'block';
+}
+cargar();
+</script>
+</body></html>

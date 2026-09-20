@@ -18,6 +18,28 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
   sección propia abajo).
 - **`formatos/`** — sección nueva, en placeholder ("Próximamente") hasta que Mario
   defina su contenido real. No se inventó funcionalidad para ella.
+- **`herramienta/`** — loader genérico para herramientas subidas desde el panel de
+  Configuración (ver abajo). No es una herramienta en sí, es la página que valida el
+  rol y sirve el archivo subido en un iframe aislado.
+
+## Configuración de herramientas (panel de Mario)
+
+Desde `admin/` (pestaña "Herramientas") Mario controla, sin tocar este repo:
+
+- Qué aparece en la fila secundaria del menú principal (hoy: Formatos, Bitácora,
+  Salón y Barra) — color, roles con acceso, estado (activa/próximamente), orden.
+- Subir una herramienta nueva (.html autocontenido) directo desde el navegador.
+
+Arquitectura: la tabla `public.herramientas` en Supabase (proyecto `nook-tools`) es la
+fuente de verdad del menú — `index.html` la lee en vivo vía `public_list_herramientas()`
+(pública, sin login, mismo criterio que el resto del contenido de este repo). Las
+herramientas subidas se guardan en el bucket de Storage `herramientas-subidas`
+(público para lectura, escritura solo para `mario@delamorazumaran.com` vía policies de
+RLS) y se sirven desde `herramienta/?slug=...` en un `<iframe sandbox>` — **no** se hace
+ningún commit a git ni se usa ningún token de GitHub, y el código subido nunca comparte
+origen/sesión con el resto del sitio. La tarjeta "Cocina" (destacada, con los 3 pasos)
+queda fuera de esta tabla a propósito — es el flujo principal ya construido, no una
+tarjeta suelta administrable.
 
 ## Salón y Barra (`salon-barra/`)
 

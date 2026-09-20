@@ -41,70 +41,58 @@
     <div class="chips"><span>1</span><span>2</span><span>3</span></div>
   </a>
 
-  <div class="secondary-row">
-
-    <a class="card tan" href="formatos/">
-      <div class="icon-badge">
-        <svg viewBox="0 0 64 64" fill="currentColor">
-          <rect x="10" y="8" width="44" height="52" rx="4"/>
-          <rect x="24" y="4" width="16" height="10" rx="3" fill="#b8935a" stroke="currentColor" stroke-width="2.5"/>
-          <g fill="#b8935a">
-            <rect x="17" y="24" width="30" height="3.5"/>
-            <rect x="17" y="33" width="30" height="3.5"/>
-            <rect x="17" y="42" width="20" height="3.5"/>
-          </g>
-        </svg>
-      </div>
-      <div class="tag layer">Próximamente</div>
-      <div class="label layer">Formatos</div>
-      <div class="desc layer">Formatos operativos de NOOK</div>
-    </a>
-
-    <a class="card deep" href="bitacora/" id="card-bitacora">
-      <svg class="wave-deco" viewBox="0 0 150 110" fill="none" stroke="#faf7ee" stroke-width="5" stroke-linecap="round">
-        <path d="M0 20 Q15 8 30 20 T60 20 T90 20 T120 20 T150 20"/>
-        <path d="M0 45 Q15 33 30 45 T60 45 T90 45 T120 45 T150 45"/>
-        <path d="M0 70 Q15 58 30 70 T60 70 T90 70 T120 70 T150 70"/>
-        <path d="M0 95 Q15 83 30 95 T60 95 T90 95 T120 95 T150 95"/>
-      </svg>
-      <div class="icon-badge">
-        <svg viewBox="0 0 64 64" fill="currentColor">
-          <path d="M32 14 C27 9 16 8 8 10 L8 50 C16 48 27 49 32 54 C37 49 48 48 56 50 L56 10 C48 8 37 9 32 14 Z"/>
-          <rect x="30.5" y="13" width="3" height="42" fill="#2f443d"/>
-        </svg>
-      </div>
-      <div class="label layer">Bitácora</div>
-      <div class="desc layer">Bitácora diaria A&amp;B — captura, historial y cortes</div>
-    </a>
-
-    <a class="card brown" href="salon-barra/" id="card-salonbarra">
-      <div class="icon-badge">
-        <svg viewBox="0 0 64 64" fill="currentColor">
-          <path d="M18 4 H46 C46 20 38 28 33.5 29.5 V50 H42 V56 H22 V50 H30.5 V29.5 C26 28 18 20 18 4 Z"/>
-        </svg>
-      </div>
-      <div class="label layer">Salón y Barra</div>
-      <div class="desc layer">Generador de fichas de bebidas — mismo formato del Generador, en blanco</div>
-    </a>
-
-  </div>
+  <div class="secondary-row" id="secondary-row"></div>
 </div>
 </div>
 <script>
-NookAuth.guard({ allow: ['gerencia','chef'], home: './' }).then(profile => {
-  if(!profile) return;
-  if(profile.rol === 'chef'){
-    ['card-bitacora','card-salonbarra'].forEach(id => {
-      const el = document.getElementById(id);
-      if(!el) return;
-      el.removeAttribute('href');
-      el.style.opacity = '.45';
-      el.style.cursor = 'default';
-      el.style.pointerEvents = 'none';
-      const label = el.querySelector('.label') || el.querySelector('.label.layer');
-      if(label) label.insertAdjacentHTML('afterend', '<div class="desc layer" style="font-weight:700;">Sin acceso (rol chef)</div>');
+/* Iconos reales de las 3 herramientas nativas (verbatim, no se tocó su diseño).
+   Cualquier herramienta nueva subida por el panel de Configuración usa el icono
+   genérico ICON_GENERICO — no hay forma de que suba su propio SVG en esta versión. */
+const ICONS = {
+  'formatos': '<svg viewBox="0 0 64 64" fill="currentColor"><rect x="10" y="8" width="44" height="52" rx="4"/><rect x="24" y="4" width="16" height="10" rx="3" fill="#b8935a" stroke="currentColor" stroke-width="2.5"/><g fill="#b8935a"><rect x="17" y="24" width="30" height="3.5"/><rect x="17" y="33" width="30" height="3.5"/><rect x="17" y="42" width="20" height="3.5"/></g></svg>',
+  'bitacora': '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M32 14 C27 9 16 8 8 10 L8 50 C16 48 27 49 32 54 C37 49 48 48 56 50 L56 10 C48 8 37 9 32 14 Z"/><rect x="30.5" y="13" width="3" height="42" fill="#2f443d"/></svg>',
+  'salon-barra': '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M18 4 H46 C46 20 38 28 33.5 29.5 V50 H42 V56 H22 V50 H30.5 V29.5 C26 28 18 20 18 4 Z"/></svg>'
+};
+const ICON_GENERICO = '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M46 8 L52 14 L44 22 L40 18 Z M38 20 L10 48 L10 54 L16 54 L44 26 Z"/></svg>';
+const WAVE_DECO = '<svg class="wave-deco" viewBox="0 0 150 110" fill="none" stroke="#faf7ee" stroke-width="5" stroke-linecap="round"><path d="M0 20 Q15 8 30 20 T60 20 T90 20 T120 20 T150 20"/><path d="M0 45 Q15 33 30 45 T60 45 T90 45 T120 45 T150 45"/><path d="M0 70 Q15 58 30 70 T60 70 T90 70 T120 70 T150 70"/><path d="M0 95 Q15 83 30 95 T60 95 T90 95 T120 95 T150 95"/></svg>';
+
+function hrefDe(h){ return h.origen === 'nativa' ? h.ruta_nativa : ('herramienta/?slug=' + encodeURIComponent(h.slug)); }
+
+async function pintarSecundarias(){
+  const wrap = document.getElementById('secondary-row');
+  const sb = NookAuth.client();
+  const { data, error } = await sb.rpc('public_list_herramientas');
+  if(error || !data){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = data.map(h => {
+    const icono = ICONS[h.slug] || ICON_GENERICO;
+    const deco = h.color === 'deep' ? WAVE_DECO : '';
+    const tag = h.estado === 'proximamente' ? '<div class="tag layer">Próximamente</div>' : '';
+    return `<a class="card ${h.color}" href="${hrefDe(h)}" data-slug="${h.slug}" data-roles="${h.roles.join(',')}">
+      ${deco}
+      <div class="icon-badge">${icono}</div>
+      ${tag}
+      <div class="label layer">${escHtml(h.nombre)}</div>
+      <div class="desc layer">${escHtml(h.descripcion)}</div>
+    </a>`;
+  }).join('');
+}
+function escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+pintarSecundarias().then(() => {
+  NookAuth.guard({ allow: ['gerencia','chef'], home: './' }).then(profile => {
+    if(!profile) return;
+    document.querySelectorAll('#secondary-row .card[data-roles]').forEach(el => {
+      const roles = el.dataset.roles.split(',');
+      if(roles.indexOf(profile.rol) === -1){
+        el.removeAttribute('href');
+        el.style.opacity = '.45';
+        el.style.cursor = 'default';
+        el.style.pointerEvents = 'none';
+        const label = el.querySelector('.label');
+        if(label) label.insertAdjacentHTML('afterend', `<div class="desc layer" style="font-weight:700;">Sin acceso (rol ${profile.rol})</div>`);
+      }
     });
-  }
+  });
 });
 </script>
 </body></html>

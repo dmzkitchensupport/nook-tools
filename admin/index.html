@@ -35,26 +35,97 @@
   button.save:hover{background:#1f3846;}
   button.save:disabled{background:#c9c9c9;cursor:default;}
   .empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:10px;}
-  #status{font-size:12px;color:var(--muted);margin-top:10px;}
+  #status,#status2{font-size:12px;color:var(--muted);margin-top:10px;}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:2px solid var(--border);}
+  nav.tabs button{background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);
+    padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;}
+  nav.tabs button.on{color:var(--navy);border-bottom-color:var(--tan-line);}
+  .panel{display:none;}
+  .panel.on{display:block;}
+
+  .upload-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-top:22px;}
+  .upload-card h3{margin:0 0 4px;font-size:14px;color:var(--navy);}
+  .upload-card .hint{font-size:11.5px;color:var(--muted);margin:0 0 14px;}
+  .frow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+  .frow > div{flex:1 1 160px;}
+  label.flabel{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px;}
+  .roles-check{display:flex;gap:14px;font-size:12.5px;padding-top:8px;}
+  .roles-check label{display:flex;align-items:center;gap:5px;font-weight:400;}
+  .upload-err{color:var(--warn);font-size:12px;margin-top:8px;}
 </style>
 </head><body>
 
 <header class="app">
   <div class="id">
-    <b>Administración de cuentas</b>
+    <b>Panel de Control NOOK</b>
     <span>NOOK · Solo mario@delamorazumaran.com</span>
   </div>
   <a class="back" href="../">&larr; Menú principal</a>
 </header>
 
 <main>
-  <div class="note">
-    La seguridad real vive en la función <code>admin_set_profile</code> (Postgres, SECURITY DEFINER) —
-    verifica <code>auth.email() = 'mario@delamorazumaran.com'</code> del lado del servidor antes de permitir
-    cualquier cambio. Esta pantalla solo evita mostrar controles que de todos modos serían rechazados.
-  </div>
-  <div id="tableWrap"><div class="empty">Cargando…</div></div>
-  <div id="status"></div>
+  <nav class="tabs">
+    <button class="on" id="tab-usuarios">Usuarios</button>
+    <button id="tab-herramientas">Herramientas (Configuración)</button>
+  </nav>
+
+  <section class="panel on" id="panel-usuarios">
+    <div class="note">
+      La seguridad real vive en la función <code>admin_set_profile</code> (Postgres, SECURITY DEFINER) —
+      verifica <code>auth.email() = 'mario@delamorazumaran.com'</code> del lado del servidor antes de permitir
+      cualquier cambio. Esta pantalla solo evita mostrar controles que de todos modos serían rechazados.
+    </div>
+    <div id="tableWrap"><div class="empty">Cargando…</div></div>
+    <div id="status"></div>
+  </section>
+
+  <section class="panel" id="panel-herramientas">
+    <div class="note">
+      Aquí controlas qué aparece en la fila secundaria del menú principal (Formatos, Bitácora, Salón y Barra,
+      y cualquier herramienta que subas). La tarjeta "Cocina" no vive aquí — es el flujo ya construido, no se
+      administra desde este panel. Igual que Usuarios, la seguridad real la aplica <code>admin_upsert_herramienta</code>
+      del lado del servidor.
+    </div>
+    <div id="toolsWrap"><div class="empty">Cargando…</div></div>
+    <div id="status2"></div>
+
+    <div class="upload-card">
+      <h3>Subir herramienta nueva</h3>
+      <p class="hint">Un solo archivo .html autocontenido (mismo patrón que fichas/, recetario/, generador/…). Se
+        valida en el navegador antes de publicar y queda aislada en su propia ventana — no comparte sesión ni
+        datos con el resto del sitio.</p>
+      <div class="frow">
+        <div><label class="flabel">Nombre</label><input type="text" id="up-nombre" placeholder="Ej. Control de Mermas"></div>
+        <div><label class="flabel">Slug (carpeta)</label><input type="text" id="up-slug" placeholder="control-de-mermas"></div>
+      </div>
+      <div class="frow">
+        <div><label class="flabel">Descripción</label><input type="text" id="up-desc" placeholder="Una línea corta"></div>
+      </div>
+      <div class="frow">
+        <div>
+          <label class="flabel">Color de sección</label>
+          <select id="up-color"><option value="tan">Tostado</option><option value="deep">Verde-navy</option><option value="brown">Marrón</option></select>
+        </div>
+        <div>
+          <label class="flabel">Estado</label>
+          <select id="up-estado"><option value="activa">Activa</option><option value="proximamente">Próximamente</option></select>
+        </div>
+        <div>
+          <label class="flabel">Roles con acceso</label>
+          <div class="roles-check">
+            <label><input type="checkbox" id="up-rol-chef" checked> chef</label>
+            <label><input type="checkbox" id="up-rol-gerencia" checked> gerencia</label>
+          </div>
+        </div>
+      </div>
+      <div class="frow">
+        <div><label class="flabel">Archivo (.html)</label><input type="file" id="up-file" accept=".html,text/html"></div>
+      </div>
+      <button class="save" id="up-submit">Subir y publicar</button>
+      <div class="upload-err" id="up-err"></div>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -106,6 +177,164 @@ async function guardarFila(row){
 }
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- pestañas ---------- */
+document.getElementById('tab-usuarios').onclick = () => cambiarTab('usuarios');
+document.getElementById('tab-herramientas').onclick = () => cambiarTab('herramientas');
+function cambiarTab(cual){
+  document.getElementById('tab-usuarios').classList.toggle('on', cual === 'usuarios');
+  document.getElementById('tab-herramientas').classList.toggle('on', cual === 'herramientas');
+  document.getElementById('panel-usuarios').classList.toggle('on', cual === 'usuarios');
+  document.getElementById('panel-herramientas').classList.toggle('on', cual === 'herramientas');
+  if(cual === 'herramientas') cargarHerramientas();
+}
+
+/* ---------- Herramientas (Configuración) ---------- */
+async function cargarHerramientas(){
+  const sb = NookAuth.client();
+  const { data, error } = await sb.rpc('admin_list_herramientas');
+  const wrap = document.getElementById('toolsWrap');
+  if(error){ wrap.innerHTML = '<div class="empty">Error al cargar: ' + esc(error.message) + '</div>'; return; }
+  if(!data || !data.length){ wrap.innerHTML = '<div class="empty">Sin herramientas registradas todavía.</div>'; return; }
+  let html = '<table><thead><tr><th>Nombre</th><th>Origen</th><th>Color</th><th>Estado</th><th>Roles</th><th>Orden</th><th></th></tr></thead><tbody>';
+  data.forEach(h => {
+    html += `<tr data-id="${h.id}">
+      <td>${esc(h.nombre)}<div style="font-size:10.5px;color:var(--muted);">${esc(h.slug)}</div></td>
+      <td style="font-size:11px;color:var(--muted);">${h.origen}</td>
+      <td><select class="h-color">
+        <option value="tan" ${h.color==='tan'?'selected':''}>Tostado</option>
+        <option value="deep" ${h.color==='deep'?'selected':''}>Verde-navy</option>
+        <option value="brown" ${h.color==='brown'?'selected':''}>Marrón</option>
+      </select></td>
+      <td><select class="h-estado">
+        <option value="activa" ${h.estado==='activa'?'selected':''}>Activa</option>
+        <option value="proximamente" ${h.estado==='proximamente'?'selected':''}>Próximamente</option>
+      </select></td>
+      <td><label style="display:block;font-size:11.5px;"><input type="checkbox" class="h-rol-chef" ${h.roles.includes('chef')?'checked':''}> chef</label>
+          <label style="display:block;font-size:11.5px;"><input type="checkbox" class="h-rol-gerencia" ${h.roles.includes('gerencia')?'checked':''}> gerencia</label></td>
+      <td><input type="text" class="h-orden" value="${h.orden}" style="width:52px;"></td>
+      <td><button class="save">Guardar</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('tr[data-id]').forEach(row => {
+    row.dataset.original = JSON.stringify(data.find(h => h.id === row.dataset.id));
+    row.querySelector('.save').onclick = () => guardarHerramienta(row);
+  });
+}
+
+async function guardarHerramienta(row){
+  const original = JSON.parse(row.dataset.original);
+  const roles = [];
+  if(row.querySelector('.h-rol-chef').checked) roles.push('chef');
+  if(row.querySelector('.h-rol-gerencia').checked) roles.push('gerencia');
+  const btn = row.querySelector('.save');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const sb = NookAuth.client();
+  const { error } = await sb.rpc('admin_upsert_herramienta', {
+    p_id: original.id,
+    p_slug: original.slug,
+    p_nombre: original.nombre,
+    p_descripcion: original.descripcion,
+    p_color: row.querySelector('.h-color').value,
+    p_estado: row.querySelector('.h-estado').value,
+    p_roles: roles,
+    p_orden: parseInt(row.querySelector('.h-orden').value, 10) || 100,
+    p_origen: original.origen,
+    p_storage_path: original.storage_path,
+    p_ruta_nativa: original.ruta_nativa
+  });
+  const status = document.getElementById('status2');
+  if(error){ status.textContent = 'Error: ' + error.message; btn.disabled = false; btn.textContent = 'Guardar'; return; }
+  status.textContent = 'Guardado ' + new Date().toLocaleTimeString();
+  btn.disabled = false; btn.textContent = 'Guardar';
+}
+
+/* ---------- Subir herramienta nueva ---------- */
+function slugify(s){
+  return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+document.getElementById('up-nombre').addEventListener('input', e => {
+  const slugEl = document.getElementById('up-slug');
+  if(!slugEl.dataset.tocado) slugEl.value = slugify(e.target.value);
+});
+document.getElementById('up-slug').addEventListener('input', e => { e.target.dataset.tocado = '1'; });
+
+function validarHtmlSubido(texto){
+  const scripts = [...texto.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
+  for(const s of scripts){
+    try { new Function(s); } catch(e){ return 'El archivo tiene un error de sintaxis en un <script>: ' + e.message; }
+  }
+  const patronesCredencial = [
+    /service_role/i,
+    /eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}/, // forma de JWT
+    /password\s*[:=]\s*['"][^'"]{3,}['"]/i
+  ];
+  for(const p of patronesCredencial){
+    if(p.test(texto)) return 'El archivo parece contener una credencial (patrón: ' + p + '). No se publica — revísalo y vuelve a intentar.';
+  }
+  return null;
+}
+
+document.getElementById('up-submit').onclick = async () => {
+  const errEl = document.getElementById('up-err');
+  errEl.textContent = '';
+  const nombre = document.getElementById('up-nombre').value.trim();
+  const slug = slugify(document.getElementById('up-slug').value.trim());
+  const descripcion = document.getElementById('up-desc').value.trim();
+  const color = document.getElementById('up-color').value;
+  const estado = document.getElementById('up-estado').value;
+  const roles = [];
+  if(document.getElementById('up-rol-chef').checked) roles.push('chef');
+  if(document.getElementById('up-rol-gerencia').checked) roles.push('gerencia');
+  const fileInput = document.getElementById('up-file');
+  const file = fileInput.files[0];
+
+  if(!nombre || !slug){ errEl.textContent = 'Falta nombre o slug.'; return; }
+  if(!file){ errEl.textContent = 'Elige un archivo .html.'; return; }
+  if(!roles.length){ errEl.textContent = 'Elige al menos un rol con acceso.'; return; }
+  if(file.size === 0){ errEl.textContent = 'El archivo está vacío.'; return; }
+  if(file.size > 4 * 1024 * 1024){ errEl.textContent = 'El archivo pesa más de 4MB — no se sube.'; return; }
+
+  const btn = document.getElementById('up-submit');
+  btn.disabled = true; btn.textContent = 'Validando…';
+  const texto = await file.text();
+  const errorValidacion = validarHtmlSubido(texto);
+  if(errorValidacion){ errEl.textContent = errorValidacion; btn.disabled = false; btn.textContent = 'Subir y publicar'; return; }
+
+  const sb = NookAuth.client();
+  btn.textContent = 'Subiendo…';
+  const storagePath = slug + '/index.html';
+  const { error: upErr } = await sb.storage.from('herramientas-subidas').upload(storagePath, file, {
+    contentType: 'text/html', upsert: true
+  });
+  if(upErr){ errEl.textContent = 'Error al subir el archivo: ' + upErr.message; btn.disabled = false; btn.textContent = 'Subir y publicar'; return; }
+
+  const { error: rpcErr } = await sb.rpc('admin_upsert_herramienta', {
+    p_id: null,
+    p_slug: slug,
+    p_nombre: nombre,
+    p_descripcion: descripcion,
+    p_color: color,
+    p_estado: estado,
+    p_roles: roles,
+    p_orden: 100,
+    p_origen: 'subida',
+    p_storage_path: storagePath,
+    p_ruta_nativa: null
+  });
+  if(rpcErr){ errEl.textContent = 'El archivo se subió pero no se pudo publicar: ' + rpcErr.message; btn.disabled = false; btn.textContent = 'Subir y publicar'; return; }
+
+  document.getElementById('up-nombre').value = '';
+  document.getElementById('up-slug').value = '';
+  document.getElementById('up-slug').dataset.tocado = '';
+  document.getElementById('up-desc').value = '';
+  fileInput.value = '';
+  btn.disabled = false; btn.textContent = 'Subir y publicar';
+  cargarHerramientas();
+};
 
 NookAuth.guardAdmin({ home: '../' }).then(session => { if(session) cargar(); });
 </script>
