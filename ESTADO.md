@@ -4,7 +4,23 @@
 > Se actualiza en el mismo commit que el cambio, nunca aparte.
 > Regla: si no se puede verificar, se escribe "SIN VERIFICAR", no se inventa.
 
-**Última actualización:** 2026-09-20 — **Sección de Configuración construida**: Mario pidió (20-sep) que
+**Última actualización:** 2026-09-20 (más tarde) — **`formatos/` deja de ser placeholder:
+primer formato real, Display de Sabores — Breakfast/Buffet (B-04b).** Mario mandó por
+WhatsApp el PDF real de DMZ (checklist semanal, 27 renglones LUN-DOM). Se reconstruyó
+como herramienta completa: filas editables (agregar/quitar), autoguardado en
+`localStorage`, pestaña Historial (una entrada por semana ISO, abrir/borrar,
+exportar/importar JSON), contador de versión que solo sube con el botón "Guardar"
+explícito (no con el autoguardado — bug real encontrado y corregido durante la propia
+verificación: el autoguardado seedeaba versión 1 y el primer "Guardar" saltaba a v2),
+y "Generar PDF" con jsPDF que replica el diseño original (franja lateral tostada
+"BITÁCORAS · B-04b", tabla de checks) en una sola hoja carta sin importar el número de
+filas. Estado de la fila `formatos` en `herramientas` actualizado a `activa` (antes
+`proximamente`) directo en producción. **Verificado real con Playwright** contra el
+servidor local: 27 filas por defecto, versión v1→v2→v3 correcta tras el fix, agregar/
+quitar fila funciona, historial muestra los datos correctos, PDF se genera sin error
+(18.6KB). `node --check` sobre el script embebido, 0 errores. Sin respaldo en la nube
+todavía (mismo criterio de nacimiento que las demás herramientas). Historial previo:
+**Sección de Configuración construida**: Mario pidió (20-sep) que
 siempre exista un apartado donde él, como "controlador absoluto", tenga la configuración de todo, además
 del panel de Usuarios que ya existía. Se agregó pestaña "Herramientas" en `admin/index.html` (tabla nueva
 `public.herramientas` en Supabase, migración `20260920000000_herramientas_config.sql`, mismo patrón

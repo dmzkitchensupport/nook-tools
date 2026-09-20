@@ -1,39 +1,396 @@
 <!DOCTYPE html>
 <html lang="es"><head>
 <meta charset="UTF-8">
-<title>NOOK — Formatos</title>
+<title>NOOK · Formatos — Display de Sabores</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/nook.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/auth.js?v=2"></script>
+<style>
+:root{
+  --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
+  --cream:#faf7ee; --ink:#333; --muted:#8a8377; --border:#e3e0d9; --ok:#3f7a4f; --warn:#a13a3a;
+}
+*{box-sizing:border-box;}
+body{font-family:'Poppins',-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);padding-bottom:60px;}
+header.app{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--cream);padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+header.app .id{display:flex;align-items:center;gap:10px;}
+header.app img{height:26px;}
+header.app .sub{font-size:11px;letter-spacing:.1em;color:var(--tan-line);text-transform:uppercase;}
+a.back{color:var(--tan-line);text-decoration:none;font-size:12px;font-weight:700;}
+a.back:hover{color:#fff;}
+nav.tabs{display:flex;gap:6px;}
+nav.tabs button{background:rgba(255,255,255,.12);border:none;color:var(--cream);padding:8px 16px;border-radius:999px;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s ease;}
+nav.tabs button:hover{background:rgba(255,255,255,.22);}
+nav.tabs button.on{background:var(--tan-line);color:#26221c;}
+
+main{max-width:1040px;margin:0 auto;padding:22px 18px;}
+.view{display:none;}
+.view.on{display:block;}
+
+.meta-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.meta-field{display:flex;flex-direction:column;gap:4px;flex:1 1 160px;}
+.meta-field label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;}
+.meta-field input{border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13.5px;}
+.meta-field.version{flex:0 0 90px;}
+.meta-field.version .v{font-size:20px;font-weight:700;color:var(--navy);padding:6px 0;}
+
+.tbl-wrap{overflow-x:auto;background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:16px;}
+table.montaje{width:100%;border-collapse:collapse;min-width:760px;}
+table.montaje th{background:var(--navy);color:var(--cream);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  padding:9px 8px;text-align:center;}
+table.montaje th.producto{text-align:left;}
+table.montaje td{padding:6px 8px;border-top:1px solid var(--border);text-align:center;vertical-align:middle;}
+table.montaje td.num{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;width:30px;}
+table.montaje input[type=text]{border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:inherit;
+  font-size:13px;width:100%;}
+table.montaje input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--tan-line);}
+table.montaje .notas input{min-width:120px;}
+table.montaje button.rowdel{border:none;background:none;color:var(--warn);font-size:15px;cursor:pointer;line-height:1;}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 6px;align-items:center;}
+button.btn{border:none;border-radius:8px;padding:11px 20px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease, box-shadow .12s ease;}
+button.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12);}
+button.btn.primary{background:var(--navy);color:#fff;}
+button.btn.accent{background:var(--tan-line);color:#26221c;}
+button.btn.ghost{background:#fff;border:1px solid var(--border);color:var(--ink);}
+#saveState{font-size:12px;color:var(--muted);align-self:center;}
+
+table.hist{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+table.hist th{background:var(--navy);color:var(--cream);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;text-align:left;}
+table.hist td{padding:10px 12px;font-size:13px;border-top:1px solid var(--border);}
+table.hist tr:hover td{background:#faf8f4;}
+table.hist button{border:none;background:none;color:var(--tan);font-weight:700;cursor:pointer;font-size:12px;}
+table.hist button:hover{color:var(--navy);}
+.empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:10px;}
+.nota{font-size:11.5px;color:var(--muted);margin:6px 0 16px;font-style:italic;}
+</style>
 </head><body>
-<script>NookAuth.guard({ allow: ['gerencia','chef'], home: '../' });</script>
 
-<div class="hero tan">
-  <div class="hero-inner">
-    <a class="back" href="../" style="color:#4a3626">&larr; Menú principal</a>
-    <div class="hero-icon">
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <rect x="10" y="8" width="44" height="52" rx="4"/>
-        <rect x="24" y="4" width="16" height="10" rx="3" fill="#b8935a" stroke="currentColor" stroke-width="2.5"/>
-        <g fill="#b8935a">
-          <rect x="17" y="24" width="30" height="3.5"/>
-          <rect x="17" y="33" width="30" height="3.5"/>
-          <rect x="17" y="42" width="20" height="3.5"/>
-        </g>
-      </svg>
+<header class="app">
+  <div class="id">
+    <img src="../assets/nook-logo-cream.png" alt="NOOK">
+    <div>
+      <div style="font-weight:700;font-size:14px;">Formatos — Display de Sabores</div>
+      <div class="sub">Breakfast / Buffet · B-04b</div>
     </div>
-    <h1 style="color:var(--cream);margin-top:6px;">Formatos</h1>
   </div>
-  <svg class="hero-edge" viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C240,60 480,0 720,20 C960,40 1200,8 1440,28 L1440,60 L0,60 Z"/></svg>
+  <nav class="tabs">
+    <button class="on" data-tab="captura">Captura</button>
+    <button data-tab="historial">Historial</button>
+  </nav>
+  <a class="back" href="../">&larr; Menú principal</a>
+</header>
+
+<main>
+
+<!-- ===== CAPTURA ===== -->
+<div class="view on" id="view-captura">
+
+  <div class="meta-row">
+    <div class="meta-field"><label>Semana</label><input type="week" id="f-semana"></div>
+    <div class="meta-field"><label>Proyecto / Cliente</label><input type="text" id="f-proyecto" value="NOOK World Cuisine (VOCO Surfside Aruba)"></div>
+    <div class="meta-field"><label>Área / Cocina</label><input type="text" id="f-area" placeholder="Ej. Cocina caliente"></div>
+    <div class="meta-field"><label>Elaboró</label><input type="text" id="f-elaboro" placeholder="Nombre"></div>
+    <div class="meta-field"><label>Revisó</label><input type="text" id="f-reviso" placeholder="Nombre"></div>
+    <div class="meta-field version"><label>Versión</label><div class="v" id="f-version">v1</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="montaje">
+      <thead><tr>
+        <th style="width:30px;">#</th>
+        <th class="producto">Producto</th>
+        <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th>
+        <th>Notas</th>
+        <th style="width:26px;"></th>
+      </tr></thead>
+      <tbody id="filasBody"></tbody>
+    </table>
+  </div>
+
+  <div class="actions" style="margin-top:-8px;">
+    <button class="btn ghost" id="btnAgregarFila">+ Agregar fila</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" id="btnGuardar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Guardar</button>
+    <button class="btn accent" id="btnPdf"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg> Generar PDF (1 hoja)</button>
+    <button class="btn ghost" id="btnNueva">+ Nueva semana</button>
+    <span id="saveState"></span>
+  </div>
+  <p class="nota">Cada vez que guardas la misma semana, la versión sube un número (v1, v2, v3…) — queda registrado en el Historial y se imprime en el PDF.</p>
 </div>
 
-<div class="container">
-<div class="placeholder">
-  <div class="pill">Próximamente</div>
-  <p>Aquí vivirán los formatos operativos de NOOK.</p>
+<!-- ===== HISTORIAL ===== -->
+<div class="view" id="view-historial">
+  <div class="actions" style="margin-top:0;">
+    <button class="btn ghost" id="btnExport">Exportar JSON (respaldo)</button>
+    <button class="btn ghost" id="btnImportBtn">Importar JSON</button>
+    <input type="file" id="btnImport" accept="application/json" style="display:none;">
+  </div>
+  <div id="histTableWrap"></div>
 </div>
-</div>
+
+</main>
+
+<script>
+const STORE_KEY = 'nook_formatos_display_sabores_v1';
+const DIAS = ['lun','mar','mie','jue','vie','sab','dom'];
+const DIAS_LABEL = {lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
+const FILAS_DEFAULT = 27;
+const $ = s => document.querySelector(s);
+let db = { registros: {} };
+let filas = [];
+let saveT;
+
+function nuevaFila(){ return { producto:'', dias:{lun:false,mar:false,mie:false,jue:false,vie:false,sab:false,dom:false}, notas:'' }; }
+function filasVacias(n){ return Array.from({length:n}, nuevaFila); }
+
+function semanaActualISO(){
+  const hoy = new Date();
+  const dia = (hoy.getDay() + 6) % 7; // lunes=0
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - dia);
+  const primerEnero = new Date(lunes.getFullYear(), 0, 1);
+  const semana = Math.ceil((((lunes - primerEnero) / 86400000) + primerEnero.getDay() + 1) / 7);
+  return lunes.getFullYear() + '-W' + String(semana).padStart(2,'0');
+}
+
+function load(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) db = JSON.parse(raw); }catch(e){}
+}
+function persist(cb){
+  clearTimeout(saveT);
+  $('#saveState').textContent = 'Guardando…';
+  saveT = setTimeout(()=>{
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(db)); $('#saveState').textContent = 'Guardado ✓ ' + new Date().toLocaleTimeString(); }
+    catch(e){ $('#saveState').textContent = 'Error al guardar (localStorage lleno?)'; }
+    if(cb) cb();
+  }, 300);
+}
+
+/* ---------- render filas ---------- */
+function renderFilas(){
+  const body = $('#filasBody');
+  body.innerHTML = filas.map((f,i)=>`
+    <tr data-i="${i}">
+      <td class="num">${i+1}</td>
+      <td><input type="text" class="f-producto" value="${escAttr(f.producto)}" placeholder="Nombre del platillo/sabor"></td>
+      ${DIAS.map(d=>`<td><input type="checkbox" class="f-dia" data-dia="${d}" ${f.dias[d]?'checked':''}></td>`).join('')}
+      <td class="notas"><input type="text" class="f-notas" value="${escAttr(f.notas)}"></td>
+      <td><button class="rowdel" title="Eliminar fila">×</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('tr').forEach(tr=>{
+    const i = Number(tr.dataset.i);
+    tr.querySelector('.f-producto').addEventListener('input', e=>{ filas[i].producto = e.target.value; guardarSilencioso(); });
+    tr.querySelector('.f-notas').addEventListener('input', e=>{ filas[i].notas = e.target.value; guardarSilencioso(); });
+    tr.querySelectorAll('.f-dia').forEach(cb=> cb.addEventListener('change', e=>{ filas[i].dias[e.target.dataset.dia] = e.target.checked; guardarSilencioso(); }));
+    tr.querySelector('.rowdel').addEventListener('click', ()=>{ filas.splice(i,1); renderFilas(); guardarSilencioso(); });
+  });
+}
+function escAttr(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+$('#btnAgregarFila').onclick = ()=>{ filas.push(nuevaFila()); renderFilas(); guardarSilencioso(); };
+
+/* ---------- captura / guardar ---------- */
+function claveSemana(){ return $('#f-semana').value || semanaActualISO(); }
+
+function collectRegistro(){
+  const semana = claveSemana();
+  const existente = db.registros[semana];
+  return {
+    semana,
+    proyecto: $('#f-proyecto').value,
+    area: $('#f-area').value,
+    elaboro: $('#f-elaboro').value,
+    reviso: $('#f-reviso').value,
+    version: existente ? existente.version : 0,
+    filas: filas.map(f=>({...f, dias:{...f.dias}})),
+    guardadoEn: new Date().toISOString()
+  };
+}
+
+function cargarRegistroEnForm(r){
+  $('#f-semana').value = r.semana;
+  $('#f-proyecto').value = r.proyecto || 'NOOK World Cuisine (VOCO Surfside Aruba)';
+  $('#f-area').value = r.area || '';
+  $('#f-elaboro').value = r.elaboro || '';
+  $('#f-reviso').value = r.reviso || '';
+  $('#f-version').textContent = 'v' + (r.version || 1);
+  filas = (r.filas && r.filas.length ? r.filas : filasVacias(FILAS_DEFAULT)).map(f=>({ producto:f.producto||'', notas:f.notas||'', dias:{...{lun:false,mar:false,mie:false,jue:false,vie:false,sab:false,dom:false}, ...(f.dias||{})} }));
+  renderFilas();
+}
+
+function cargarSemanaEnForm(){
+  const semana = claveSemana();
+  const r = db.registros[semana];
+  if(r) cargarRegistroEnForm(r);
+  else { $('#f-version').textContent = 'v1'; if(!filas.length) filas = filasVacias(FILAS_DEFAULT); renderFilas(); }
+}
+
+function guardarSilencioso(){
+  // el autoguardado persiste el borrador pero NUNCA cuenta como una versión nueva —
+  // solo el botón "Guardar" incrementa la versión (ver btnGuardar más abajo).
+  const r = collectRegistro();
+  const existente = db.registros[r.semana];
+  r.version = existente ? existente.version : 0;
+  db.registros[r.semana] = r;
+  persist();
+}
+
+$('#btnGuardar').onclick = ()=>{
+  const r = collectRegistro();
+  const existente = db.registros[r.semana];
+  r.version = existente ? existente.version + 1 : 1;
+  db.registros[r.semana] = r;
+  $('#f-version').textContent = 'v' + r.version;
+  persist(()=>{ alert('Guardado: semana ' + r.semana + ' (v' + r.version + ')'); renderHistorial(); });
+};
+
+$('#btnNueva').onclick = ()=>{
+  if(!confirm('¿Empezar una semana nueva? (lo ya guardado no se pierde)')) return;
+  $('#f-semana').value = semanaActualISO();
+  $('#f-area').value = ''; $('#f-elaboro').value = ''; $('#f-reviso').value = '';
+  filas = filasVacias(FILAS_DEFAULT);
+  cargarSemanaEnForm();
+};
+
+$('#f-semana').addEventListener('change', cargarSemanaEnForm);
+['#f-proyecto','#f-area','#f-elaboro','#f-reviso'].forEach(sel=> $(sel).addEventListener('input', guardarSilencioso));
+
+/* ---------- PDF (una sola hoja, replica el formato B-04b real) ---------- */
+function buildPdfDoc(r){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'letter' });
+  const navy = [43,74,94], tan=[184,147,90], ink=[40,40,40], muted=[120,110,95];
+  const pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
+
+  // franja lateral tostada con "BITÁCORAS · B-04b" (mismo elemento visual del PDF original)
+  doc.setFillColor(...tan); doc.rect(0, 0, 26, pageH, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.text('BITÁCORAS · B-04b', 13, pageH/2, { angle:90, align:'center' });
+
+  const x0 = 44;
+  let y = 44;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...navy);
+  doc.text('DISPLAY DE SABORES - BREAKFAST / BUFFET', x0, y);
+  y += 14;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...muted);
+  doc.text('Verificación semanal de montaje de buffet · B-04b · Versión v' + r.version, x0, y);
+  y += 22;
+
+  // meta
+  doc.setDrawColor(...[227,224,217]);
+  const metaW = (pageW - x0 - 30) / 4;
+  const metas = [['SEMANA', r.semana], ['PROYECTO / CLIENTE', r.proyecto], ['ÁREA / COCINA', r.area], ['ELABORÓ', r.elaboro]];
+  metas.forEach((m,i)=>{
+    const mx = x0 + i*metaW;
+    doc.rect(mx, y, metaW-6, 30);
+    doc.setFontSize(6.5); doc.setTextColor(...muted); doc.text(m[0], mx+5, y+10);
+    doc.setFontSize(9.5); doc.setTextColor(...ink); doc.text(String(m[1]||'—'), mx+5, y+22);
+  });
+  y += 42;
+
+  // tabla
+  const colProd = 190, colDia = (pageW - x0 - 30 - colProd - 90) / 7, colNotas = 90;
+  doc.setFillColor(...navy); doc.rect(x0, y, pageW - x0 - 30, 16, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+  doc.text('PRODUCTO', x0+4, y+11);
+  DIAS.forEach((d,i)=> doc.text(DIAS_LABEL[d].toUpperCase(), x0 + colProd + i*colDia + colDia/2, y+11, { align:'center' }));
+  doc.text('NOTAS', x0 + colProd + 7*colDia + 4, y+11);
+  y += 16;
+
+  const filasConContenido = r.filas.filter(f => f.producto || f.notas || DIAS.some(d=>f.dias[d]));
+  const filasAImprimir = filasConContenido.length ? r.filas : r.filas; // se imprimen todas las filas del formato, con o sin llenar
+  const alturaDisponible = pageH - y - 40;
+  const rowH = Math.max(9, Math.min(16, alturaDisponible / Math.max(filasAImprimir.length,1)));
+
+  doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+  filasAImprimir.forEach((f,i)=>{
+    const ry = y + i*rowH;
+    doc.setDrawColor(227,224,217); doc.line(x0, ry+rowH, x0 + (pageW-x0-30), ry+rowH);
+    doc.setFontSize(7); doc.setTextColor(...muted); doc.text(String(i+1), x0+3, ry+rowH-3);
+    doc.setFontSize(8); doc.setTextColor(...ink); doc.text(String(f.producto||''), x0+16, ry+rowH-3, { maxWidth: colProd-18 });
+    DIAS.forEach((d,di)=>{
+      const cx = x0 + colProd + di*colDia + colDia/2;
+      doc.setDrawColor(150,140,125); doc.rect(cx-4, ry+2, 8, 8);
+      if(f.dias[d]){ doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('X', cx, ry+9, { align:'center' }); doc.setFont('helvetica','normal'); }
+    });
+    doc.setFontSize(7); doc.setTextColor(...muted);
+    doc.text(String(f.notas||''), x0 + colProd + 7*colDia + 4, ry+rowH-3, { maxWidth: colNotas-6 });
+  });
+
+  doc.setFontSize(7.5); doc.setTextColor(...muted);
+  doc.text('De la Mora Zumarán · Kitchen Support — Estándar de Documentación Operativa DMZ', x0, pageH - 18);
+  doc.text('Revisó: ' + (r.reviso || '—') + '   ·   B-04b · Uso interno', pageW - 30, pageH - 18, { align:'right' });
+
+  return doc;
+}
+
+$('#btnPdf').onclick = ()=>{
+  const r = collectRegistro();
+  const doc = buildPdfDoc(r);
+  doc.save('NOOK_DisplaySabores_B04b_' + r.semana + '_v' + (r.version||1) + '.pdf');
+};
+
+/* ---------- Historial ---------- */
+function renderHistorial(){
+  const semanas = Object.keys(db.registros).sort().reverse();
+  const wrap = $('#histTableWrap');
+  if(!semanas.length){ wrap.innerHTML = '<div class="empty">Sin formatos guardados todavía.</div>'; return; }
+  let html = '<table class="hist"><thead><tr><th>Semana</th><th>Área</th><th>Elaboró</th><th>Revisó</th><th>Versión</th><th>Guardado</th><th></th></tr></thead><tbody>';
+  semanas.forEach(s=>{
+    const r = db.registros[s];
+    html += `<tr><td>${s}</td><td>${r.area||'—'}</td><td>${r.elaboro||'—'}</td><td>${r.reviso||'—'}</td><td>${r.version ? 'v'+r.version : 'borrador (sin guardar)'}</td>
+      <td>${new Date(r.guardadoEn).toLocaleString()}</td>
+      <td><button data-open="${s}">Abrir</button> · <button data-del="${s}">Borrar</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-open]').forEach(b=> b.onclick = ()=>{ cargarRegistroEnForm(db.registros[b.dataset.open]); switchTab('captura'); });
+  wrap.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ if(confirm('¿Borrar el formato de la semana ' + b.dataset.del + '? No se puede deshacer.')){ delete db.registros[b.dataset.del]; persist(); renderHistorial(); } });
+}
+
+$('#btnExport').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'NOOK_formatos_display_sabores_backup.json'; a.click();
+};
+$('#btnImportBtn').onclick = ()=> $('#btnImport').click();
+$('#btnImport').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!data.registros) throw new Error('formato inválido');
+      Object.assign(db.registros, data.registros);
+      persist(); renderHistorial();
+      alert('Importado. Total de semanas en historial: ' + Object.keys(db.registros).length);
+    }catch(err){ alert('No se pudo importar: ' + err.message); }
+  };
+  r.readAsText(file); e.target.value = '';
+});
+
+/* ---------- Tabs ---------- */
+function switchTab(name){
+  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('on', b.dataset.tab===name));
+  document.querySelectorAll('.view').forEach(v=> v.classList.toggle('on', v.id === 'view-'+name));
+  if(name==='historial') renderHistorial();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=> b.addEventListener('click', ()=> switchTab(b.dataset.tab)));
+
+/* ---------- arranque ---------- */
+load();
+$('#f-semana').value = semanaActualISO();
+cargarSemanaEnForm();
+renderHistorial();
+NookAuth.guard({ allow: ['gerencia','chef'], home: '../' });
+</script>
 </body></html>

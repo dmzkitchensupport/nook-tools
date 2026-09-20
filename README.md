@@ -16,11 +16,25 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
 - **`bitacora/`** — Bitácora Diaria A&B, herramienta real (ver sección propia abajo).
 - **`salon-barra/`** — Generador de Ficheros para bebidas, herramienta real (ver
   sección propia abajo).
-- **`formatos/`** — sección nueva, en placeholder ("Próximamente") hasta que Mario
-  defina su contenido real. No se inventó funcionalidad para ella.
+- **`formatos/`** — primer formato real: **Display de Sabores — Breakfast/Buffet
+  (B-04b)**, digitalizado a partir del PDF real de DMZ (ver sección propia abajo).
+  Ya no es placeholder — marcado `activa` en `herramientas`.
 - **`herramienta/`** — loader genérico para herramientas subidas desde el panel de
   Configuración (ver abajo). No es una herramienta en sí, es la página que valida el
   rol y sirve el archivo subido en un iframe aislado.
+
+## Display de Sabores — Breakfast/Buffet (`formatos/`)
+
+Réplica digital 1:1 del formato B-04b de DMZ (checklist semanal de montaje de buffet,
+27 renglones, un check por día LUN-DOM). Igual que las demás herramientas: autoguardado
+en `localStorage`, tabla de filas totalmente editable (agregar/quitar renglón), pestaña
+de Historial (una entrada por semana, abrir/borrar, exportar/importar JSON). Cada clic
+en "Guardar" sube un contador de versión (v1, v2, v3…) — el autoguardado mientras se
+escribe NO cuenta como versión nueva, solo el guardado explícito. "Generar PDF" arma
+el mismo diseño del documento original (título, franja lateral "BITÁCORAS · B-04b",
+tabla de checks) ajustado a una sola hoja carta con jsPDF, sin importar cuántas filas
+tenga. Sin respaldo en la nube todavía — mismo criterio que las demás herramientas al
+nacer (se agrega después si hay riesgo real de pérdida de datos entre dispositivos).
 
 ## Configuración de herramientas (panel de Mario)
 
