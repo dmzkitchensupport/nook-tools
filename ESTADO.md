@@ -4,7 +4,33 @@
 > Se actualiza en el mismo commit que el cambio, nunca aparte.
 > Regla: si no se puede verificar, se escribe "SIN VERIFICAR", no se inventa.
 
-**Última actualización:** 2026-09-20 (más tarde) — **`formatos/` deja de ser placeholder:
+**Última actualización:** 2026-09-24 — **Auditoría real del panel de Configuración,
+a pedido de Mario ("perfeccionar el panel sin romper nada").** Respaldo creado antes
+de tocar código: tag `respaldo-pre-optimizacion-panel-20260924` (push real a origin),
+estado de la base al momento del respaldo: 3 filas en `herramientas`, 5 en `profiles`.
+**3 bugs reales encontrados y corregidos en `admin/index.html`:**
+(1) guardar una herramienta existente sin ningún rol marcado la dejaba inaccesible
+para todos — el formulario de edición no validaba "al menos un rol" (el de subida sí);
+(2) colisión de slug al subir podía sobrescribir el archivo real de OTRA herramienta
+ya publicada — el archivo se subía a Storage antes de checar si el slug ya existía,
+el rechazo solo llegaba después, en el guardado de metadatos, cuando el archivo viejo
+ya estaba pisado; (3) `admin_delete_herramienta` existía en la base desde el 20-sep
+pero nunca quedó conectada a ningún botón — no había forma de borrar una herramienta
+desde la interfaz. Se agregó además edición de Nombre/Descripción en la tabla (antes
+solo color/estado/roles/orden). **Verificado con Playwright real** (mock de
+`NookAuth.client()`, sin necesitar sesión real de Mario): guardar sin rol bloquea con
+0 llamadas a la RPC; editar nombre sí llega a la RPC; borrar una herramienta nativa no
+toca Storage (solo quita la fila) y sí pide confirmación explícita nombrando qué carpeta
+sigue existiendo; detección de slug duplicado confirmada contra los datos simulados.
+`node --check` sobre el script embebido, 0 errores. Se documentó además, en `README.md`,
+el paso a paso real de cómo el equipo agrega platillos nuevos y edita recetas en
+`generador/`/`fichas/`/`recetario/` (nada nuevo, solo hacía falta que quedara escrito
+en un solo lugar). **Pendiente real, no de código:** Mario pidió también un "botón de
+historial de trabajo para cada área" — no se construyó todavía porque el alcance es
+ambiguo (¿un registro central de auditoría del panel, o que cada herramienta tenga su
+propio historial visible como ya tiene `recetario/`?) — Cla se lo preguntó directo en
+vez de adivinar, por regla de gobernanza (no decidir comportamiento nuevo sin que él
+lo confirme). Historial previo: **`formatos/` deja de ser placeholder:
 primer formato real, Display de Sabores — Breakfast/Buffet (B-04b).** Mario mandó por
 WhatsApp el PDF real de DMZ (checklist semanal, 27 renglones LUN-DOM). Se reconstruyó
 como herramienta completa: filas editables (agregar/quitar), autoguardado en

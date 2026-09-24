@@ -196,10 +196,12 @@ async function cargarHerramientas(){
   const wrap = document.getElementById('toolsWrap');
   if(error){ wrap.innerHTML = '<div class="empty">Error al cargar: ' + esc(error.message) + '</div>'; return; }
   if(!data || !data.length){ wrap.innerHTML = '<div class="empty">Sin herramientas registradas todavía.</div>'; return; }
-  let html = '<table><thead><tr><th>Nombre</th><th>Origen</th><th>Color</th><th>Estado</th><th>Roles</th><th>Orden</th><th></th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Nombre</th><th>Descripción</th><th>Origen</th><th>Color</th><th>Estado</th><th>Roles</th><th>Orden</th><th></th></tr></thead><tbody>';
   data.forEach(h => {
     html += `<tr data-id="${h.id}">
-      <td>${esc(h.nombre)}<div style="font-size:10.5px;color:var(--muted);">${esc(h.slug)}</div></td>
+      <td><input type="text" class="h-nombre" value="${esc(h.nombre)}" style="min-width:110px;">
+        <div style="font-size:10.5px;color:var(--muted);">${esc(h.slug)}</div></td>
+      <td><input type="text" class="h-desc" value="${esc(h.descripcion)}" style="min-width:160px;"></td>
       <td style="font-size:11px;color:var(--muted);">${h.origen}</td>
       <td><select class="h-color">
         <option value="tan" ${h.color==='tan'?'selected':''}>Tostado</option>
@@ -213,7 +215,7 @@ async function cargarHerramientas(){
       <td><label style="display:block;font-size:11.5px;"><input type="checkbox" class="h-rol-chef" ${h.roles.includes('chef')?'checked':''}> chef</label>
           <label style="display:block;font-size:11.5px;"><input type="checkbox" class="h-rol-gerencia" ${h.roles.includes('gerencia')?'checked':''}> gerencia</label></td>
       <td><input type="text" class="h-orden" value="${h.orden}" style="width:52px;"></td>
-      <td><button class="save">Guardar</button></td>
+      <td><button class="save">Guardar</button><br><button class="del" style="margin-top:4px;color:var(--warn);background:none;border:1px solid var(--warn);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:inherit;">Borrar</button></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -221,6 +223,7 @@ async function cargarHerramientas(){
   wrap.querySelectorAll('tr[data-id]').forEach(row => {
     row.dataset.original = JSON.stringify(data.find(h => h.id === row.dataset.id));
     row.querySelector('.save').onclick = () => guardarHerramienta(row);
+    row.querySelector('.del').onclick = () => borrarHerramienta(row);
   });
 }
 
@@ -229,14 +232,16 @@ async function guardarHerramienta(row){
   const roles = [];
   if(row.querySelector('.h-rol-chef').checked) roles.push('chef');
   if(row.querySelector('.h-rol-gerencia').checked) roles.push('gerencia');
+  const status = document.getElementById('status2');
+  if(!roles.length){ status.textContent = 'Error: elige al menos un rol con acceso — si guardas sin ninguno, nadie podrá entrar a esta herramienta.'; return; }
   const btn = row.querySelector('.save');
   btn.disabled = true; btn.textContent = 'Guardando…';
   const sb = NookAuth.client();
   const { error } = await sb.rpc('admin_upsert_herramienta', {
     p_id: original.id,
     p_slug: original.slug,
-    p_nombre: original.nombre,
-    p_descripcion: original.descripcion,
+    p_nombre: row.querySelector('.h-nombre').value.trim() || original.nombre,
+    p_descripcion: row.querySelector('.h-desc').value.trim(),
     p_color: row.querySelector('.h-color').value,
     p_estado: row.querySelector('.h-estado').value,
     p_roles: roles,
@@ -245,10 +250,28 @@ async function guardarHerramienta(row){
     p_storage_path: original.storage_path,
     p_ruta_nativa: original.ruta_nativa
   });
-  const status = document.getElementById('status2');
   if(error){ status.textContent = 'Error: ' + error.message; btn.disabled = false; btn.textContent = 'Guardar'; return; }
   status.textContent = 'Guardado ' + new Date().toLocaleTimeString();
   btn.disabled = false; btn.textContent = 'Guardar';
+  cargarHerramientas();
+}
+
+async function borrarHerramienta(row){
+  const original = JSON.parse(row.dataset.original);
+  const advertencia = original.origen === 'nativa'
+    ? `"${original.nombre}" es una herramienta nativa (su carpeta ${original.ruta_nativa} sigue existiendo en el repo) — solo desaparece del menú, no se borra ningún archivo. ¿Continuar?`
+    : `"${original.nombre}" fue subida por este panel — se borra también su archivo. Esto no se puede deshacer. ¿Continuar?`;
+  if(!confirm(advertencia)) return;
+  const status = document.getElementById('status2');
+  const sb = NookAuth.client();
+  if(original.origen === 'subida' && original.storage_path){
+    const { error: rmErr } = await sb.storage.from('herramientas-subidas').remove([original.storage_path]);
+    if(rmErr){ status.textContent = 'No se pudo borrar el archivo (' + rmErr.message + ') — no se quitó del menú, revisa e intenta de nuevo.'; return; }
+  }
+  const { error } = await sb.rpc('admin_delete_herramienta', { p_id: original.id });
+  if(error){ status.textContent = 'Error al borrar: ' + error.message; return; }
+  status.textContent = 'Borrado ' + new Date().toLocaleTimeString();
+  cargarHerramientas();
 }
 
 /* ---------- Subir herramienta nueva ---------- */
@@ -300,6 +323,19 @@ document.getElementById('up-submit').onclick = async () => {
 
   const btn = document.getElementById('up-submit');
   btn.disabled = true; btn.textContent = 'Validando…';
+
+  // slug único ANTES de subir nada — si coincide con una herramienta que ya existe,
+  // subir pisaría su archivo real en Storage antes de que el guardado de metadatos
+  // pudiera rechazarlo (bug real encontrado el 24-sep, corregido aquí).
+  const sbCheck = NookAuth.client();
+  const { data: existentes, error: listErr } = await sbCheck.rpc('admin_list_herramientas');
+  if(listErr){ errEl.textContent = 'No se pudo verificar el slug: ' + listErr.message; btn.disabled = false; btn.textContent = 'Subir y publicar'; return; }
+  if(existentes.some(h => h.slug === slug)){
+    errEl.textContent = `Ya existe una herramienta con el slug "${slug}" — usa la tabla de arriba para editarla, o elige otro nombre/slug.`;
+    btn.disabled = false; btn.textContent = 'Subir y publicar';
+    return;
+  }
+
   const texto = await file.text();
   const errorValidacion = validarHtmlSubido(texto);
   if(errorValidacion){ errEl.textContent = errorValidacion; btn.disabled = false; btn.textContent = 'Subir y publicar'; return; }

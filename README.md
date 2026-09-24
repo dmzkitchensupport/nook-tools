@@ -141,6 +141,38 @@ por cada foto nueva.
   registro de cambios y conversión de unidades (oz/g/lb). **Fuente única de verdad**
   del catálogo — auditada 1:1 contra Cockpit.
 
+### Guía rápida — gestión de fichas y recetarios (para el equipo de cocina)
+
+Paso a paso de lo que ya existe hoy (nada nuevo, solo documentado para que quede claro
+dónde se hace cada cosa):
+
+1. **¿Un platillo nuevo no está en el menú?** En `generador/` (Paso 3) o `fichas/`
+   (Paso 2), el selector de platillo trae la opción **"+ Otro / nuevo platillo…"** al
+   final de la lista — se escribe el nombre y queda disponible de inmediato en esa
+   ficha, sin tocar el menú oficial ni afectar a nadie más.
+2. **¿Quieres que ese platillo nuevo quede indexado para reutilizarlo en cualquier
+   ficha, no solo en la que lo escribiste?** En `generador/`, botón **"Índice"** →
+   al final de cada grupo de servicio hay **"+ Agregar platillo nuevo"** (pide nombre
+   y descripción). Desde ahí aparece con su propio progreso ("Sin ficha"/"Completa")
+   y autocompletado, igual que un platillo oficial.
+3. **¿Editar una receta ya existente (ingredientes, cantidades, procedimiento)?** Eso
+   vive en `recetario/` (Recipe Master Book, fuente única de verdad del catálogo) —
+   botón **✏️ Modo edición**: cada ingrediente/cantidad/unidad/paso se vuelve editable
+   con solo darle clic. Todo cambio queda registrado en **📋 Registro de cambios**
+   (campo, valor anterior → nuevo, fecha/hora real) — no se pierde el rastro de quién
+   cambió qué.
+4. **¿Cómo se guarda el trabajo?** `fichas/`, `recetario/`, `organizador/` y
+   `generador/` autoguardan solos en el navegador (localStorage) mientras se captura —
+   no hay botón de "guardar" que se pueda olvidar. `generador/` además respalda en la
+   nube (Supabase) desde el 18-sep — el primer dispositivo que abre la herramienta
+   siembra la nube, y de ahí en adelante todos ven lo mismo.
+5. **¿Dos personas capturando en computadoras distintas al mismo tiempo?** Solo
+   `generador/` sincroniza entre dispositivos (punto 4). Las otras 3 herramientas
+   guardan solo en el navegador de cada quien — si dos personas capturan la misma
+   ficha en equipos distintos, gana la que se guardó más reciente en la nube; para
+   trabajo repartido, usar **"Descargar copia actualizada"** / Exportar-Importar JSON
+   como respaldo/traspaso manual entre dispositivos.
+
 ## Esquema JSON universal ("proyecto NOOK universal")
 
 Un array de objetos con esta forma es el formato común que las 4 herramientas
