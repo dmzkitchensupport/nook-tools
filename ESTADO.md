@@ -4,7 +4,26 @@
 > Se actualiza en el mismo commit que el cambio, nunca aparte.
 > Regla: si no se puede verificar, se escribe "SIN VERIFICAR", no se inventa.
 
-**Última actualización:** 2026-09-24 — **Auditoría real del panel de Configuración,
+**Última actualización:** 2026-09-24 (más tarde) — **Historial central del panel,
+tercera pestaña en `admin/`.** Mario aclaró (pregunta directa, ver entrada anterior):
+quería un registro central en Configuración, no un botón por herramienta. Migración
+`20260924000000_historial_acciones.sql`: tabla `historial_acciones` (solo lectura vía
+`admin_list_historial`, mismo patrón "solo mario@..." de siempre) + `admin_set_profile`/
+`admin_upsert_herramienta`/`admin_delete_herramienta` redefinidas (mismo cuerpo de
+siempre) para escribir un renglón del historial dentro de la misma transacción — no
+depende de que el navegador haga una llamada aparte, así que no se puede saltar desde
+el cliente. Cubre: cambios de rol/aprobado/puesto de usuarios, y creación/edición/borrado
+de herramientas, con el valor anterior y el nuevo. **No cubre** fichas/recetario/
+bitácora/etc. — alcance acotado a propósito, confirmado con Mario, no inferido.
+**Verificado real:** simulando la sesión de Mario dentro de una transacción con
+rollback, `admin_upsert_herramienta` crea una herramienta Y el renglón de historial
+aparece de inmediato en `admin_list_historial` (mismo query, antes del rollback);
+lectura anónima de `admin_list_historial` rechazada (`permission denied`); tabla real
+quedó en 0 filas tras la prueba (rollback limpio, nada persistió). Playwright real
+(mock de `NookAuth.client()`) confirmó que las 4 acciones (usuario actualizado,
+herramienta creada/editada/borrada) se formatean legibles en la tabla, con el
+anterior→nuevo cuando cambió algo. `node --check` sobre el script embebido, 0 errores.
+Historial previo: **Auditoría real del panel de Configuración,
 a pedido de Mario ("perfeccionar el panel sin romper nada").** Respaldo creado antes
 de tocar código: tag `respaldo-pre-optimizacion-panel-20260924` (push real a origin),
 estado de la base al momento del respaldo: 3 filas en `herramientas`, 5 en `profiles`.

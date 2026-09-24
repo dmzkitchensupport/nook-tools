@@ -41,8 +41,18 @@ nacer (se agrega después si hay riesgo real de pérdida de datos entre disposit
 Desde `admin/` (pestaña "Herramientas") Mario controla, sin tocar este repo:
 
 - Qué aparece en la fila secundaria del menú principal (hoy: Formatos, Bitácora,
-  Salón y Barra) — color, roles con acceso, estado (activa/próximamente), orden.
+  Salón y Barra) — nombre, descripción, color, roles con acceso, estado
+  (activa/próximamente), orden.
 - Subir una herramienta nueva (.html autocontenido) directo desde el navegador.
+- Borrar una herramienta (con confirmación — si era "subida" también borra su archivo
+  real de Storage; si era "nativa" solo la quita del menú, la carpeta sigue intacta).
+
+Tercera pestaña, **"Historial"**: registro central de solo lectura de lo que pasa por
+este panel (Usuarios + Herramientas) — quién cambió qué y cuándo. Se escribe del lado
+del servidor, dentro de las mismas funciones `admin_*` (misma transacción, no depende
+de que el navegador avise). Alcance decidido explícitamente con Mario el 24-sep: cubre
+acciones del panel de administración, no instrumenta fichas/recetario/bitácora — esas
+ya tienen su propio historial local donde aplica.
 
 Arquitectura: la tabla `public.herramientas` en Supabase (proyecto `nook-tools`) es la
 fuente de verdad del menú — `index.html` la lee en vivo vía `public_list_herramientas()`

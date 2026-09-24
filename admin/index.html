@@ -68,6 +68,7 @@
   <nav class="tabs">
     <button class="on" id="tab-usuarios">Usuarios</button>
     <button id="tab-herramientas">Herramientas (Configuración)</button>
+    <button id="tab-historial">Historial</button>
   </nav>
 
   <section class="panel on" id="panel-usuarios">
@@ -126,6 +127,17 @@
       <div class="upload-err" id="up-err"></div>
     </div>
   </section>
+
+  <section class="panel" id="panel-historial">
+    <div class="note">
+      Registro de lo que pasa por este panel — Usuarios y Herramientas. Se escribe del lado del
+      servidor, dentro de las mismas funciones <code>admin_*</code> (misma transacción), así que
+      no depende de que el navegador avise. No cubre cambios dentro de fichas/, recetario/, etc.
+      — esas ya tienen su propio historial local donde aplica (ej. "Registro de cambios" de
+      recetario/).
+    </div>
+    <div id="historialWrap"><div class="empty">Cargando…</div></div>
+  </section>
 </main>
 
 <script>
@@ -181,12 +193,53 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 /* ---------- pestañas ---------- */
 document.getElementById('tab-usuarios').onclick = () => cambiarTab('usuarios');
 document.getElementById('tab-herramientas').onclick = () => cambiarTab('herramientas');
+document.getElementById('tab-historial').onclick = () => cambiarTab('historial');
 function cambiarTab(cual){
-  document.getElementById('tab-usuarios').classList.toggle('on', cual === 'usuarios');
-  document.getElementById('tab-herramientas').classList.toggle('on', cual === 'herramientas');
-  document.getElementById('panel-usuarios').classList.toggle('on', cual === 'usuarios');
-  document.getElementById('panel-herramientas').classList.toggle('on', cual === 'herramientas');
+  ['usuarios','herramientas','historial'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('on', cual === t);
+    document.getElementById('panel-'+t).classList.toggle('on', cual === t);
+  });
   if(cual === 'herramientas') cargarHerramientas();
+  if(cual === 'historial') cargarHistorial();
+}
+
+/* ---------- Historial (registro central, solo lectura) ---------- */
+function formatearDetalle(accion, d){
+  if(accion === 'usuario.actualizado'){
+    const partes = [];
+    if(d.rol_anterior !== d.rol_nuevo) partes.push(`rol: ${d.rol_anterior||'—'} → ${d.rol_nuevo}`);
+    if(d.aprobado_anterior !== d.aprobado_nuevo) partes.push(`aprobado: ${!!d.aprobado_anterior} → ${!!d.aprobado_nuevo}`);
+    if(d.puesto_anterior !== d.puesto_nuevo) partes.push(`puesto: "${d.puesto_anterior||''}" → "${d.puesto_nuevo||''}"`);
+    return `${d.email} — ${partes.join(', ') || 'sin cambios detectados'}`;
+  }
+  if(accion === 'herramienta.creada') return `${d.nombre} (${d.slug}) — origen ${d.origen}, roles [${(d.roles||[]).join(', ')}]`;
+  if(accion === 'herramienta.borrada') return `${d.nombre} (${d.slug}) — origen ${d.origen}`;
+  if(accion === 'herramienta.editada'){
+    const partes = [];
+    if(d.nombre_anterior !== d.nombre_nuevo) partes.push(`nombre: "${d.nombre_anterior}" → "${d.nombre_nuevo}"`);
+    if(d.estado_anterior !== d.estado_nuevo) partes.push(`estado: ${d.estado_anterior} → ${d.estado_nuevo}`);
+    if(d.color_anterior !== d.color_nuevo) partes.push(`color: ${d.color_anterior} → ${d.color_nuevo}`);
+    if(d.orden_anterior !== d.orden_nuevo) partes.push(`orden: ${d.orden_anterior} → ${d.orden_nuevo}`);
+    if(JSON.stringify(d.roles_anterior) !== JSON.stringify(d.roles_nuevo)) partes.push(`roles: [${(d.roles_anterior||[]).join(',')}] → [${(d.roles_nuevo||[]).join(',')}]`);
+    return `${d.slug} — ${partes.join(', ') || 'sin cambios detectados'}`;
+  }
+  return esc(JSON.stringify(d));
+}
+async function cargarHistorial(){
+  const sb = NookAuth.client();
+  const { data, error } = await sb.rpc('admin_list_historial', { p_limit: 200 });
+  const wrap = document.getElementById('historialWrap');
+  if(error){ wrap.innerHTML = '<div class="empty">Error al cargar: ' + esc(error.message) + '</div>'; return; }
+  if(!data || !data.length){ wrap.innerHTML = '<div class="empty">Sin acciones registradas todavía.</div>'; return; }
+  let html = '<table><thead><tr><th>Fecha</th><th>Área</th><th>Acción</th><th>Detalle</th></tr></thead><tbody>';
+  data.forEach(h => {
+    html += `<tr><td style="white-space:nowrap;font-size:11.5px;">${new Date(h.creado_en).toLocaleString()}</td>
+      <td style="font-size:11px;color:var(--muted);">${esc(h.area)}</td>
+      <td style="font-size:12px;font-weight:700;">${esc(h.accion)}</td>
+      <td style="font-size:12px;">${esc(formatearDetalle(h.accion, h.detalle))}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
 }
 
 /* ---------- Herramientas (Configuración) ---------- */
