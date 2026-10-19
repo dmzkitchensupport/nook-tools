@@ -233,6 +233,14 @@ normaliza al importar:
 | `OTROS`          | las 4 herramientas       | recetario interno / buffet / misceláneo |
 | `LUN`            | `organizador/` (`NOOK_Editor_Completo.html`) | igual que `LUNCH` — el organizador no separa desayuno, así que `BREAKFAST` importado también cae en `LUN` |
 | `SIN`            | `organizador/`           | foto sin familia asignada todavía (no existe en `generador/`, que solo tiene los 4 servicios reales) |
+| `COC`            | `salon-barra/` (cat `cocteleria`) | **Coctelería** (barra) |
+| `SIN`            | `salon-barra/` (cat `sinalcohol`) | **Sin alcohol** (barra). Ojo: en `organizador/` y `fichas/` el mismo código significa "sin familia asignada" (fila de arriba) — ver bloqueador #18 en `ESTADO.md` |
+| `CAF`            | `salon-barra/` (cat `cafeteria`)  | **Cafetería** (barra) |
+| `VIN`            | `salon-barra/` (cat `vinos`)      | **Vinos y cervezas** (barra) |
+
+Códigos de barra (`COC`/`SIN`/`CAF`/`VIN`) definidos por Mario el 19-oct-2026. Una bebida
+sin categoría se exporta con `familia` vacía; al importar en `salon-barra/`, un código vacío
+o desconocido (incluidos los de cocina) deja la ficha sin categoría.
 
 Al importar, cada herramienta normaliza el valor entrante a su propio vocabulario
 (ver `FAMILIA_NORMALIZE` / `FAMILIA_BY_CAT` / `CAT_BY_FAMILIA` en cada `index.html`).

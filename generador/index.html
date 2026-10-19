@@ -844,6 +844,20 @@ const DB_NAME='nook_ficheros', STORE='proj', BUILD=4;
 let loadedBuild=0;
 let _db=null, _idbok=true, _saveT=null, _booting=true;
 let _cloudOk=true;
+let _pending=false;   // hay un cambio real del usuario programado y todavía no enviado
+// _localOnly (19-oct-2026, bloqueador #14): si generador_load falló al abrir, la sesión entera
+// queda en modo solo local. No se sabe qué tiene la nube, así que NINGÚN guardado (ni editar,
+// ni ocultar/cerrar la pestaña) sube nada: se guarda en este equipo y se avisa en pantalla.
+let _localOnly=false;
+const LOCAL_ONLY_MSG='Sin conexión a la nube al abrir — modo solo local: los cambios se guardan en este equipo y NO se suben. Recarga cuando vuelva la conexión (usa “Guardar proyecto” si editas).';
+function showLocalOnlyBanner(){
+  if(document.getElementById('localonlybanner')) return;
+  const b=document.createElement('div');
+  b.id='localonlybanner'; b.setAttribute('role','alert');
+  b.style.cssText='position:sticky;top:0;z-index:999;background:#7A2E3A;color:#fff;padding:8px 14px;font:600 13px/1.35 system-ui,sans-serif;text-align:center';
+  b.textContent=LOCAL_ONLY_MSG;
+  document.body.prepend(b);
+}
 // Incidente real, 18-sep-2026 (~9pm): un dispositivo que NUNCA había usado el Generador
 // (sin caché local real) tuvo una falla de red al cargar la nube justo después de que un
 // chef guardara 30 fichas reales. Antes, cloudLoad() devolvía null tanto si la nube estaba
@@ -884,11 +898,18 @@ async function idbGet(k){ if(!_db)_db=await idbOpen(); return new Promise((res,r
 function setSaveState(t){ const el=$('#savestate'); if(el) el.textContent=t; }
 function scheduleSave(){
   if(_booting) return;
+  _pending=true;
   setSaveState('Guardando…');
   clearTimeout(_saveT);
   _saveT=setTimeout(async ()=>{
+    _pending=false;
     const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
     try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
+    // Modo solo local (la carga inicial falló): nunca pisar la nube.
+    if(_localOnly){
+      setSaveState(_idbok ? 'Guardado solo en este equipo ✓ (sin conexión a la nube al abrir)' : 'Sin autoguardado — usa “Guardar proyecto”');
+      return;
+    }
     // Nunca mandar un proyecto vacío por el camino automático -- incidente real 18-sep-2026:
     // una pestaña/dispositivo con datos locales desactualizados (vacío) ganó una carrera de
     // guardado contra el proyecto real de otro chef y lo sobrescribió con 0 fichas. La base
@@ -913,6 +934,7 @@ let _cloudReachable=false;
 async function autoload(){
   const r = await cloudLoad();
   _cloudReachable = r.ok;
+  _localOnly = !r.ok;
   const cloudData = r.data;
   if(cloudData){ CUSTOM_MENU = cloudData.customMenu || {}; }
   if(cloudData && cloudData.cards && cloudData.cards.length){
@@ -951,28 +973,32 @@ autoload().then(()=>{
     migrated=true;
   }
   cards.forEach(ensureUniversalFields);
-  _booting=false;
+  // 19-oct-2026 (bloqueador #14): render() llama a scheduleSave(), así que se pinta TODAVÍA con
+  // _booting=true y se apaga después. Antes era al revés (_booting=false y luego render()) y el
+  // arranque SIEMPRE subía a la nube lo que hubiera en el navegador (caché o SEED de 26 fichas
+  // de plantilla) 600 ms después de abrir, aunque generador_load hubiera fallado -- anulaba el
+  // fix de 24e4a64 y repetía el patrón del incidente #13. Mismo orden que salon-barra/ (74fe952).
   render();
-  // El guardado automático de arranque (seeded/migrado/sembrar la nube vacía) SOLO ocurre
-  // si _cloudReachable confirma que la nube respondió de verdad -- si la llamada inicial
-  // falló, no hay forma de saber si estaba vacía o solo falló la conexión, así que este
-  // arranque NO empuja nada solo. Incidente real 18-sep: un dispositivo sin caché real
-  // (SEED por default) sembró 26 fichas de plantilla sobre 30 fichas reales de un chef,
-  // justo porque el guardado de arranque no distinguía "vacía de verdad" de "no se pudo
-  // preguntar". Un guardado disparado por una acción real del usuario (escribir algo) sigue
-  // funcionando normal, esto solo bloquea el empuje automático silencioso del arranque.
-  if(_cloudReachable && (seeded || migrated || !_cloudHadData)){ scheduleSave(); }
-  if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
-  else setSaveState(cards.length ? ('Guardado ✓ '+new Date().toLocaleTimeString()) : 'Guardado automático activo');
+  _booting=false;
+  // Ya NO hay empuje automático de arranque (ni sembrar la nube vacía, ni subir la migración):
+  // abrir la página nunca escribe en la nube. Solo sube una edición real del usuario, y nunca
+  // en modo solo local. Si la nube está vacía, lo local se sube con la primera edición.
+  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? LOCAL_ONLY_MSG : 'Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”'); }
+  else if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
+  else if(!_cloudHadData) setSaveState(cards.length ? 'La nube está vacía — lo de este equipo se sube con tu primera edición' : 'Guardado automático activo');
+  else setSaveState('Cargado de la nube ✓ '+new Date().toLocaleTimeString());
 });
 
 /* flush inmediato al cerrar/ocultar la pestaña (por si quedó un cambio sin grabar) */
 function flushNow(){
-  if(_booting) return;
+  // Solo si quedó un cambio real sin enviar (19-oct-2026, #14): ocultar o cerrar la pestaña sin
+  // haber tocado nada no sube nada. En modo solo local nunca se sube.
+  if(_booting || !_pending) return;
+  _pending=false;
   clearTimeout(_saveT);
   const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
   try{ idbSet('project',payload); }catch(e){}
-  if(cards.length){ try{ cloudSave(payload); }catch(e){} }
+  if(!_localOnly && cards.length){ try{ cloudSave(payload); }catch(e){} }
 }
 window.addEventListener('pagehide', flushNow);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });

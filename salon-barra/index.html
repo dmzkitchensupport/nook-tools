@@ -726,12 +726,11 @@ $('#projFile').addEventListener('change', e=>{
 
 /* ---------- esquema universal NOOK (export/import de metadatos, SIN fotos) ----------
    Ver README.md del repo nook-tools para la definición completa del esquema.
-   19-oct-2026: las categorías de barra (Coctelería/Sin alcohol/Cafetería/Vinos y cervezas) NO
-   tienen código de familia en la tabla del README (solo hay códigos de cocina). Hasta que Mario
-   defina uno, se exporta familia vacía (regla del README: nunca inventar un valor) y al importar
-   las filas quedan sin categoría ('— Categoría —'). Ver bloqueador en ESTADO.md. */
-const FAMILIA_BY_CAT = {};
-const CAT_BY_FAMILIA = {};
+   19-oct-2026 (bloqueador #15, códigos definidos por Mario): COC = Coctelería, SIN = Sin alcohol,
+   CAF = Cafetería, VIN = Vinos y cervezas. Ficha sin categoría -> familia vacía (nunca se inventa
+   un valor); al importar, un código desconocido o vacío deja la ficha sin categoría. */
+const FAMILIA_BY_CAT = {cocteleria:'COC', sinalcohol:'SIN', cafeteria:'CAF', vinos:'VIN'};
+const CAT_BY_FAMILIA = {COC:'cocteleria', SIN:'sinalcohol', CAF:'cafeteria', VIN:'vinos'};
 function ensureUniversalFields(c){
   if(c.receta===undefined) c.receta='';
   if(c.precio===undefined) c.precio='';
@@ -776,7 +775,8 @@ $('#univFile').addEventListener('change', e=>{
           created++;
         } else matched++;
         c.title = row.platillo || c.title;
-        if(row.familia && CAT_BY_FAMILIA[row.familia]) c.cat = CAT_BY_FAMILIA[row.familia];
+        const fam = String(row.familia||'').trim().toUpperCase();
+        if(fam && CAT_BY_FAMILIA[fam]){ const nc = CAT_BY_FAMILIA[fam]; if(c.cat!==nc){ c.cat = nc; c.group=''; } delete c.catAnterior; }
         if(row.descripcion) c.carta = row.descripcion;
         if(row.receta) c.receta = row.receta;
         if(row.precio) c.precio = row.precio;
@@ -802,6 +802,21 @@ let loadedBuild=0;
 let _db=null, _idbok=true, _saveT=null, _booting=true;
 let _cloudOk=true;
 let _pending=false;   // hay un cambio real del usuario programado y todavía no enviado
+// _localOnly (19-oct-2026, mismo fix que generador/, bloqueador #14): si salonbarra_load falló
+// al abrir, la sesión entera queda en modo solo local. No se sabe qué tiene la nube, así que
+// NINGÚN guardado (ni editar, ni ocultar/cerrar la pestaña) sube nada; se avisa en pantalla.
+// Hueco que quedaba en 74fe952: el arranque ya no subía solo, pero la primera edición tras
+// una carga fallida sí subía la caché local (posiblemente vieja) encima de la nube.
+let _localOnly=false;
+const LOCAL_ONLY_MSG='Sin conexión a la nube al abrir — modo solo local: los cambios se guardan en este equipo y NO se suben. Recarga cuando vuelva la conexión (usa “Guardar proyecto” si editas).';
+function showLocalOnlyBanner(){
+  if(document.getElementById('localonlybanner')) return;
+  const b=document.createElement('div');
+  b.id='localonlybanner'; b.setAttribute('role','alert');
+  b.style.cssText='position:sticky;top:0;z-index:999;background:#7A2E3A;color:#fff;padding:8px 14px;font:600 13px/1.35 system-ui,sans-serif;text-align:center';
+  b.textContent=LOCAL_ONLY_MSG;
+  document.body.prepend(b);
+}
 // cloudLoad() distingue "la nube respondió (aunque vacía)" de "no se pudo preguntar" --
 // lección del incidente real de generador/ del 18-sep (bloqueador #13): ante una falla de
 // red, el arranque NUNCA siembra la nube.
@@ -843,6 +858,11 @@ function scheduleSave(){
     _pending=false;
     const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
     try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
+    // Modo solo local (la carga inicial falló): nunca pisar la nube.
+    if(_localOnly){
+      setSaveState(_idbok ? 'Guardado solo en este equipo ✓ (sin conexión a la nube al abrir)' : 'Sin autoguardado — usa “Guardar proyecto”');
+      return;
+    }
     // Nunca mandar un proyecto vacío (0 fichas y 0 grupos en el Índice) por el camino
     // automático. La base de datos también lo rechaza (salonbarra_save).
     if(!hasContent()){
@@ -869,6 +889,7 @@ function _tieneContenido(d){
 async function autoload(){
   const r = await cloudLoad();
   _cloudReachable = r.ok;
+  _localOnly = !r.ok;
   const cloudData = r.data;
   if(_tieneContenido(cloudData)){
     cards = Array.isArray(cloudData.cards) ? cloudData.cards : [];
@@ -916,12 +937,13 @@ autoload().then(()=>{
   // la nube, aunque la carga inicial haya fallado -- anula el fix de 24e4a64. Aquí no.
   render();
   _booting=false;
-  // Empuje automático de arranque SOLO si la nube respondió de verdad (commit 24e4a64 de
-  // generador/): si la carga inicial falló, este arranque no sube nada solo.
-  if(_cloudReachable && (seeded || migrated || !_cloudHadData)){ scheduleSave(); }
-  if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
-  else if(!_cloudReachable) setSaveState('Sin conexión a la nube — mostrando la copia local de este equipo');
-  else setSaveState(cards.length ? ('Guardado ✓ '+new Date().toLocaleTimeString()) : 'Guardado automático activo');
+  // 19-oct-2026 (#14): ya NO hay empuje automático de arranque (ni sembrar la nube vacía, ni
+  // subir la migración): abrir la página nunca escribe en la nube. Solo sube una edición real
+  // del usuario, y nunca en modo solo local. Mismo comportamiento que generador/.
+  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? LOCAL_ONLY_MSG : 'Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”'); }
+  else if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
+  else if(!_cloudHadData) setSaveState(hasContent() ? 'La nube está vacía — lo de este equipo se sube con tu primera edición' : 'Guardado automático activo');
+  else setSaveState('Cargado de la nube ✓ '+new Date().toLocaleTimeString());
 });
 
 /* flush inmediato al cerrar/ocultar la pestaña (por si quedó un cambio sin grabar) */
@@ -933,7 +955,7 @@ function flushNow(){
   clearTimeout(_saveT);
   const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
   try{ idbSet('project',payload); }catch(e){}
-  if(hasContent()){ try{ cloudSave(payload); }catch(e){} }
+  if(!_localOnly && hasContent()){ try{ cloudSave(payload); }catch(e){} }
 }
 window.addEventListener('pagehide', flushNow);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });
