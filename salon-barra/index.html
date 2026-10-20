@@ -245,6 +245,7 @@
   <div class="hdr-meta">
     <div class="count" id="count">0 ficheros</div>
     <div class="savestate" id="savestate">Guardado automático activo</div>
+    <div class="savestate" id="archivoaviso" hidden></div>
   </div>
 </header>
 
@@ -480,7 +481,8 @@ let showHelp = false;
 const $ = s => document.querySelector(s);
 const cardsEl = $('#cards');
 const drop = $('#drop');
-const SEED = {"v": 1, "cards": []};
+// Barra nunca tuvo fichas de plantilla: huella vacía (seedIntacta siempre false). Ver generador/.
+const SEED_HUELLA = [];
 const MIG_PROC = {};
 const MIG_ING  = {};
 function migKey(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim().replace(/ lunch$/,'').replace(/ \d+$/,''); }
@@ -488,17 +490,16 @@ function migKey(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u03
 /* ---------- load images ---------- */
 function addFiles(fileList){
   const imgs = [...fileList].filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
-  imgs.forEach(f=>{
-    const r = new FileReader();
-    r.onload = e => { addCard({img:e.target.result}); };
-    r.readAsDataURL(f);
+  imgs.forEach(async f=>{
+    try{ addCard({img: await fileToFoto(f)}); }
+    catch(err){ alert('No se pudo leer la foto '+f.name+': '+err.message); }
   });
 }
 function addCard(data){
   cards.push(Object.assign({
     id:uid++, img:null, fit:'contain', posx:50, posy:50, cat:'', group:'',
     title:'', carta:'', portion:'1', time:'10-12', rush:'15', ing:'', proc:'',
-    receta:'', precio:'', disponible:true
+    receta:'', precio:'', disponible:true, ts:Date.now()
   }, data));
   filter='all';
   render();
@@ -681,7 +682,7 @@ function buildRow(c, i){
   let opts = `<option value="">— Categoría —</option>`;
   CATS.forEach(ct => opts += `<option value="${ct.k}" ${c.cat===ct.k?'selected':''}>${ct.label}</option>`);
   catSel.innerHTML = opts;
-  catSel.onchange = () => { c.cat = catSel.value; c.group=''; if(c.cat) delete c.catAnterior; render(); };
+  catSel.onchange = () => { c.cat = catSel.value; c.group=''; if(c.cat) delete c.catAnterior; touch(c); render(); };
   catwrap.append(dot, catSel);
   if(!c.cat && c.catAnterior){
     const lg=document.createElement('span'); lg.className='legacy-tag';
@@ -695,7 +696,7 @@ function buildRow(c, i){
   let gopts = `<option value="">— Grupo —</option>`;
   groupsOf(c.cat).forEach(g => gopts += `<option value="${g.replace(/"/g,'&quot;')}" ${c.group===g?'selected':''}>${g}</option>`);
   grpSel.innerHTML = gopts; grpSel.disabled = !c.cat;
-  grpSel.onchange = () => { c.group = grpSel.value; render(); };
+  grpSel.onchange = () => { c.group = grpSel.value; touch(c); render(); };
 
   // selector de bebida (depende de categoría+grupo) → pone título + descripción de carta.
   // "+ Otra / nueva bebida…" solo limpia título/descripción para escribir uno a mano, sin
@@ -708,14 +709,14 @@ function buildRow(c, i){
   dopts += `<option value="__nuevo__" ${esBebidaNueva?'selected':''}>+ Otra / nueva bebida…</option>`;
   dishSel.innerHTML = dopts; dishSel.disabled = !c.group;
   dishSel.onchange = () => {
-    if(dishSel.value === '__nuevo__'){ c.title=''; c.carta=''; render(); return; }
-    c.title = dishSel.value; c.carta = descOf(c.cat, c.group, dishSel.value); render();
+    if(dishSel.value === '__nuevo__'){ c.title=''; c.carta=''; touch(c); render(); return; }
+    c.title = dishSel.value; c.carta = descOf(c.cat, c.group, dishSel.value); touch(c); render();
   };
 
   const seg = document.createElement('div'); seg.className='seg'; seg.style.marginLeft='auto';
   seg.innerHTML = `<button data-fit="cover" class="${c.fit==='cover'?'on':''}">Llenar</button>
                    <button data-fit="contain" class="${c.fit==='contain'?'on':''}">Completa</button>`;
-  seg.onclick = e => { const f=e.target.dataset.fit; if(f){ c.fit=f; render(); } };
+  seg.onclick = e => { const f=e.target.dataset.fit; if(f){ c.fit=f; touch(c); render(); } };
   const up = iconBtn('↑','Subir', ()=>move(i,-1));
   const dn = iconBtn('↓','Bajar', ()=>move(i, 1));
   const del = iconBtn('✕','Eliminar', ()=>{ if(confirm('¿Eliminar esta ficha?')){ cards.splice(i,1); render(); } }); del.classList.add('del');
@@ -750,7 +751,7 @@ function buildRow(c, i){
     <div class="f-by">by <span class="g">D</span>e la <span class="g">M</span>ora <span class="g">Z</span>umarán · Kitchen Support</div>`;
 
   panel.querySelectorAll('.ed').forEach(el=>{
-    el.addEventListener('input', ()=>{ c[el.dataset.k] = el.innerText; scheduleSave(); });
+    el.addEventListener('input', ()=>{ c[el.dataset.k] = el.innerText; touch(c); scheduleSave(); });
   });
 
   fich.append(photo, panel);
@@ -775,7 +776,7 @@ function enablePan(el, c){
     c.posy = Math.max(0,Math.min(100, py - (e.clientY-sy)/r.height*100));
     el.style.backgroundPosition = `${c.posx}% ${c.posy}%`;
   });
-  window.addEventListener('mouseup', ()=>{ if(drag){drag=false; el.classList.remove('dragging'); scheduleSave();} });
+  window.addEventListener('mouseup', ()=>{ if(drag){drag=false; el.classList.remove('dragging'); touch(c); scheduleSave();} });
 }
 
 /* ---------- dropzone ---------- */
@@ -819,15 +820,52 @@ $('#pngBtn').onclick = async ()=>{
 $('#pdfBtn').onclick = ()=>{ if(!cards.length) return alert('Crea o carga al menos una ficha.'); window.print(); };
 
 /* ---------- save / load project ---------- */
-$('#saveBtn').onclick = ()=>{
-  const blob = new Blob([JSON.stringify({v:1, cards, customMenu:CUSTOM_MENU}, null, 0)], {type:'application/json'});
-  dl(blob, 'NOOK_Ficheros_SalonBarra_proyecto.json');
+// "Guardar proyecto" (20-oct-2026): respaldo AUTOCONTENIDO -- las fotos viven en el bucket, pero
+// el archivo las lleva dentro (se descargan y se incrustan en base64), así sirve sin internet y
+// sin la nube. "Abrir proyecto" acepta este formato y el viejo (todo en base64) y FUSIONA con lo
+// que ya está abierto (mismas reglas que al abrir la página; nunca reemplaza ni borra fichas).
+async function urlToDataUrl(u){
+  const r=await fetch(u, {cache:'force-cache'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return await readAsDataURL(await r.blob());
+}
+$('#saveBtn').onclick = async ()=>{
+  const btn=$('#saveBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='Preparando…';
+  try{
+    const out=[]; const fallas=[];
+    const incrustar=async c=>{
+      const x=Object.assign({}, c);
+      if(x.img && !isDataUrl(x.img)){
+        try{ x.img_url=x.img; x.img=await urlToDataUrl(x.img); }
+        catch(err){ fallas.push(c.title||('ficha '+c.id)); }
+      }
+      return x;
+    };
+    for(const c of cards) out.push(await incrustar(c));
+    // 20-oct-2026 (#21): las versiones archivadas por conflicto también van en el respaldo.
+    const arch=[];
+    for(const e of ARCHIVO) arch.push(Object.assign({}, e, {version: await incrustar(e.version||{})}));
+    if(fallas.length && !confirm(fallas.length+' foto(s) no se pudieron descargar ('+fallas.join(', ')+'). ¿Guardar el archivo de todos modos? Esas fichas llevarán solo el enlace a la foto, no la foto.')) return;
+    const blob = new Blob([JSON.stringify({v:3, cards:out, customMenu:CUSTOM_MENU, archivo_conflictos:arch}, null, 0)], {type:'application/json'});
+    dl(blob, 'NOOK_Ficheros_SalonBarra_proyecto.json');
+  } finally { btn.disabled=false; btn.textContent=old; }
 };
 $('#loadBtn').onclick = ()=> $('#projFile').click();
 $('#projFile').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f)return;
   const r=new FileReader();
-  r.onload = ev=>{ try{ const d=JSON.parse(ev.target.result); if(d.cards){ cards=d.cards; cards.forEach(normalizeCat); cards.forEach(ensureUniversalFields); if(d.customMenu && typeof d.customMenu==='object') CUSTOM_MENU=d.customMenu; uid=Math.max(0,...cards.map(c=>c.id||0))+1; render(); } }catch(err){ alert('Archivo de proyecto no válido.'); } };
+  r.onload = async ev=>{
+    let d;
+    try{ d=JSON.parse(ev.target.result); }catch(err){ return alert('Archivo de proyecto no válido.'); }
+    if(!d || !Array.isArray(d.cards)) return alert('Archivo de proyecto no válido.');
+    const cm=mergeMenus(CUSTOM_MENU, d.customMenu);
+    const arch=await mergeArchivo(ARCHIVO, d.archivo_conflictos);
+    const m=await mergeCards(cards, d.cards, {origenBase:'local', origenExtra:'importado', archivo:arch});
+    CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); cards.forEach(ensureUniversalFields); cards.forEach(normalizeCat);
+    uid=nextUid();
+    filter='all'; render(); renderArchivoAviso();
+    alert(`Proyecto abierto y fusionado: ${m.st.agregadas} ficha(s) nueva(s), ${m.st.reemplazadas} actualizada(s), ${m.st.iguales} ya estaban igual.`+(m.st.archivadas||m.st.yaArchivadas ? ` ${m.st.archivadas+m.st.yaArchivadas} versión(es) en conflicto quedaron archivadas (no se muestran como ficha; van incluidas en “Guardar proyecto”).` : ''));
+  };
   r.readAsText(f); e.target.value='';
 });
 
@@ -881,6 +919,7 @@ $('#univFile').addEventListener('change', e=>{
           cards.push(c);
           created++;
         } else matched++;
+        touch(c);
         c.title = row.platillo || c.title;
         const fam = String(row.familia||'').trim().toUpperCase();
         if(fam && CAT_BY_FAMILIA[fam]){ const nc = CAT_BY_FAMILIA[fam]; if(c.cat!==nc){ c.cat = nc; c.group=''; } delete c.catAnterior; }
@@ -899,21 +938,34 @@ $('#univFile').addEventListener('change', e=>{
 
 function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
 
-/* ---------- autoguardado: nube (Supabase, fuente real) + IndexedDB (caché local/offline) ----------
- * 19-oct-2026: mismo patrón que generador/ (incluidos sus fixes posteriores, commit 24e4a64),
- * pero con tabla PROPIA: salonbarra_proyecto vía RPC salonbarra_load/salonbarra_save
- * (migración 20261019120000). Nunca toca generador_proyecto (cocina). IndexedDB
- * 'nook_ficheros_salonbarra' se queda como caché local para seguir trabajando sin internet. */
+/* ---------- autoguardado: nube (Supabase) + IndexedDB (caché local) ----------
+ * 19-oct-2026: tabla PROPIA salonbarra_proyecto (nunca toca generador_proyecto de cocina).
+ * 20-oct-2026 (bloqueador #20, autorizado por Mario en esa sesión): misma arquitectura que
+ * generador/ (ver el comentario equivalente allá):
+ *   - Fotos fuera del JSON, en el bucket público `salonbarra-fotos`: JPEG lado máximo 2400 px,
+ *     calidad 0.88, nombre = sha256 de la foto original; en la ficha solo queda la URL.
+ *   - Fusión por id con caché local y nube, sin copias visibles: la versión que pierde un
+ *     conflicto va a archivo_conflictos (ver mergeCards).
+ *   - Guardado con versión (salonbarra_save_v2) y reintento real con espera creciente.
+ *   - Contenido real = fichas + grupos/bebidas dados de alta en el Índice (hasContent).
+ * La caché local NUNCA se sobrescribe sin haber fusionado antes su contenido, y si no se pudo
+ * leer, no se escribe encima. */
 const DB_NAME='nook_ficheros_salonbarra', STORE='proj', BUILD=4;
+const FOTO_BUCKET='salonbarra-fotos', FOTO_MAX=2400, FOTO_Q=0.88;
+// 20-oct-2026 (#21, decisión de Mario: "quítalas"): ya no se crean fichas "(copia de este equipo)"
+// ni "(copia importada)". La versión que pierde un conflicto se guarda en ARCHIVO (sin mostrarse).
+let ARCHIVO=[];            // data.archivo_conflictos: [{id, version, origen:'local'|'nube'|'importado', motivo, ts_archivado}]
 let loadedBuild=0;
-let _db=null, _idbok=true, _saveT=null, _booting=true;
+let _db=null, _idbok=true, _idbWritable=true, _saveT=null, _booting=true, _quiet=false;
 let _cloudOk=true;
-let _pending=false;   // hay un cambio real del usuario programado y todavía no enviado
-// _localOnly (19-oct-2026, mismo fix que generador/, bloqueador #14): si salonbarra_load falló
-// al abrir, la sesión entera queda en modo solo local. No se sabe qué tiene la nube, así que
-// NINGÚN guardado (ni editar, ni ocultar/cerrar la pestaña) sube nada; se avisa en pantalla.
-// Hueco que quedaba en 74fe952: el arranque ya no subía solo, pero la primera edición tras
-// una carga fallida sí subía la caché local (posiblemente vieja) encima de la nube.
+let _pending=false;        // hay un cambio real del usuario programado y todavía no enviado
+let _base=null;            // updated_at de la versión de la nube sobre la que trabaja esta pestaña
+let _saving=false, _again=false, _retryN=0, _retryT=null;
+let _lastCloudSig=null;    // firma de lo último que quedó en la nube (evita guardados sin cambios)
+let _anc=null;            // Map id→firma de cada ficha en la última versión de la nube conocida
+// _localOnly (19-oct-2026, bloqueador #14): si la carga de la nube falló al abrir, la sesión entera
+// queda en modo solo local. No se sabe qué tiene la nube, así que NINGÚN guardado sube nada: se
+// guarda en este equipo y se avisa en pantalla.
 let _localOnly=false;
 const LOCAL_ONLY_MSG='Sin conexión a la nube al abrir — modo solo local: los cambios se guardan en este equipo y NO se suben. Recarga cuando vuelva la conexión (usa “Guardar proyecto” si editas).';
 function showLocalOnlyBanner(){
@@ -924,24 +976,259 @@ function showLocalOnlyBanner(){
   b.textContent=LOCAL_ONLY_MSG;
   document.body.prepend(b);
 }
-// cloudLoad() distingue "la nube respondió (aunque vacía)" de "no se pudo preguntar" --
-// lección del incidente real de generador/ del 18-sep (bloqueador #13): ante una falla de
-// red, el arranque NUNCA siembra la nube.
+function touch(c){ if(c) c.ts=Date.now(); }
+
+/* ----- fotos: bucket salonbarra-fotos ----- */
+const FOTO_EXT={'image/jpeg':'jpg','image/jpg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/heic':'heic','image/heif':'heif','image/avif':'avif'};
+function isDataUrl(s){ return typeof s==='string' && s.startsWith('data:'); }
+function dataUrlParts(u){
+  const i=u.indexOf(','); const head=u.slice(5,i); const body=u.slice(i+1);
+  const mime=(head.split(';')[0]||'').toLowerCase() || 'application/octet-stream';
+  let bytes;
+  if(/;base64/i.test(head)){ const bin=atob(body); bytes=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) bytes[k]=bin.charCodeAt(k); }
+  else bytes=new TextEncoder().encode(decodeURIComponent(body));
+  return {mime, bytes};
+}
+const _shaCache=new Map(); // dataURL -> sha256 hex de sus bytes
+async function shaDataUrl(dataUrl){
+  if(_shaCache.has(dataUrl)) return _shaCache.get(dataUrl);
+  const {bytes}=dataUrlParts(dataUrl);
+  const h=await crypto.subtle.digest('SHA-256', bytes);
+  const hex=[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  _shaCache.set(dataUrl, hex); return hex;
+}
+function fotoUrl(path){ return NookAuth.client().storage.from(FOTO_BUCKET).getPublicUrl(path).data.publicUrl; }
+// Ruta dentro del bucket si la URL es de salonbarra-fotos (fichas/<sha256>.<ext>), si no null.
+function bucketPath(u){ const m=typeof u==='string' && u.match(/\/salonbarra-fotos\/(fichas\/([0-9a-f]{64})\.[a-z0-9]+)(?:[?#].*)?$/); return m ? {path:m[1], hex:m[2]} : null; }
+// Identidad de la foto de una ficha, para comparar: el sha256 de la foto original.
+async function imgKey(c){
+  const img=c && c.img;
+  if(!img) return '';
+  const hint=bucketPath(c.img_url); if(hint) return 'sha:'+hint.hex;
+  if(isDataUrl(img)){ try{ return 'sha:'+(await shaDataUrl(img)); }catch(e){ return img; } }
+  const bp=bucketPath(img); return bp ? 'sha:'+bp.hex : img;
+}
+// JPEG lado máximo FOTO_MAX, calidad FOTO_Q. Devuelve null si el navegador no puede decodificarla.
+function toJpeg(src){
+  return new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const W=im.naturalWidth, H=im.naturalHeight, s=Math.min(1, FOTO_MAX/Math.max(W,H));
+        const w=Math.max(1,Math.round(W*s)), h=Math.max(1,Math.round(H*s));
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+        ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(im,0,0,w,h);
+        res({dataUrl:cv.toDataURL('image/jpeg', FOTO_Q), w:W, h:H});
+      }catch(e){ res(null); }
+    };
+    im.onerror=()=>res(null);
+    im.src=src;
+  });
+}
+function imgSize(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res([im.naturalWidth,im.naturalHeight]); im.onerror=()=>res(null); im.src=src; }); }
+// Sube una foto en base64. hint = URL del bucket que esa foto ya tenía (archivo exportado): se
+// vuelve a usar la misma ruta. Si no, ruta = sha256 de la foto tal como llegó; si no es JPEG o
+// pasa de FOTO_MAX, se convierte antes de subirla.
+async function uploadFoto(dataUrl, hint){
+  let path, bytes, mime;
+  const hp=bucketPath(hint);
+  const p=dataUrlParts(dataUrl);
+  if(hp){ path=hp.path; bytes=p.bytes; mime=p.mime; }
+  else{
+    const hex=await shaDataUrl(dataUrl);
+    const dim=await imgSize(dataUrl);
+    const yaLigera = p.mime==='image/jpeg' && dim && Math.max(dim[0],dim[1])<=FOTO_MAX;
+    const conv = yaLigera ? null : await toJpeg(dataUrl);
+    if(yaLigera){ bytes=p.bytes; mime='image/jpeg'; }
+    else if(conv){ bytes=dataUrlParts(conv.dataUrl).bytes; mime='image/jpeg'; }
+    else{ bytes=p.bytes; mime=p.mime; } // no se pudo decodificar (p. ej. HEIC en Chrome): original tal cual
+    if(!mime.startsWith('image/')) mime='image/heic';
+    path=`fichas/${hex}.${FOTO_EXT[mime]||'img'}`;
+  }
+  const { error } = await NookAuth.client().storage.from(FOTO_BUCKET)
+    .upload(path, new Blob([bytes],{type:mime}), {contentType:mime, upsert:false, cacheControl:'31536000'});
+  // Ya existe = es la misma foto (misma identidad): cuenta como subida.
+  if(error && String(error.statusCode)!=='409' && !/exist|duplicate/i.test(error.message||'')) throw error;
+  return fotoUrl(path);
+}
+// Sube al bucket toda foto que siga en base64 (fotos nuevas, o fichas de formato viejo que llegan
+// de la caché local o de un archivo importado) y deja la URL en la ficha.
+async function subirFotosPendientes(){
+  const lista=cards.concat(ARCHIVO.map(e=>e.version).filter(Boolean)); // incluye versiones archivadas (#21)
+  for(const c of lista){
+    if(!isDataUrl(c.img)){ if(c.img_url!==undefined && c.img && !isDataUrl(c.img)) delete c.img_url; continue; }
+    const orig=c.img;
+    const url=await uploadFoto(orig, c.img_url);
+    if(c.img===orig){ c.img=url; delete c.img_url; }
+  }
+}
+// Foto nueva: lado máximo FOTO_MAX px, JPEG calidad FOTO_Q. Si el navegador no puede decodificar
+// el archivo (p. ej. HEIC en Chrome), se conserva el original tal cual.
+async function resizeImage(file){
+  const u=URL.createObjectURL(file);
+  try{ const r=await toJpeg(u); return r ? r.dataUrl : null; }
+  finally{ URL.revokeObjectURL(u); }
+}
+function readAsDataURL(blob){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(blob); }); }
+async function fileToFoto(f){
+  const r=await resizeImage(f);
+  if(r) return r;
+  let d=await readAsDataURL(f);
+  if(/\.(heic|heif)$/i.test(f.name) && !/^data:image\//.test(d)) d=d.replace(/^data:[^;,]*/, 'data:image/'+(/\.heif$/i.test(f.name)?'heif':'heic'));
+  return d;
+}
+
+/* ----- fusión por id ----- */
+function canon(c){
+  const o=Object.assign({receta:'', precio:'', disponible:true}, c);
+  delete o.ts; delete o.img; delete o.img_url;
+  return JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]]));
+}
+async function sigCard(c){ return canon(c)+'|'+(await imgKey(c)); }
+async function ancOf(list){ const m=new Map(); for(const c of list||[]) m.set(String(c.id), await sigCard(c)); return m; }
+// Ficha de plantilla del antiguo SEED que nadie tocó (sin ts, misma foto y mismo texto que la
+// plantilla, tal cual o tras la migración BUILD 4): no es trabajo de nadie, así que no se agrega a
+// la nube como "ficha solo local". Se compara contra SEED_HUELLA (el contenido ya no está aquí).
+const _seedFp=new Map(SEED_HUELLA.map(x=>[String(x[0]),x]));
+async function sha16(s){
+  const h=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,16);
+}
+async function seedIntacta(c){
+  const f=_seedFp.get(String(c && c.id));
+  if(!f || c.ts) return false;
+  if((await imgKey(c))!==(f[1] ? 'sha:'+f[1] : '')) return false;
+  return f[2].includes(await sha16(canon(c)));
+}
+// "Contenido real" de una ficha para decidir un conflicto sin base: campos de texto no vacíos
+// (servicio, grupo, nombre, carta, porción, tiempo, rush, ingredientes, procedimiento, receta,
+// precio) + 1 punto si tiene foto. Posición/encuadre de la foto no cuentan.
+const CAMPOS_CONTENIDO=['cat','group','title','carta','portion','time','rush','ing','proc','receta','precio'];
+function contenidoDe(c){
+  let n=0;
+  for(const k of CAMPOS_CONTENIDO){ const v=c && c[k]; if(v!==undefined && v!==null && String(v).trim()!=='') n++; }
+  if(c && c.img) n++;
+  return n;
+}
+// Identidad de una versión archivada: id + firma completa (texto + identidad de la foto por sha256,
+// así una versión con foto en base64 y la misma ya subida al bucket cuentan como la misma).
+async function sigArchivo(e){ return String(e && e.id)+'#'+(await sigCard((e && e.version)||{})); }
+// Unión de dos archivos de conflictos sin repetir versiones. Nunca quita una entrada.
+async function mergeArchivo(a,b){
+  const out=[]; const vistos=new Set();
+  for(const e of [...(Array.isArray(a)?a:[]), ...(Array.isArray(b)?b:[])]){
+    if(!e || !e.version) continue;
+    const k=await sigArchivo(e); if(vistos.has(k)) continue;
+    vistos.add(k); out.push(e);
+  }
+  return out;
+}
+function nextUid(){ return Math.max(0,...cards.map(c=>+c.id||0),...ARCHIVO.map(e=>+e.id||0))+1; }
+// Fusión por id, SIN copias visibles (20-oct-2026, bloqueador #21, decisión de Mario).
+// base = lo que se conserva (nube o proyecto abierto); extra = lo que se suma (caché de este
+// equipo o archivo importado). o = {origenBase, origenExtra, anc, conBorrado, archivo}:
+//   anc = firma de cada ficha en la última versión de la nube que este equipo conoció (tres vías);
+//   archivo = archivo_conflictos ya conocido (unión nube + local/archivo), para no duplicar ni revivir.
+// Reglas, en orden:
+//   1. id solo en extra → se agrega (salvo plantilla intacta del antiguo SEED, o versión que ya está
+//      archivada: esa NO se revive).
+//   2. Mismo id y misma firma → una sola.
+//   3. La versión de extra ya está en el archivo → no se revive; se queda la visible.
+//   4. Tres vías: si un lado sigue igual a anc, gana el que cambió (sin archivar: es una edición normal).
+//   5. Ambas con ts → gana la más reciente.
+//   6. Sin ts en alguna → gana la de MÁS contenido (contenidoDe); en empate gana extra (la caché
+//      local: la nube de cocina no se edita desde el 24-sep y lo local es trabajo más nuevo; al
+//      abrir un archivo, gana el archivo, que es justo el trabajo que se quiere traer).
+//   En 5 y 6 la versión que pierde NO se borra: va a archivo_conflictos (no se muestra como ficha).
+//   ids repetidos dentro de un mismo lado se resuelven con las mismas reglas (nunca se descarta uno).
+// conBorrado (solo dentro de una sesión, en un conflicto de guardado): una ficha de la nube que sigue
+// igual a anc y ya no está en extra se borró en esta pestaña → no se resucita. Al abrir la página NO
+// se usa: ahí nunca se descarta nada.
+async function mergeCards(base, extra, o){
+  o=o||{};
+  const anc=o.anc||null, conBorrado=!!o.conBorrado;
+  const st={agregadas:0, reemplazadas:0, iguales:0, plantilla:0, borradas:0, archivadas:0, yaArchivadas:0};
+  const conocidas=new Set(); for(const e of (o.archivo||[])) conocidas.add(await sigArchivo(e));
+  const archivados=[];
+  const archivar=async (v, origen, motivo)=>{
+    const e={id:v.id, version:v, origen, motivo, ts_archivado:Date.now()};
+    const k=await sigArchivo(e); if(conocidas.has(k)) return;
+    conocidas.add(k); archivados.push(e); st.archivadas++;
+  };
+  const extraIds=new Set(extra.map(c=>String(c.id)));
+  const slots=[]; const pos=new Map();
+  const resolver=async (i, l, origenL, esBase)=>{
+    const cur=slots[i], id=String(l.id);
+    const sc=await sigCard(cur.c), sl=await sigCard(l);
+    if(sc===sl){ st.iguales++; return; }
+    if(!esBase && conocidas.has(id+'#'+sl)){ st.yaArchivadas++; return; }
+    const a=!esBase && anc ? anc.get(id) : undefined;
+    if(a!==undefined && a!==null){
+      if(sc===a){ slots[i]={c:l, origen:origenL}; st.reemplazadas++; return; }  // solo cambió aquí
+      if(sl===a){ st.iguales++; return; }                                      // solo cambió allá
+    }
+    let ganaL, motivo;
+    if(cur.c.ts && l.ts){ ganaL=l.ts>cur.c.ts; motivo='mas_reciente'; }
+    else{
+      const nc=contenidoDe(cur.c), nl=contenidoDe(l);
+      ganaL = esBase ? nl>nc : nl>=nc;
+      motivo = nl===nc ? 'empate_contenido' : 'menos_contenido';
+    }
+    if(ganaL){ await archivar(cur.c, cur.origen, motivo); slots[i]={c:l, origen:origenL}; st.reemplazadas++; }
+    else await archivar(l, origenL, motivo);
+  };
+  for(const c of base){
+    const id=String(c.id);
+    if(conBorrado && anc && anc.has(id) && !extraIds.has(id) && (await sigCard(c))===anc.get(id)){ st.borradas++; continue; }
+    if(pos.has(id)){ await resolver(pos.get(id), c, o.origenBase, true); continue; }
+    pos.set(id, slots.length); slots.push({c, origen:o.origenBase});
+  }
+  for(const l of extra){
+    const id=String(l.id);
+    if(pos.has(id)){ await resolver(pos.get(id), l, o.origenExtra, false); continue; }
+    const sl=await sigCard(l);
+    if(conBorrado && anc && anc.has(id) && sl===anc.get(id)){ st.borradas++; continue; }
+    if(await seedIntacta(l)){ st.plantilla++; continue; }
+    if(conocidas.has(id+'#'+sl)){ st.yaArchivadas++; continue; }
+    pos.set(id, slots.length); slots.push({c:l, origen:o.origenExtra}); st.agregadas++;
+  }
+  st.cambio = st.agregadas+st.reemplazadas+st.archivadas>0;
+  return {cards:slots.map(s=>s.c), archivados, st};
+}
+// Bebidas y grupos agregados al Índice (CUSTOM_MENU): unión por nombre, nunca se quita uno.
+function mergeMenus(a,b){
+  const out=JSON.parse(JSON.stringify(a||{})); let cambio=false;
+  Object.entries(b||{}).forEach(([svc,grps])=>Object.entries(grps||{}).forEach(([grp,list])=>(list||[]).forEach(d=>{
+    if(!out[svc]) out[svc]={}; if(!out[svc][grp]) out[svc][grp]=[];
+    if(!out[svc][grp].some(x=>norm(x[0])===norm(d[0]))){ out[svc][grp].push(d); cambio=true; }
+  })));
+  // Barra: un grupo dado de alta sin bebidas también se conserva (addCustomGroup).
+  Object.entries(b||{}).forEach(([svc,grps])=>Object.keys(grps||{}).forEach(grp=>{
+    if(!out[svc]) out[svc]={};
+    if(!out[svc][grp]){ out[svc][grp]=[]; cambio=true; }
+  }));
+  return {menu:out, cambio};
+}
+
+/* ----- nube ----- */
+// cloudLoad() distingue "la nube está vacía" (ok:true, data:null) de "no se pudo preguntar"
+// (ok:false) -- incidente real 18-sep-2026: confundirlos borró 30 fichas.
 async function cloudLoad(){
   try{
-    const { data, error } = await NookAuth.client().rpc('salonbarra_load');
+    const { data, error } = await NookAuth.client().rpc('salonbarra_load_v2');
     if(error) throw error;
     _cloudOk=true;
-    return { ok:true, data: data || null };
+    return { ok:true, data: (data && data.data) || null, updated_at: (data && data.updated_at) || null };
   }catch(e){ _cloudOk=false; return { ok:false, data:null }; }
 }
 async function cloudSave(payload){
   try{
-    const { error } = await NookAuth.client().rpc('salonbarra_save', { p_data: payload });
+    const { data, error } = await NookAuth.client().rpc('salonbarra_save_v2', { p_data: payload, p_base: _base });
     if(error) throw error;
     _cloudOk=true;
-    return true;
-  }catch(e){ _cloudOk=false; return false; }
+    return data || {ok:false};
+  }catch(e){ _cloudOk=false; return {ok:false, error:e}; }
 }
 function idbOpen(){
   return new Promise((res,rej)=>{
@@ -955,114 +1242,177 @@ function idbOpen(){
 }
 async function idbSet(k,v){ if(!_db)_db=await idbOpen(); return new Promise((res,rej)=>{const tx=_db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);}); }
 async function idbGet(k){ if(!_db)_db=await idbOpen(); return new Promise((res,rej)=>{const tx=_db.transaction(STORE,'readonly'); const rq=tx.objectStore(STORE).get(k); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);}); }
+function payloadNow(){ return {v:2, build:BUILD, cards, customMenu:CUSTOM_MENU, archivo_conflictos:ARCHIVO, ts:Date.now()}; }
+function sigOf(p){ return JSON.stringify([p.cards, p.customMenu, p.archivo_conflictos||[]]); }
+async function localSave(p){
+  if(!_idbWritable){ _idbok=false; return; }
+  try{ await idbSet('project', p); _idbok=true; }catch(e){ _idbok=false; }
+}
+// La versión base de la nube también se guarda en este equipo: así, la próxima vez que se abra,
+// una ficha que aquí no cambió y allá sí se actualiza sola en vez de duplicarse.
+async function setAnc(list){
+  _anc=await ancOf(list);
+  if(_idbWritable){ try{ await idbSet('anc', [..._anc.entries()]); }catch(e){} }
+}
 function setSaveState(t){ const el=$('#savestate'); if(el) el.textContent=t; }
+// Aviso discreto (#21). salon-barra solo admite gerencia, así que se muestra siempre que haya archivo: cuántas versiones quedaron archivadas por conflicto.
+function renderArchivoAviso(){
+  const el=$('#archivoaviso'); if(!el) return;
+  const n=ARCHIVO.length;
+  el.hidden = !(n>0);
+  el.textContent = n===1 ? '1 versión archivada por conflicto' : n+' versiones archivadas por conflicto';
+  el.title='Versiones de una misma ficha que perdieron al fusionar equipos (se quedó visible la más reciente o la de más contenido). No se borraron: van dentro de “Guardar proyecto” (archivo_conflictos).';
+}
+function renderQuiet(){ _quiet=true; try{ render(); } finally { _quiet=false; } }
 function scheduleSave(){
-  if(_booting) return;
+  if(_booting || _quiet) return;
   _pending=true;
   setSaveState('Guardando…');
   clearTimeout(_saveT);
-  _saveT=setTimeout(async ()=>{
-    _pending=false;
-    const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
-    try{ await idbSet('project',payload); }catch(e){ _idbok=false; }
-    // Modo solo local (la carga inicial falló): nunca pisar la nube.
+  _saveT=setTimeout(()=>{ _pending=false; doSave(); }, 600);
+}
+function scheduleRetry(motivo){
+  clearTimeout(_retryT);
+  const ms=Math.min(5000*Math.pow(2,_retryN), 300000); _retryN++;
+  const local=_idbok ? 'tus cambios están guardados en este equipo' : 'sin guardado local — usa “Guardar proyecto”';
+  setSaveState(`${motivo} — ${local}. Reintento automático en ${Math.round(ms/1000)} s (intento ${_retryN}).`);
+  _retryT=setTimeout(doSave, ms);
+}
+async function doSave(){
+  if(_saving){ _again=true; return; }
+  _saving=true; clearTimeout(_retryT);
+  try{
+    await localSave(payloadNow());
+    // Modo solo local (la carga inicial falló): nunca tocar la nube.
     if(_localOnly){
       setSaveState(_idbok ? 'Guardado solo en este equipo ✓ (sin conexión a la nube al abrir)' : 'Sin autoguardado — usa “Guardar proyecto”');
       return;
     }
-    // Nunca mandar un proyecto vacío (0 fichas y 0 grupos en el Índice) por el camino
-    // automático. La base de datos también lo rechaza (salonbarra_save).
+    // Nunca mandar un proyecto vacío por el camino automático (incidente 18-sep-2026; la base de
+    // datos también lo rechaza).
     if(!hasContent()){
       setSaveState(_idbok ? 'Guardado local ✓ (proyecto vacío no se sube a la nube)' : 'Sin autoguardado — usa “Guardar proyecto”');
       return;
     }
-    const cloudOk = await cloudSave(payload);
-    if(cloudOk) setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
-    else if(_idbok) setSaveState('Sin conexión — guardado solo local, se sincronizará después');
-    else setSaveState('Sin autoguardado — usa “Guardar proyecto”');
-  }, 600);
+    try{ await subirFotosPendientes(); }
+    catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
+    for(let intento=0; intento<4; intento++){
+      const p=payloadNow();
+      const sig=sigOf(p);
+      if(sig===_lastCloudSig){ _retryN=0; await localSave(p); setSaveState('Guardado ✓ '+new Date().toLocaleTimeString()); return; }
+      const r=await cloudSave(p);
+      if(r && r.ok){
+        _base=r.updated_at; _lastCloudSig=sig; _retryN=0;
+        await localSave(p);
+        await setAnc(JSON.parse(JSON.stringify(p.cards)));
+        setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
+        return;
+      }
+      if(r && r.conflict){
+        // Otro equipo guardó primero: traer su versión, fusionar con lo de aquí y reintentar.
+        const l=await cloudLoad();
+        if(!l.ok) break;
+        const cm=mergeMenus(l.data && l.data.customMenu, CUSTOM_MENU);
+        const nube=(l.data && l.data.cards) || [];
+        const arch=await mergeArchivo(l.data && l.data.archivo_conflictos, ARCHIVO);
+        const m=await mergeCards(nube, cards, {origenBase:'nube', origenExtra:'local', anc:_anc, conBorrado:true, archivo:arch});
+        CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); uid=nextUid();
+        renderArchivoAviso();
+        // Lo archivado en esta fusión puede traer fotos en base64: se suben antes de reintentar.
+        try{ await subirFotosPendientes(); }catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
+        _base=l.updated_at; _lastCloudSig=null;
+        await setAnc(nube);
+        renderQuiet();
+        await localSave(payloadNow());
+        continue;
+      }
+      break;
+    }
+    scheduleRetry('Sin conexión con la nube');
+  } finally {
+    _saving=false;
+    if(_again){ _again=false; doSave(); }
+  }
 }
-// _cloudHadData: la nube ya tenía un proyecto real (fichas o Índice) al cargar.
-// _cloudReachable: la llamada a la nube tuvo éxito (aunque viniera vacía). Solo se siembra
-// la nube en el arranque cuando se CONFIRMÓ que de verdad está vacía.
-let _cloudHadData=false;
-let _cloudReachable=false;
+// _cloudHadData: la nube ya tenía fichas al abrir. _mergeChanged: la fusión al abrir sumó algo que
+// la nube no tenía (hay que subirlo).
 function _tieneContenido(d){
   if(!d) return false;
   if(Array.isArray(d.cards) && d.cards.length) return true;
   const cm = d.customMenu;
   return !!(cm && typeof cm==='object' && Object.values(cm).some(g=> g && typeof g==='object' && Object.keys(g).length));
 }
+let _cloudHadData=false, _mergeChanged=false, _mergeSt=null, _cloudCardsAtOpen=null;
 async function autoload(){
   const r = await cloudLoad();
-  _cloudReachable = r.ok;
   _localOnly = !r.ok;
-  const cloudData = r.data;
-  if(_tieneContenido(cloudData)){
-    cards = Array.isArray(cloudData.cards) ? cloudData.cards : [];
-    CUSTOM_MENU = (cloudData.customMenu && typeof cloudData.customMenu==='object') ? cloudData.customMenu : {};
-    uid = Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild = cloudData.build||0;
-    _cloudHadData=true;
+  let local=null, ancLocal=null;
+  try{ local=await idbGet('project'); }
+  catch(e){ _idbok=false; _idbWritable=false; } // no se pudo leer la caché: nunca se escribe encima
+  if(_idbWritable){ try{ const a=await idbGet('anc'); if(Array.isArray(a)) ancLocal=new Map(a); }catch(e){} }
+  if(!r.ok){
+    if(local && local.customMenu) CUSTOM_MENU=local.customMenu;
+    if(local && Array.isArray(local.archivo_conflictos)) ARCHIVO=local.archivo_conflictos;
+    if(local && local.cards && local.cards.length){ cards=local.cards; loadedBuild=local.build||0; }
+    uid=nextUid();
     return;
   }
-  // La nube no tiene nada todavía o no se pudo alcanzar: usa la caché local de este
-  // dispositivo para seguir trabajando (incluye fichas creadas antes del 19-oct, cuando
-  // salon-barra solo guardaba local).
-  try{
-    const d=await idbGet('project');
-    if(d && d.cards && d.cards.length){ cards=d.cards; uid=Math.max(0,...cards.map(c=>c.id||0))+1; loadedBuild=d.build||0; }
-    if(d && d.customMenu && typeof d.customMenu==='object') CUSTOM_MENU = d.customMenu;
-  }catch(e){ _idbok=false; }
+  _base = r.updated_at;
+  const cloud=r.data||{};
+  const cc=cloud.cards||[], lc=(local && local.cards)||[];
+  _cloudHadData = _tieneContenido(cloud);
+  const cm=mergeMenus(cloud.customMenu, local && local.customMenu);
+  CUSTOM_MENU=cm.menu;
+  const archNube=Array.isArray(cloud.archivo_conflictos) ? cloud.archivo_conflictos : [];
+  const arch=await mergeArchivo(archNube, local && local.archivo_conflictos);
+  const m=await mergeCards(cc, lc, {origenBase:'nube', origenExtra:'local', anc:ancLocal, conBorrado:false, archivo:arch});
+  cards=m.cards; ARCHIVO=arch.concat(m.archivados); _mergeSt=m.st; _cloudCardsAtOpen=cc;
+  _mergeChanged = m.st.cambio || cm.cambio || ARCHIVO.length!==archNube.length;
+  loadedBuild = _cloudHadData ? (cloud.build||0) : ((local && local.build)||0);
+  uid=nextUid();
+  if(!_mergeChanged && _cloudHadData) _lastCloudSig=sigOf({cards:cc, customMenu:cloud.customMenu||{}, archivo_conflictos:archNube});
 }
 
-/* arranque: recuperar lo guardado y luego pintar */
-autoload().then(()=>{
-  let seeded=false;
-  if((!cards || !cards.length) && SEED && SEED.cards && SEED.cards.length){
-    cards = SEED.cards;
-    uid = Math.max(0, ...cards.map(c=>c.id||0)) + 1;
-    seeded=true; loadedBuild=0;
-  }
+/* arranque: recuperar lo guardado, fusionar y luego pintar */
+autoload().then(async ()=>{
+  // 20-oct-2026: sin SEED. Nube y caché vacías → 0 fichas (no se inventa ninguna plantilla).
+  renderArchivoAviso();
   // migración una sola vez: foto completa + procedimientos + ingredientes (sin pisar lo ya escrito)
-  let migrated=false;
   if(loadedBuild < BUILD){
     cards.forEach(c=>{
       c.fit='contain';
       const k=migKey(c.title);
       if((!c.proc || !c.proc.trim()) && MIG_PROC[k]) c.proc=MIG_PROC[k];
-      if((!c.ing  || !c.ing.trim())  && MIG_ING[k])  c.ing =MIG_ING[k];
+      if((!c.ing || !c.ing.trim()) && MIG_ING[k]) c.ing =MIG_ING[k];
     });
-    migrated=true;
   }
   cards.forEach(ensureUniversalFields);
-  // 19-oct-2026: fichas con categoría de la versión anterior (Breakfast/Lunch/Pool·Bar/Dinner)
-  // quedan "Sin categoría" sin perder nada (catAnterior guarda la original).
+  // 19-oct-2026: fichas con categoría de la versión anterior quedan "Sin categoría" (catAnterior guarda la original).
   cards.forEach(normalizeCat);
-  // render() llama a scheduleSave(); se pinta TODAVÍA con _booting=true para que el primer
-  // pintado no dispare un guardado solo. Hallazgo 19-oct-2026: en generador/ el orden
-  // inverso (_booting=false antes de render) hace que el arranque SIEMPRE suba lo local a
-  // la nube, aunque la carga inicial haya fallado -- anula el fix de 24e4a64. Aquí no.
+  // 19-oct-2026 (#14): se pinta con _booting=true (render() llama a scheduleSave()).
   render();
   _booting=false;
-  // 19-oct-2026 (#14): ya NO hay empuje automático de arranque (ni sembrar la nube vacía, ni
-  // subir la migración): abrir la página nunca escribe en la nube. Solo sube una edición real
-  // del usuario, y nunca en modo solo local. Mismo comportamiento que generador/.
-  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? LOCAL_ONLY_MSG : 'Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”'); }
-  else if(!_idbok && !_cloudOk) setSaveState('Sin autoguardado — usa “Guardar proyecto”');
-  else if(!_cloudHadData) setSaveState(hasContent() ? 'La nube está vacía — lo de este equipo se sube con tu primera edición' : 'Guardado automático activo');
+  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? LOCAL_ONLY_MSG : 'Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”'); return; }
+  // Nube alcanzada y fusión hecha: la caché de este equipo pasa a ser el resultado fusionado (que
+  // contiene todo lo que tenía) junto con la versión base de la nube, en ese orden.
+  if(_cloudCardsAtOpen){ await localSave(payloadNow()); await setAnc(_cloudCardsAtOpen); }
+  if(_mergeChanged && hasContent()){
+    // Lo de este equipo que la nube no tenía: se sube ya.
+    const s=_mergeSt||{};
+    setSaveState(`Subiendo lo de este equipo a la nube (${s.agregadas||0} nueva(s), ${s.reemplazadas||0} actualizada(s)${s.archivadas ? ', '+s.archivadas+' versión(es) archivada(s)' : ''})…`);
+    doSave();
+    return;
+  }
+  if(!_cloudHadData) setSaveState(hasContent() ? 'La nube está vacía — lo de este equipo se sube con tu primera edición' : 'Guardado automático activo');
   else setSaveState('Cargado de la nube ✓ '+new Date().toLocaleTimeString());
 });
 
-/* flush inmediato al cerrar/ocultar la pestaña (por si quedó un cambio sin grabar) */
+/* flush inmediato al cerrar/ocultar la pestaña (solo si quedó un cambio real sin enviar) */
 function flushNow(){
-  // Solo si quedó un cambio sin enviar: cerrar la pestaña sin haber tocado nada no debe
-  // subir la caché local a la nube (podría estar desactualizada si la carga inicial falló).
   if(_booting || !_pending) return;
   _pending=false;
   clearTimeout(_saveT);
-  const payload={v:1, build:BUILD, cards, customMenu:CUSTOM_MENU, ts:Date.now()};
-  try{ idbSet('project',payload); }catch(e){}
-  if(!_localOnly && hasContent()){ try{ cloudSave(payload); }catch(e){} }
+  doSave();
 }
 window.addEventListener('pagehide', flushNow);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });
