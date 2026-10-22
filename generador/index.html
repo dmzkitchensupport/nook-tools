@@ -696,7 +696,7 @@ function buildRow(c, i){
   seg.onclick = e => { const f=e.target.dataset.fit; if(f){ c.fit=f; touch(c); render(); } };
   const up = iconBtn('↑','Subir', ()=>move(i,-1));
   const dn = iconBtn('↓','Bajar', ()=>move(i, 1));
-  const del = iconBtn('✕','Eliminar', ()=>{ if(confirm('¿Eliminar esta ficha?')){ cards.splice(i,1); render(); } }); del.classList.add('del');
+  const del = iconBtn('✕','Eliminar', ()=>{ if(confirm('¿Eliminar esta ficha?')) borrarFicha(c); }); del.classList.add('del');
   bar.append(catwrap, grpSel, dishSel, seg, up, dn, del);
 
   // fichero
@@ -823,7 +823,9 @@ $('#saveBtn').onclick = async ()=>{
     const arch=[];
     for(const e of ARCHIVO) arch.push(Object.assign({}, e, {version: await incrustar(e.version||{})}));
     if(fallas.length && !confirm(fallas.length+' foto(s) no se pudieron descargar ('+fallas.join(', ')+'). ¿Guardar el archivo de todos modos? Esas fichas llevarán solo el enlace a la foto, no la foto.')) return;
-    const blob = new Blob([JSON.stringify({v:3, cards:out, customMenu:CUSTOM_MENU, archivo_conflictos:arch}, null, 0)], {type:'application/json'});
+    // 20-oct-2026 (#22): el archivo lleva el registro de borrados y su fecha (ts): al abrirlo en otro
+    // equipo, una ficha sin ts propio toma esa fecha para la regla de "gana la más nueva".
+    const blob = new Blob([JSON.stringify({v:3, cards:out, customMenu:CUSTOM_MENU, archivo_conflictos:arch, borrados:BORRADOS, ts:Date.now()}, null, 0)], {type:'application/json'});
     dl(blob, 'NOOK_Ficheros_proyecto.json');
   } finally { btn.disabled=false; btn.textContent=old; }
 };
@@ -837,8 +839,11 @@ $('#projFile').addEventListener('change', e=>{
     if(!d || !Array.isArray(d.cards)) return alert('Archivo de proyecto no válido.');
     const cm=mergeMenus(CUSTOM_MENU, d.customMenu);
     const arch=await mergeArchivo(ARCHIVO, d.archivo_conflictos);
-    const m=await mergeCards(cards, d.cards, {origenBase:'local', origenExtra:'importado', archivo:arch});
-    CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); cards.forEach(ensureUniversalFields);
+    // Fecha del archivo (#22.2): d.ts si lo trae (archivos desde el 20-oct-2026); si no, la fecha de
+    // modificación del propio archivo en el equipo (archivos viejos sin ts).
+    const tsArchivo = (+d.ts>0) ? +d.ts : ((f.lastModified>0) ? f.lastModified : null);
+    const m=await mergeCards(cards, d.cards, {origenBase:'local', origenExtra:'importado', archivo:arch, tsExtra:tsArchivo, borrados:mergeBorrados(BORRADOS, d.borrados)});
+    CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; cards.forEach(ensureUniversalFields);
     uid=nextUid();
     filter='all'; render(); renderArchivoAviso();
     alert(`Proyecto abierto y fusionado: ${m.st.agregadas} ficha(s) nueva(s), ${m.st.reemplazadas} actualizada(s), ${m.st.iguales} ya estaban igual.`+(m.st.archivadas||m.st.yaArchivadas ? ` ${m.st.archivadas+m.st.yaArchivadas} versión(es) en conflicto quedaron archivadas (no se muestran como ficha; van incluidas en “Guardar proyecto”).` : ''));
@@ -938,6 +943,11 @@ const FOTO_BUCKET='generador-fotos', FOTO_MAX=2400, FOTO_Q=0.88;
 // 20-oct-2026 (#21, decisión de Mario: "quítalas"): ya no se crean fichas "(copia de este equipo)"
 // ni "(copia importada)". La versión que pierde un conflicto se guarda en ARCHIVO (sin mostrarse).
 let ARCHIVO=[];            // data.archivo_conflictos: [{id, version, origen:'local'|'nube'|'importado', motivo, ts_archivado}]
+// 20-oct-2026 (#22.1, decisión de Mario): registro de borrados. data.borrados: [{id, ts_borrado, por, retirada?}].
+// Nunca se quita una entrada (el servidor rechaza un guardado que lo encoja). Una marca "se retira"
+// cuando una edición posterior al borrado gana: queda retirada = ts de esa edición (ver marcaActiva).
+let BORRADOS=[];
+let _emailPerfil=null;
 let loadedBuild=0;
 let _db=null, _idbok=true, _idbWritable=true, _saveT=null, _booting=true, _quiet=false;
 let _cloudOk=true;
@@ -1084,7 +1094,9 @@ async function seedIntacta(c){
   if((await imgKey(c))!==(f[1] ? 'sha:'+f[1] : '')) return false;
   return f[2].includes(await sha16(canon(c)));
 }
-// "Contenido real" de una ficha para decidir un conflicto sin base: campos de texto no vacíos
+// (Desde el 20-oct-2026, #22.2, contenidoDe ya NO decide conflictos: decide la fecha. Se conserva solo
+// como medida informativa.)
+// "Contenido real" de una ficha: campos de texto no vacíos
 // (servicio, grupo, nombre, carta, porción, tiempo, rush, ingredientes, procedimiento, receta,
 // precio) + 1 punto si tiene foto. Posición/encuadre de la foto no cuentan.
 const CAMPOS_CONTENIDO=['cat','group','title','carta','portion','time','rush','ing','proc','receta','precio'];
@@ -1107,27 +1119,74 @@ async function mergeArchivo(a,b){
   }
   return out;
 }
-function nextUid(){ return Math.max(0,...cards.map(c=>+c.id||0),...ARCHIVO.map(e=>+e.id||0))+1; }
-// Fusión por id, SIN copias visibles (20-oct-2026, bloqueador #21, decisión de Mario).
+/* ----- registro de borrados (#22.1) ----- */
+// Una marca está activa salvo que una edición posterior al borrado ya la haya retirado.
+function marcaActiva(m){ return !!m && !(+m.retirada > +m.ts_borrado); }
+// Unión de dos registros por id: se queda el borrado más reciente (con su "por") y la retirada más
+// reciente. Nunca quita una entrada. Conserva el orden en que se vio cada id.
+function mergeBorrados(a,b){
+  const out=[]; const pos=new Map();
+  for(const m of [...(Array.isArray(a)?a:[]), ...(Array.isArray(b)?b:[])]){
+    if(!m || m.id===undefined || m.id===null || !(+m.ts_borrado>0)) continue;
+    const id=String(m.id);
+    if(!pos.has(id)){
+      const e={id:m.id, ts_borrado:+m.ts_borrado, por:m.por||null};
+      if(+m.retirada>0) e.retirada=+m.retirada;
+      pos.set(id, out.length); out.push(e); continue;
+    }
+    const e=out[pos.get(id)];
+    if(+m.ts_borrado>e.ts_borrado){ e.ts_borrado=+m.ts_borrado; e.por=m.por||null; }
+    if(+m.retirada>(+e.retirada||0)) e.retirada=+m.retirada;
+  }
+  return out;
+}
+function firmaBorrados(l){ return JSON.stringify((l||[]).map(m=>[String(m.id), +m.ts_borrado, +m.retirada||0]).sort((x,y)=>x[0]<y[0]?-1:x[0]>y[0]?1:0)); }
+// Botón ✕: la ficha sale de la vista, su última versión se guarda en archivo_conflictos con motivo
+// 'borrado' (no se pierde) y queda la marca {id, ts_borrado, por}. ts_borrado nunca es menor que el ts
+// de la propia ficha (si el reloj de otro equipo iba adelantado, la marca igual la cubre).
+async function borrarFicha(c){
+  const i=cards.indexOf(c); if(i<0) return;
+  cards.splice(i,1);
+  const ts=Math.max(Date.now(), +c.ts||0);
+  BORRADOS=mergeBorrados(BORRADOS, [{id:c.id, ts_borrado:ts, por:_emailPerfil||null}]);
+  const e={id:c.id, version:c, origen:'local', motivo:'borrado', ts_archivado:Date.now()};
+  const k=await sigArchivo(e);
+  let ya=false; for(const x of ARCHIVO){ if((await sigArchivo(x))===k){ ya=true; break; } }
+  if(!ya) ARCHIVO.push(e);
+  renderArchivoAviso();
+  render();
+}
+function nextUid(){ return Math.max(0,...cards.map(c=>+c.id||0),...ARCHIVO.map(e=>+e.id||0),...BORRADOS.map(m=>+m.id||0))+1; }
+// Fusión por id, SIN copias visibles (20-oct-2026, #21) y con "siempre gana la información más nueva"
+// (20-oct-2026, #22.2, decisión de Mario: reemplaza la regla anterior de "más contenido").
 // base = lo que se conserva (nube o proyecto abierto); extra = lo que se suma (caché de este
-// equipo o archivo importado). o = {origenBase, origenExtra, anc, conBorrado, archivo}:
+// equipo o archivo importado). o = {origenBase, origenExtra, anc, conBorrado, archivo, tsBase, tsExtra, borrados}:
 //   anc = firma de cada ficha en la última versión de la nube que este equipo conoció (tres vías);
-//   archivo = archivo_conflictos ya conocido (unión nube + local/archivo), para no duplicar ni revivir.
+//   archivo = archivo_conflictos ya conocido (unión nube + local/archivo), para no duplicar ni revivir;
+//   tsBase / tsExtra = ts del contenedor de cada lado (proyecto de la nube, caché local o archivo);
+//   borrados = registro de borrados ya unido (nube + local/archivo).
+// ts efectivo de una ficha = card.ts si existe; si no, el ts de su contenedor. Al fusionar, cada ficha
+// queda con su ts efectivo escrito como card.ts ("sellar"): así una ficha que nadie editó conserva su
+// fecha original aunque el contenedor se vuelva a guardar después (nunca se le pone "ahora").
 // Reglas, en orden:
 //   1. id solo en extra → se agrega (salvo plantilla intacta del antiguo SEED, o versión que ya está
 //      archivada: esa NO se revive).
 //   2. Mismo id y misma firma → una sola.
-//   3. La versión de extra ya está en el archivo → no se revive; se queda la visible.
+//   3. La versión de extra ya está en el archivo → no se revive; se queda la visible (ya perdió una vez).
 //   4. Tres vías: si un lado sigue igual a anc, gana el que cambió (sin archivar: es una edición normal).
-//   5. Ambas con ts → gana la más reciente.
-//   6. Sin ts en alguna → gana la de MÁS contenido (contenidoDe); en empate gana extra (la caché
-//      local: la nube de cocina no se edita desde el 24-sep y lo local es trabajo más nuevo; al
-//      abrir un archivo, gana el archivo, que es justo el trabajo que se quiere traer).
-//   En 5 y 6 la versión que pierde NO se borra: va a archivo_conflictos (no se muestra como ficha).
-//   ids repetidos dentro de un mismo lado se resuelven con las mismas reglas (nunca se descarta uno).
+//   5. Cambió en ambos lados (o no hay base): decide la FECHA (ts efectivo): gana la más nueva.
+//      Empate de fecha → gana la de extra (la local frente a la nube; la del archivo frente a lo abierto).
+//      Si alguna de las dos no trae fecha (ni propia ni de su contenedor) → también gana la de extra:
+//      decisión de Mario para "ninguna trae fecha"; con fecha en un solo lado se aplica lo mismo por
+//      analogía (en la práctica no ocurre: nube, caché y archivo siempre traen ts).
+//      ids repetidos dentro de un mismo lado: en empate se queda la primera.
+//   La versión que pierde en 5 NO se borra: va a archivo_conflictos (no se muestra como ficha).
+//   6. Registro de borrados: una ficha visible cuyo id tiene marca activa con ts_borrado ≥ su ts
+//      efectivo NO se revive (su versión va al archivo con motivo 'borrado'). Si su ts efectivo es
+//      mayor (alguien la editó después del borrado), gana la edición y la marca se retira.
 // conBorrado (solo dentro de una sesión, en un conflicto de guardado): una ficha de la nube que sigue
 // igual a anc y ya no está en extra se borró en esta pestaña → no se resucita. Al abrir la página NO
-// se usa: ahí nunca se descarta nada.
+// se usa: ahí nunca se descarta nada sin registro.
 async function mergeCards(base, extra, o){
   o=o||{};
   const anc=o.anc||null, conBorrado=!!o.conBorrado;
@@ -1140,6 +1199,7 @@ async function mergeCards(base, extra, o){
     conocidas.add(k); archivados.push(e); st.archivadas++;
   };
   const extraIds=new Set(extra.map(c=>String(c.id)));
+  const sellar=(c, cont)=> (c && !c.ts && +cont>0) ? Object.assign({}, c, {ts:+cont}) : c;
   const slots=[]; const pos=new Map();
   const resolver=async (i, l, origenL, esBase)=>{
     const cur=slots[i], id=String(l.id);
@@ -1151,33 +1211,51 @@ async function mergeCards(base, extra, o){
       if(sc===a){ slots[i]={c:l, origen:origenL}; st.reemplazadas++; return; }  // solo cambió aquí
       if(sl===a){ st.iguales++; return; }                                      // solo cambió allá
     }
+    // Regla 5 (#22.2): decide la fecha. En empate o sin fecha gana extra (local / archivo), salvo
+    // que las dos vengan del mismo lado (id repetido): ahí se queda la primera.
+    const tc=+cur.c.ts||0, tl=+l.ts||0;
     let ganaL, motivo;
-    if(cur.c.ts && l.ts){ ganaL=l.ts>cur.c.ts; motivo='mas_reciente'; }
-    else{
-      const nc=contenidoDe(cur.c), nl=contenidoDe(l);
-      ganaL = esBase ? nl>nc : nl>=nc;
-      motivo = nl===nc ? 'empate_contenido' : 'menos_contenido';
-    }
+    if(tc && tl && tc!==tl){ ganaL=tl>tc; motivo='mas_reciente'; }
+    else{ ganaL = cur.origen!==origenL; motivo = (tc && tl) ? 'empate_fecha' : 'sin_fecha'; }
     if(ganaL){ await archivar(cur.c, cur.origen, motivo); slots[i]={c:l, origen:origenL}; st.reemplazadas++; }
     else await archivar(l, origenL, motivo);
   };
-  for(const c of base){
+  for(const c0 of base){
+    const c=sellar(c0, o.tsBase);
     const id=String(c.id);
     if(conBorrado && anc && anc.has(id) && !extraIds.has(id) && (await sigCard(c))===anc.get(id)){ st.borradas++; continue; }
     if(pos.has(id)){ await resolver(pos.get(id), c, o.origenBase, true); continue; }
     pos.set(id, slots.length); slots.push({c, origen:o.origenBase});
   }
-  for(const l of extra){
+  for(const l0 of extra){
+    const l=sellar(l0, o.tsExtra);
     const id=String(l.id);
     if(pos.has(id)){ await resolver(pos.get(id), l, o.origenExtra, false); continue; }
     const sl=await sigCard(l);
     if(conBorrado && anc && anc.has(id) && sl===anc.get(id)){ st.borradas++; continue; }
-    if(await seedIntacta(l)){ st.plantilla++; continue; }
+    if(await seedIntacta(l0)){ st.plantilla++; continue; }   // sin sellar: la plantilla intacta no trae ts propio
     if(conocidas.has(id+'#'+sl)){ st.yaArchivadas++; continue; }
     pos.set(id, slots.length); slots.push({c:l, origen:o.origenExtra}); st.agregadas++;
   }
-  st.cambio = st.agregadas+st.reemplazadas+st.archivadas>0;
-  return {cards:slots.map(s=>s.c), archivados, st};
+  // Regla 6 (#22.1): registro de borrados.
+  const borr=mergeBorrados(o.borrados, []);
+  const marca=new Map(borr.map(m=>[String(m.id), m]));
+  st.noRevividas=0; st.quitadasBase=0; st.marcasRetiradas=0;
+  const finales=[];
+  for(const sl of slots){
+    const m=marca.get(String(sl.c.id));
+    if(!marcaActiva(m)){ finales.push(sl); continue; }
+    const t=+sl.c.ts||0;
+    if(+m.ts_borrado>=t){
+      await archivar(sl.c, sl.origen, 'borrado');
+      st.noRevividas++; if(sl.origen===o.origenBase) st.quitadasBase++;
+      continue;
+    }
+    m.retirada=t; st.marcasRetiradas++;   // editada después del borrado: gana la edición
+    finales.push(sl);
+  }
+  st.cambio = st.agregadas+st.reemplazadas+st.archivadas+st.quitadasBase+st.marcasRetiradas>0;
+  return {cards:finales.map(s=>s.c), archivados, st, borrados:borr};
 }
 // Platillos agregados al Índice (CUSTOM_MENU): unión por nombre, nunca se quita uno.
 function mergeMenus(a,b){
@@ -1202,7 +1280,7 @@ async function cloudLoad(){
 }
 async function cloudSave(payload){
   try{
-    const { data, error } = await NookAuth.client().rpc('generador_save_v3', { p_data: payload, p_base: _base });
+    const { data, error } = await NookAuth.client().rpc('generador_save_v4', { p_data: payload, p_base: _base });
     if(error) throw error;
     _cloudOk=true;
     return data || {ok:false};
@@ -1220,8 +1298,11 @@ function idbOpen(){
 }
 async function idbSet(k,v){ if(!_db)_db=await idbOpen(); return new Promise((res,rej)=>{const tx=_db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);}); }
 async function idbGet(k){ if(!_db)_db=await idbOpen(); return new Promise((res,rej)=>{const tx=_db.transaction(STORE,'readonly'); const rq=tx.objectStore(STORE).get(k); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);}); }
-function payloadNow(){ return {v:2, build:BUILD, cards, customMenu:CUSTOM_MENU, archivo_conflictos:ARCHIVO, ts:Date.now()}; }
-function sigOf(p){ return JSON.stringify([p.cards, p.customMenu, p.archivo_conflictos||[]]); }
+// ts del contenedor = momento del guardado. No falsea la regla de fechas: toda ficha ya lleva su
+// propio ts (sellado al fusionar o puesto al editarla), así que este ts solo cuenta para fichas
+// que de verdad no traen fecha.
+function payloadNow(){ return {v:2, build:BUILD, cards, customMenu:CUSTOM_MENU, archivo_conflictos:ARCHIVO, borrados:BORRADOS, ts:Date.now()}; }
+function sigOf(p){ return JSON.stringify([p.cards, p.customMenu, p.archivo_conflictos||[], p.borrados||[]]); }
 async function localSave(p){
   if(!_idbWritable){ _idbok=false; return; }
   try{ await idbSet('project', p); _idbok=true; }catch(e){ _idbok=false; }
@@ -1239,10 +1320,10 @@ function renderArchivoAviso(){
   const el=$('#archivoaviso'); if(!el) return;
   const n=ARCHIVO.length;
   el.hidden = !(_rolPerfil==='gerencia' && n>0);
-  el.textContent = n===1 ? '1 versión archivada por conflicto' : n+' versiones archivadas por conflicto';
-  el.title='Versiones de una misma ficha que perdieron al fusionar equipos (se quedó visible la más reciente o la de más contenido). No se borraron: van dentro de “Guardar proyecto” (archivo_conflictos).';
+  el.textContent = n===1 ? '1 versión archivada (conflicto o borrado)' : n+' versiones archivadas (conflictos y borrados)';
+  el.title='Versiones de una ficha que perdieron al fusionar equipos (se quedó visible la más reciente) y fichas borradas con ✕. No se perdieron: van dentro de “Guardar proyecto” (archivo_conflictos).';
 }
-if(window.NOOK_PERFIL && window.NOOK_PERFIL.then) window.NOOK_PERFIL.then(p=>{ _rolPerfil=p && p.rol; renderArchivoAviso(); });
+if(window.NOOK_PERFIL && window.NOOK_PERFIL.then) window.NOOK_PERFIL.then(p=>{ _rolPerfil=p && p.rol; _emailPerfil=(p && p.email) || null; renderArchivoAviso(); });
 function renderQuiet(){ _quiet=true; try{ render(); } finally { _quiet=false; } }
 function scheduleSave(){
   if(_booting || _quiet) return;
@@ -1276,6 +1357,10 @@ async function doSave(){
     }
     try{ await subirFotosPendientes(); }
     catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
+    // 20-oct-2026 (#22.2): toda ficha que sube lleva card.ts (el servidor rechaza la que no). Las fichas
+    // ya llevan su ts efectivo sellado al fusionar; una sin ninguna fecha conocida (ni propia ni de su
+    // contenedor: en la práctica no ocurre) sube con ts=1 = "fecha desconocida, la más antigua".
+    cards.forEach(c=>{ if(!(+c.ts>0)) c.ts=1; });
     for(let intento=0; intento<4; intento++){
       const p=payloadNow();
       const sig=sigOf(p);
@@ -1295,8 +1380,9 @@ async function doSave(){
         const cm=mergeMenus(l.data && l.data.customMenu, CUSTOM_MENU);
         const nube=(l.data && l.data.cards) || [];
         const arch=await mergeArchivo(l.data && l.data.archivo_conflictos, ARCHIVO);
-        const m=await mergeCards(nube, cards, {origenBase:'nube', origenExtra:'local', anc:_anc, conBorrado:true, archivo:arch});
-        CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); uid=nextUid();
+        const m=await mergeCards(nube, cards, {origenBase:'nube', origenExtra:'local', anc:_anc, conBorrado:true, archivo:arch,
+          tsBase:l.data && l.data.ts, tsExtra:null, borrados:mergeBorrados(l.data && l.data.borrados, BORRADOS)});
+        CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; uid=nextUid();
         renderArchivoAviso();
         // Lo archivado en esta fusión puede traer fotos en base64: se suben antes de reintentar.
         try{ await subirFotosPendientes(); }catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
@@ -1327,6 +1413,7 @@ async function autoload(){
   if(!r.ok){
     if(local && local.customMenu) CUSTOM_MENU=local.customMenu;
     if(local && Array.isArray(local.archivo_conflictos)) ARCHIVO=local.archivo_conflictos;
+    if(local && Array.isArray(local.borrados)) BORRADOS=local.borrados;
     if(local && local.cards && local.cards.length){ cards=local.cards; loadedBuild=local.build||0; }
     uid=nextUid();
     return;
@@ -1339,12 +1426,15 @@ async function autoload(){
   CUSTOM_MENU=cm.menu;
   const archNube=Array.isArray(cloud.archivo_conflictos) ? cloud.archivo_conflictos : [];
   const arch=await mergeArchivo(archNube, local && local.archivo_conflictos);
-  const m=await mergeCards(cc, lc, {origenBase:'nube', origenExtra:'local', anc:ancLocal, conBorrado:false, archivo:arch});
-  cards=m.cards; ARCHIVO=arch.concat(m.archivados); _mergeSt=m.st; _cloudCardsAtOpen=cc;
-  _mergeChanged = m.st.cambio || cm.cambio || ARCHIVO.length!==archNube.length;
+  const borrNube=Array.isArray(cloud.borrados) ? cloud.borrados : [];
+  const m=await mergeCards(cc, lc, {origenBase:'nube', origenExtra:'local', anc:ancLocal, conBorrado:false, archivo:arch,
+    tsBase:cloud.ts, tsExtra:local && local.ts, borrados:mergeBorrados(borrNube, local && local.borrados)});
+  cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; _mergeSt=m.st; _cloudCardsAtOpen=cc;
+  _mergeChanged = m.st.cambio || cm.cambio || ARCHIVO.length!==archNube.length || firmaBorrados(BORRADOS)!==firmaBorrados(borrNube);
   loadedBuild = cc.length ? (cloud.build||0) : ((local && local.build)||0);
   uid=nextUid();
-  if(!_mergeChanged && cc.length) _lastCloudSig=sigOf({cards:cc, customMenu:cloud.customMenu||{}, archivo_conflictos:archNube});
+  // Sin cambios: cards = fichas de la nube con su ts efectivo sellado (mismo contenido, misma fecha).
+  if(!_mergeChanged && cc.length) _lastCloudSig=sigOf({cards, customMenu:cloud.customMenu||{}, archivo_conflictos:archNube, borrados:BORRADOS});
 }
 
 /* arranque: recuperar lo guardado, fusionar y luego pintar */
