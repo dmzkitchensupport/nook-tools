@@ -184,7 +184,7 @@
   }
   .panel{
     position:absolute; right:0; top:0; width:52%; height:100%; background:#fff;
-    padding:8.8cqw 7cqw 4cqw 4.5cqw;
+    padding:8.8cqw 7cqw 6.6cqw 4.5cqw; /* abajo: reserva para la firma, el texto nunca la toca */
   }
   .fan{position:absolute; top:0.5cqw; left:34%; width:17cqw; pointer-events:none; user-select:none}
   .dash{position:absolute; right:0.4cqw; top:19%; width:4.2cqw; pointer-events:none; user-select:none}
@@ -194,20 +194,20 @@
   .ed:focus{background:rgba(37,68,88,.05); border-radius:3px}
   .ed:empty:before{content:attr(data-ph); color:#c2b9aa}
   .f-title{
-    font-size:2.3cqw; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+    font-size:calc(2.3cqw*var(--fs,1)); font-weight:700; text-transform:uppercase; letter-spacing:.02em;
     color:var(--ink); margin:0 0 .7cqw; line-height:1.12; max-width:41cqw;
   }
   .f-carta{
-    font-size:1.5cqw; font-style:italic; color:#4a4540; line-height:1.32;
-    margin:0 0 1.3cqw; max-width:41cqw; white-space:pre-wrap;
+    font-size:calc(1.5cqw*var(--fs,1)); font-style:italic; color:#4a4540; line-height:1.32;
+    margin:0 0 calc(1.3cqw*var(--fs,1)); max-width:41cqw; white-space:pre-wrap;
   }
-  .f-meta{font-size:1.62cqw; color:var(--ink); margin:0 0 1.4cqw; line-height:1.3}
+  .f-meta{font-size:calc(1.62cqw*var(--fs,1)); color:var(--ink); margin:0 0 calc(1.4cqw*var(--fs,1)); line-height:1.3}
   .f-meta .ed{display:inline-block; min-width:1.2ch}
   .f-ing{
-    font-size:1.55cqw; line-height:1.32; color:var(--ink); white-space:pre-wrap;
-    margin:0 0 1.4cqw; max-width:41cqw;
+    font-size:calc(1.55cqw*var(--fs,1)); line-height:1.32; color:var(--ink); white-space:pre-wrap;
+    margin:0 0 calc(1.4cqw*var(--fs,1)); max-width:41cqw;
   }
-  .f-proc{font-size:1.5cqw; line-height:1.34; color:var(--ink); max-width:41cqw; white-space:pre-wrap}
+  .f-proc{font-size:calc(1.5cqw*var(--fs,1)); line-height:1.34; color:var(--ink); max-width:41cqw; white-space:pre-wrap}
   .f-proc .ed{display:inline-block; min-width:1.2ch}
   .f-by{position:absolute; right:4cqw; bottom:3cqw; font-size:1.05cqw; letter-spacing:.1em;
         text-transform:uppercase; color:#1d1d1d; text-align:right; z-index:2}
@@ -217,6 +217,8 @@
   .deco-waves{left:16cqw; bottom:4.5cqw; width:17cqw; opacity:.42}
   .f-title,.f-carta,.f-meta,.f-ing,.f-proc{position:relative; z-index:1}
   .f-proc b{font-weight:700}
+  /* 22-oct-2026: lista larga de ingredientes en 2 columnas (ver fitPanel) */
+  .f-ing.cols2{column-count:2; column-gap:2.5cqw}
 
   footer{padding:22px 26px 50px; text-align:center; color:var(--taupe-d); font-size:12px; letter-spacing:.04em}
 
@@ -539,6 +541,7 @@ function render(){
     drop.querySelector('.sub').textContent='se crea un fichero por cada imagen';
   }
   renderFilter();
+  requestAnimationFrame(fitAll);
 }
 
 /* ---------- index: bebidas dadas de alta vs fichas existentes ---------- */
@@ -751,7 +754,7 @@ function buildRow(c, i){
     <div class="f-by">by <span class="g">D</span>e la <span class="g">M</span>ora <span class="g">Z</span>umarán · Kitchen Support</div>`;
 
   panel.querySelectorAll('.ed').forEach(el=>{
-    el.addEventListener('input', ()=>{ c[el.dataset.k] = el.innerText; touch(c); scheduleSave(); });
+    el.addEventListener('input', ()=>{ c[el.dataset.k] = el.innerText; touch(c); scheduleSave(); requestAnimationFrame(()=>fitPanel(panel)); });
   });
 
   fich.append(photo, panel);
@@ -759,6 +762,25 @@ function buildRow(c, i){
   return row;
 }
 
+// 22-oct-2026 (Mario: "todo debe quedar en una ficha, que se vea toda la información"): la ficha
+// es de tamaño fijo 16:9; si el texto no cabe, se reduce la letra del panel (--fs) en pasos
+// hasta que quepa completo sobre la firma. Más de 8 ingredientes -> 2 columnas.
+const FIT_MIN=0.45;
+function fitPanel(panel){
+  if(!panel || !panel.isConnected || !panel.clientHeight) return;
+  const ing=panel.querySelector('.f-ing');
+  const n=ing ? (ing.innerText||'').split('\n').filter(s=>s.trim()).length : 0;
+  if(ing) ing.classList.toggle('cols2', n>8);
+  let fs=1; panel.style.setProperty('--fs',fs);
+  // Se mide dónde termina de verdad el procedimiento contra el borde inferior útil (alto del panel
+  // menos su padding de abajo, que es la reserva de la firma): scrollHeight no lo detecta.
+  const over=()=>{ const pr=panel.getBoundingClientRect(); const pb=parseFloat(getComputedStyle(panel).paddingBottom)||0;
+    const last=panel.querySelector('.f-proc'); return last && last.getBoundingClientRect().bottom > pr.bottom-pb+1; };
+  while(over() && fs>FIT_MIN){ fs=Math.round((fs-0.03)*100)/100; panel.style.setProperty('--fs',fs); }
+}
+function fitAll(){ document.querySelectorAll('.fichero .panel').forEach(fitPanel); }
+let _fitT=null; window.addEventListener('resize', ()=>{ clearTimeout(_fitT); _fitT=setTimeout(fitAll,150); });
+window.addEventListener('beforeprint', fitAll);
 function iconBtn(label,title,fn){
   const b=document.createElement('button'); b.className='iconbtn'; b.title=title; b.textContent=label; b.onclick=fn; return b;
 }
