@@ -1013,7 +1013,8 @@ function enablePan(el, c){
 /* ---------- dropzone ---------- */
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
-drop.addEventListener('drop', e=> addFiles(e.dataTransfer.files));
+// 22-oct-2026: stopPropagation -- sin esto el drop también llegaba al manejador de window y cada foto se cargaba DOS veces
+drop.addEventListener('drop', e=>{ e.stopPropagation(); addFiles(e.dataTransfer.files); });
 drop.addEventListener('click', ()=> $('#file').click());
 // allow dropping anywhere on page too
 window.addEventListener('dragover', e=>e.preventDefault());
@@ -1317,9 +1318,22 @@ async function resizeImage(file){
   finally{ URL.revokeObjectURL(u); }
 }
 function readAsDataURL(blob){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(blob); }); }
+// 22-oct-2026: Chrome no decodifica HEIC (fotos de iPhone) y se guardaban tal cual, sin verse. Se convierte a
+// JPEG en el navegador con heic2any (CDN gratuito, se carga solo cuando llega una foto HEIC); Safari ya las abre.
+const esHeic = f => /\.(heic|heif)$/i.test(f.name||'') || /image\/hei[cf]/i.test(f.type||'');
+let _heicLib=null;
+function cargarHeic2any(){
+  if(window.heic2any) return Promise.resolve();
+  if(!_heicLib) _heicLib=new Promise((res,rej)=>{ const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js'; s.onload=()=>res();
+    s.onerror=()=>{ _heicLib=null; rej(new Error('no se pudo cargar el convertidor HEIC')); }; document.head.appendChild(s); });
+  return _heicLib;
+}
+async function heicAJpeg(f){ await cargarHeic2any(); const out=await window.heic2any({blob:f, toType:'image/jpeg', quality:0.92}); return Array.isArray(out)?out[0]:out; }
 async function fileToFoto(f){
   const r=await resizeImage(f);
   if(r) return r;
+  if(esHeic(f)){ try{ const r2=await resizeImage(await heicAJpeg(f)); if(r2) return r2; }catch(e){ console.warn('HEIC:', e); } }
   let d=await readAsDataURL(f);
   if(/\.(heic|heif)$/i.test(f.name) && !/^data:image\//.test(d)) d=d.replace(/^data:[^;,]*/, 'data:image/'+(/\.heif$/i.test(f.name)?'heif':'heic'));
   return d;
