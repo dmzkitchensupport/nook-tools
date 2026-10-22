@@ -214,6 +214,8 @@
   .deco-waves{left:16cqw; bottom:4.5cqw; width:17cqw; opacity:.42}
   .f-title,.f-carta,.f-meta,.f-ing,.f-proc{position:relative; z-index:1}
   .f-proc b{font-weight:700}
+  .photo.dropfoto{outline:4px dashed #C9A84C; outline-offset:-8px}
+  .fotobtn{white-space:nowrap}
   /* 22-oct-2026: lista larga de ingredientes en 2 columnas (ver fitPanel) */
   .f-ing.cols2{column-count:2; column-gap:2.5cqw}
 
@@ -748,7 +750,13 @@ function buildRow(c, i){
   const up = iconBtn('↑','Subir', ()=>move(i,-1));
   const dn = iconBtn('↓','Bajar', ()=>move(i, 1));
   const del = iconBtn('✕','Eliminar', ()=>{ if(confirm('¿Eliminar esta ficha?')) borrarFicha(c); }); del.classList.add('del');
-  bar.append(catwrap, grpSel, dishSel, seg, up, dn, del);
+  // 22-oct-2026 (Mario): cambiar la foto de una ficha ya creada. La foto anterior no se pierde
+  // (va al archivo con motivo 'foto_reemplazada'); también se puede soltar una foto encima.
+  const fotoBtn = document.createElement('button'); fotoBtn.className='btn ghost fotobtn';
+  fotoBtn.textContent = c.img ? '📷 Cambiar foto' : '📷 Agregar foto';
+  fotoBtn.onclick = ()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,.heic,.heif';
+    inp.onchange=()=>{ if(inp.files[0]) cambiarFoto(c, inp.files[0]); }; inp.click(); };
+  bar.append(catwrap, grpSel, dishSel, fotoBtn, seg, up, dn, del);
 
   // fichero
   const fich = document.createElement('div'); fich.className='fichero'; fich.dataset.id=c.id;
@@ -763,6 +771,10 @@ function buildRow(c, i){
     photo.appendChild(ph);
   }
   if(c.img && c.fit==='cover') enablePan(photo, c);
+  photo.addEventListener('dragover', e=>{ e.preventDefault(); photo.classList.add('dropfoto'); });
+  photo.addEventListener('dragleave', ()=>photo.classList.remove('dropfoto'));
+  photo.addEventListener('drop', e=>{ e.preventDefault(); e.stopPropagation(); photo.classList.remove('dropfoto');
+    const f=[...(e.dataTransfer.files||[])].find(x=>x.type.startsWith('image/')||/\.(heic|heif)$/i.test(x.name)); if(f) cambiarFoto(c,f); });
 
   const panel = document.createElement('div'); panel.className='panel';
   panel.innerHTML = `
@@ -1214,6 +1226,18 @@ function firmaBorrados(l){ return JSON.stringify((l||[]).map(m=>[String(m.id), +
 // Botón ✕: la ficha sale de la vista, su última versión se guarda en archivo_conflictos con motivo
 // 'borrado' (no se pierde) y queda la marca {id, ts_borrado, por}. ts_borrado nunca es menor que el ts
 // de la propia ficha (si el reloj de otro equipo iba adelantado, la marca igual la cubre).
+async function cambiarFoto(c, file){
+  let d; try{ d=await fileToFoto(file); }catch(err){ return alert('No se pudo leer la foto '+file.name+': '+err.message); }
+  if(!d) return;
+  if(c.img){
+    const e={id:c.id, version:Object.assign({},c), origen:'local', motivo:'foto_reemplazada', ts_archivado:Date.now()};
+    const k=await sigArchivo(e); let ya=false; for(const x of ARCHIVO){ if((await sigArchivo(x))===k){ ya=true; break; } }
+    if(!ya) ARCHIVO.push(e);
+    renderArchivoAviso();
+  }
+  c.img=d; c.posx=50; c.posy=50; touch(c);
+  render();
+}
 async function borrarFicha(c){
   const i=cards.indexOf(c); if(i<0) return;
   cards.splice(i,1);
