@@ -219,12 +219,24 @@
   /* 22-oct-2026: lista larga de ingredientes en 2 columnas (ver fitPanel) */
   .f-ing.cols2{column-count:2; column-gap:2.5cqw}
 
+  /* 22-oct-2026 (Mario: "DEBE SER BILINGÜE"): selector EN | ES y marcas de "sin traducir" (solo pantalla) */
+  .langsw{display:inline-flex; border:1px solid rgba(255,255,255,.8); border-radius:7px; overflow:hidden; flex:none; margin-left:18px}
+  .langsw button{border:0; background:transparent; color:#fff; font:inherit; font-size:12px; font-weight:700; letter-spacing:.08em; padding:6px 11px; cursor:pointer}
+  .langsw button.on{background:#fff; color:var(--teal)}
+  .tr-tag{font-size:11px; color:#9a5a12; background:#fbeede; border:1px dashed #d9a35b; border-radius:20px; padding:3px 10px; white-space:nowrap}
+  .tr-tag[hidden]{display:none}
+  .tr-pend{text-decoration:underline dotted #d9a35b; text-decoration-thickness:.12cqw; text-underline-offset:.25cqw}
+  .idx-tr{font-size:10.5px; color:#9a5a12; margin-left:8px; font-style:italic; letter-spacing:0; text-transform:none; font-weight:400}
+  .idx-ed{font:inherit; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--taupe-d); border-radius:5px; padding:1px 7px; margin-left:8px; cursor:pointer; letter-spacing:0; text-transform:none}
+  .idx-ed:hover{border-color:var(--teal); color:var(--teal)}
+
   footer{padding:22px 26px 50px; text-align:center; color:var(--taupe-d); font-size:12px; letter-spacing:.04em}
 
   /* ---------- Print: one fichero per landscape page ---------- */
   @media print{
     @page{size:1920px 1080px; margin:0}
-    header.app,.toolbar,.drop,.rowbar,footer{display:none !important}
+    header.app,.toolbar,.drop,.rowbar,footer,.tr-tag{display:none !important}
+    .tr-pend{text-decoration:none !important}
     body{background:#fff}
     main{padding:0; max-width:none; margin:0}
     #cards{gap:0}
@@ -242,6 +254,7 @@
   <div class="t"><b>Generador de Ficheros</b><span>De La Mora Zumarán · Kitchen Support</span></div>
   <div class="spacer"></div>
   <div class="client"><span class="lbl">Cliente</span><img class="cmark" src="data:image/png;base64,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" alt="NOOK"></div>
+  <div class="langsw" id="langsw" role="group"><button type="button" data-lang="en">EN</button><button type="button" data-lang="es">ES</button></div>
   <div class="hdr-meta">
     <div class="count" id="count">0 ficheros</div>
     <div class="savestate" id="savestate">Guardado automático activo</div>
@@ -292,6 +305,163 @@ const CATS = [
 ];
 const CATMAP = Object.fromEntries(CATS.map(c=>[c.k,c]));
 const CODE   = {breakfast:'BRK', lunch:'LUN', poolbar:'POOL', dinner:'DIN', dinner_oct:'DIO'};
+
+/* ===== 22-oct-2026 (Mario: "DEBE SER BILINGÜE, para que se pueda poner en inglés o español"; alcance
+   "Todo: página y contenido"). Botón EN | ES en el encabezado, ES por defecto, preferencia por equipo
+   (localStorage). Toda la interfaz sale de I18N; el contenido de cada ficha de card.tr.
+   Modelo: card.tr = {en:{title,carta,ing,proc,ts}, es:{...}} (ts = última edición de ESE idioma).
+   Los campos viejos title/carta/ing/proc se quedan (exportar/importar universal, organizador, archivos
+   viejos) y siempre igualan, campo por campo, a tr.en (o a tr.es si ese campo no tiene inglés).
+   Una ficha sin tr (todas las anteriores al 22-oct) se toma como capturada en inglés.
+   Menú: los nombres internos de cat/grupo/platillo NO cambian de idioma (findCard, fusión y categorías
+   siguen igual); solo cambia la etiqueta: MENU_I18N (menú oficial, en el código) y data.menu_i18n
+   (nube: lo agregado desde el Índice; llaves "g:<grupo>" y "d:<platillo>", gana la entrada más nueva). */
+const LANGS=['en','es'];
+const LANG_KEY='nook_idioma';
+let LANG=(()=>{ try{ const v=localStorage.getItem(LANG_KEY); return LANGS.includes(v) ? v : 'es'; }catch(e){ return 'es'; } })();
+const I18N = {"es": {"lang_t": "Idioma de la página y de las fichas","btn_add": "Cargar fotos","btn_new": "+ Nueva ficha","btn_index": "Índice","btn_help": "❓ Cómo llenar","btn_view": "Ver fichas","btn_png": "Descargar PNG (.zip)","btn_pdf": "Imprimir / PDF","btn_save": "Guardar proyecto","btn_load": "Abrir proyecto","btn_export": "Exportar universal","btn_import": "Importar universal","btn_clear": "Limpiar todo","drop_big": "Suelta tus fotos aquí","drop_sub": "arrastra varias de un solo golpe — o haz clic para elegir · JPG · PNG · HEIC","drop_big_more": "Agregar más fotos","drop_sub_more": "se crea un fichero por cada imagen","footer": "NOOK · VOCO Surf Side, Aruba — modelado sobre la plantilla original de ficheros · DMZ Kitchen Support","count_1": "{n} fichero","count_n": "{n} ficheros","idx_done": "{d}/{t} completas","st_none": "Sin ficha","act_create": "Crear ficha","st_missing": "Faltan: {lista}","miss_foto": "foto","miss_ing": "ingredientes","miss_proc": "procedimiento","st_ok": "Completa","act_go": "Ir a la ficha","p_desc": "Descripción para la carta, en español (opcional, se puede dejar en blanco):","a_need_name": "Escribe un nombre.","tr_edit_t": "Escribir o corregir el nombre en español","p_tr_name": "Nombre en español de \"{n}\":","p_tr_desc": "Descripción en español de \"{n}\" (opcional):","p_tr_grp": "Nombre en español del grupo \"{g}\":","idx_tr_pend": "sin traducir","tr_mark": "sin traducir","tr_mark_t": "Falta el texto en español de: {campos}. Se muestra el texto del otro idioma; esta marca no sale en el PNG ni en el PDF.","fld_title": "nombre","fld_carta": "descripción","fld_ing": "ingredientes","fld_proc": "procedimiento","all": "Todas","card_n": "Ficha {n}","sel_grp": "— Grupo —","fit_cover": "Llenar","fit_contain": "Completa","up": "Subir","down": "Bajar","del": "Eliminar","c_del": "¿Eliminar esta ficha?","foto_change": "📷 Cambiar foto","foto_add": "📷 Agregar foto","ph_nophoto": "sin foto","ph_ing": "Un ingrediente por línea…","ph_proc": "describe el procedimiento…","f_portion": "Porción","f_time": "Tiempo objetivo","f_rush": "Rush","f_min": "min","f_proc": "Procedimiento","a_photo_read": "No se pudo leer la foto {f}: {e}","c_clear": "¿Eliminar todos los ficheros?","a_need_card": "Crea o carga al menos una ficha.","btn_generating": "Generando…","a_export_err": "Error al exportar: {e}","btn_preparing": "Preparando…","c_save_fallas": "{n} foto(s) no se pudieron descargar ({lista}). ¿Guardar el archivo de todos modos? Esas fichas llevarán solo el enlace a la foto, no la foto.","a_bad_project": "Archivo de proyecto no válido.","a_opened": "Proyecto abierto y fusionado: {a} ficha(s) nueva(s), {r} actualizada(s), {i} ya estaban igual.","a_opened_arch": " {n} versión(es) en conflicto quedaron archivadas (no se muestran como ficha; van incluidas en “Guardar proyecto”).","a_univ_ok": "Importado: {m} ficha(s) actualizadas, {c} nueva(s) sin foto (agrégala arrastrando la imagen).","a_univ_bad": "Archivo universal no válido: {e}","local_only": "Sin conexión a la nube al abrir — modo solo local: los cambios se guardan en este equipo y NO se suben. Recarga cuando vuelva la conexión (usa “Guardar proyecto” si editas).","ss_auto": "Guardado automático activo","ss_saving": "Guardando…","ss_saved": "Guardado ✓ {h}","ss_local_only_ok": "Guardado solo en este equipo ✓ (sin conexión a la nube al abrir)","ss_noauto": "Sin autoguardado — usa “Guardar proyecto”","ss_retry": "{motivo} — {local}. Reintento automático en {s} s (intento {n}).","ss_m_foto": "No se pudo subir una foto a la nube","ss_m_nube": "Sin conexión con la nube","ss_l_ok": "tus cambios están guardados en este equipo","ss_l_no": "sin guardado local — usa “Guardar proyecto”","ss_uploading": "Subiendo lo de este equipo a la nube ({a} nueva(s), {r} actualizada(s){x})…","ss_uploading_arch": ", {n} versión(es) archivada(s)","ss_cloud_empty": "La nube está vacía — lo de este equipo se sube con tu primera edición","ss_loaded": "Cargado de la nube ✓ {h}","ss_noconn_noauto": "Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”","arch_1": "1 versión archivada (conflicto o borrado)","arch_n": "{n} versiones archivadas (conflictos y borrados)","arch_t": "Versiones de una ficha que perdieron al fusionar equipos (se quedó visible la más reciente) y fichas borradas con ✕. No se perdieron: van dentro de “Guardar proyecto” (archivo_conflictos).","help_lang": "🌐 <b>EN | ES</b> (arriba a la derecha) cambia el idioma de la página y de las fichas; tu elección se recuerda en este equipo. Lo que escribas se guarda en el idioma activo, sin tocar el otro: para corregir el texto en inglés, cambia primero a <b>EN</b>. Si una ficha no tiene texto en el idioma activo, muestra el del otro idioma con la marca <b>\"sin traducir\"</b> (solo en pantalla, no sale en el PNG ni en el PDF).","doc_title": "NOOK · Generador de Ficheros — DMZ Kitchen Support","app_title": "Generador de Ficheros","btn_export_t": "Exporta platillo/familia/receta/precio/descripción/insumos en el esquema universal NOOK — sin fotos","btn_import_t": "Importa un JSON del esquema universal NOOK (de Fichas, Organizador o el catálogo canónico) — matchea por nombre de platillo","empty_filter": "No hay fichas en este servicio.","idx_add": "+ Agregar platillo nuevo","p_new_dish": "Nombre del platillo nuevo, en español (se agrega al grupo \"{g}\"):","a_dup_dish": "Ya existe un platillo con ese nombre en este grupo.","sel_svc": "— Servicio —","sel_dish": "— Platillo —","sel_new": "+ Otro / nuevo platillo…","ph_title": "NOMBRE DEL PLATILLO","ph_carta": "descripción de carta (se autocompleta al elegir el platillo)","a_univ_notarray": "el archivo no es un array de platillos","ss_empty_local": "Guardado local ✓ (proyecto vacío no se sube a la nube)","help_html": "<h2>Cómo llenar una ficha, paso a paso</h2>\n      <ol class=\"help-steps\">\n        <li><span class=\"n\">1</span><span><b>Elige el platillo.</b> En cada ficha hay 3 listas: Servicio (Desayuno/Almuerzo/Piscina·Bar/Cena), Grupo, y Platillo. Si el platillo que buscas no aparece en la última lista, elige <b>\"+ Otro / nuevo platillo…\"</b>, o mejor: agrégalo primero desde <b>Índice → \"+ Agregar platillo nuevo\"</b> para que quede disponible para todos.</span></li>\n        <li><span class=\"n\">2</span><span><b>El nombre se puede escribir directo.</b> Dale clic donde dice el nombre del platillo, arriba de la ficha, y escribe — es un texto normal, no un botón.</span></li>\n        <li><span class=\"n\">3</span><span><b>Descripción, ingredientes y procedimiento son igual de simples.</b> Dale clic donde dice \"describe el procedimiento…\" (o cualquier texto en gris) y empieza a escribir. No hay que darle a ningún botón de \"Guardar\" para ese texto.</span></li>\n        <li><span class=\"n\">4</span><span><b>Agrega la foto.</b> Arrastra la imagen directo sobre la ficha, o usa el botón \"Cargar fotos\" de arriba para varias a la vez.</span></li>\n        <li><span class=\"n\">5</span><span><b>Ordena las fichas.</b> Usa las flechas <b>↑ / ↓</b> junto a cada ficha para moverla de lugar.</span></li>\n        <li><span class=\"n\">6</span><span><b>No hace falta guardar nada a mano.</b> Todo se guarda solo, unos segundos después de escribir. Abajo a la derecha dice \"Guardando…\" y luego \"Guardado ✓\" cuando ya quedó en la nube — así lo ve cualquier otra computadora, no solo la tuya.</span></li>\n      </ol>","help_tip": "💡 Si algo no se guarda (\"Sin conexión…\"), no lo pierdes — se queda guardado en esta computadora y la página reintenta sola, cada vez con más espera, hasta que la nube responda (lo dice abajo a la derecha). Si la nube no respondía al abrir, la página entra en \"modo solo local\": no sube nada hasta que recargues."},"en": {"lang_t": "Language of the page and the cards","btn_add": "Upload photos","btn_new": "+ New card","btn_index": "Index","btn_help": "❓ How to fill in","btn_view": "View cards","btn_png": "Download PNG (.zip)","btn_pdf": "Print / PDF","btn_save": "Save project","btn_load": "Open project","btn_export": "Universal export","btn_import": "Universal import","btn_clear": "Clear all","drop_big": "Drop your photos here","drop_sub": "drag several at once — or click to choose · JPG · PNG · HEIC","drop_big_more": "Add more photos","drop_sub_more": "one card is created per image","footer": "NOOK · VOCO Surf Side, Aruba — modeled on the original recipe card template · DMZ Kitchen Support","count_1": "{n} card","count_n": "{n} cards","idx_done": "{d}/{t} complete","st_none": "No card","act_create": "Create card","st_missing": "Missing: {lista}","miss_foto": "photo","miss_ing": "ingredients","miss_proc": "procedure","st_ok": "Complete","act_go": "Go to card","p_desc": "Menu description, in English (optional, can be left blank):","a_need_name": "Type a name.","tr_edit_t": "Write or fix the name in English","p_tr_name": "English name for \"{n}\":","p_tr_desc": "English description for \"{n}\" (optional):","p_tr_grp": "English name for the group \"{g}\":","idx_tr_pend": "not translated","tr_mark": "not translated","tr_mark_t": "Missing English text for: {campos}. The text in the other language is shown; this mark does not appear in the PNG or the PDF.","fld_title": "name","fld_carta": "description","fld_ing": "ingredients","fld_proc": "procedure","all": "All","card_n": "Card {n}","sel_grp": "— Group —","fit_cover": "Fill","fit_contain": "Full","up": "Move up","down": "Move down","del": "Delete","c_del": "Delete this card?","foto_change": "📷 Change photo","foto_add": "📷 Add photo","ph_nophoto": "no photo","ph_ing": "One ingredient per line…","ph_proc": "describe the procedure…","f_portion": "Portion","f_time": "Target Time","f_rush": "Rush","f_min": "min","f_proc": "Procedure","a_photo_read": "Could not read the photo {f}: {e}","c_clear": "Delete all cards?","a_need_card": "Create or load at least one card.","btn_generating": "Generating…","a_export_err": "Export error: {e}","btn_preparing": "Preparing…","c_save_fallas": "{n} photo(s) could not be downloaded ({lista}). Save the file anyway? Those cards will carry only the link to the photo, not the photo.","a_bad_project": "Invalid project file.","a_opened": "Project opened and merged: {a} new card(s), {r} updated, {i} already the same.","a_opened_arch": " {n} conflicting version(s) were archived (not shown as cards; they are included in “Save project”).","a_univ_ok": "Imported: {m} card(s) updated, {c} new without photo (add it by dragging the image).","a_univ_bad": "Invalid universal file: {e}","local_only": "No connection to the cloud when opening — local-only mode: changes are saved on this device and NOT uploaded. Reload when the connection is back (use “Save project” if you edit).","ss_auto": "Autosave on","ss_saving": "Saving…","ss_saved": "Saved ✓ {h}","ss_local_only_ok": "Saved on this device only ✓ (no cloud connection when opening)","ss_noauto": "No autosave — use “Save project”","ss_retry": "{motivo} — {local}. Automatic retry in {s} s (attempt {n}).","ss_m_foto": "A photo could not be uploaded to the cloud","ss_m_nube": "No connection to the cloud","ss_l_ok": "your changes are saved on this device","ss_l_no": "no local save — use “Save project”","ss_uploading": "Uploading this device’s work to the cloud ({a} new, {r} updated{x})…","ss_uploading_arch": ", {n} archived version(s)","ss_cloud_empty": "The cloud is empty — this device’s work is uploaded with your first edit","ss_loaded": "Loaded from the cloud ✓ {h}","ss_noconn_noauto": "No cloud connection and no autosave — use “Save project”","arch_1": "1 archived version (conflict or deletion)","arch_n": "{n} archived versions (conflicts and deletions)","arch_t": "Versions of a card that lost when merging devices (the most recent one stayed visible) and cards deleted with ✕. Nothing was lost: they are inside “Save project” (archivo_conflictos).","help_lang": "🌐 <b>EN | ES</b> (top right) switches the language of the page and the cards; your choice is remembered on this device. What you type is saved in the active language without touching the other one: to fix the English text, switch to <b>EN</b> first. If a card has no text in the active language, it shows the other language with the <b>\"not translated\"</b> mark (on screen only; it does not appear in the PNG or the PDF).","doc_title": "NOOK · Recipe Card Generator — DMZ Kitchen Support","app_title": "Recipe Card Generator","btn_export_t": "Exports dish/family/recipe/price/description/ingredients in the NOOK universal schema — no photos","btn_import_t": "Imports a JSON in the NOOK universal schema (from Fichas, Organizador or the canonical catalog) — matches by dish name","empty_filter": "No cards in this service.","idx_add": "+ Add new dish","p_new_dish": "Name of the new dish, in English (added to the group \"{g}\"):","a_dup_dish": "A dish with that name already exists in this group.","sel_svc": "— Service —","sel_dish": "— Dish —","sel_new": "+ Other / new dish…","ph_title": "DISH NAME","ph_carta": "menu description (filled in when you pick the dish)","a_univ_notarray": "the file is not a list of dishes","ss_empty_local": "Saved locally ✓ (an empty project is not uploaded to the cloud)","help_html": "<h2>How to fill in a card, step by step</h2>\n      <ol class=\"help-steps\">\n        <li><span class=\"n\">1</span><span><b>Pick the dish.</b> Each card has 3 lists: Service (Breakfast/Lunch/Pool·Bar/Dinner), Group and Dish. If the dish you want is not in the last list, choose <b>\"+ Other / new dish…\"</b>, or better: add it first from <b>Index → \"+ Add new dish\"</b> so it is available to everyone.</span></li>\n        <li><span class=\"n\">2</span><span><b>The name can be typed directly.</b> Click on the dish name at the top of the card and type — it is plain text, not a button.</span></li>\n        <li><span class=\"n\">3</span><span><b>Description, ingredients and procedure are just as simple.</b> Click where it says \"describe the procedure…\" (or any grey text) and start typing. There is no \"Save\" button to press for that text.</span></li>\n        <li><span class=\"n\">4</span><span><b>Add the photo.</b> Drag the image straight onto the card, or use the \"Upload photos\" button at the top for several at once.</span></li>\n        <li><span class=\"n\">5</span><span><b>Order the cards.</b> Use the <b>↑ / ↓</b> arrows next to each card to move it.</span></li>\n        <li><span class=\"n\">6</span><span><b>No need to save anything by hand.</b> Everything saves itself a few seconds after you type. At the bottom right it says \"Saving…\" and then \"Saved ✓\" once it is in the cloud — so any other computer sees it, not just yours.</span></li>\n      </ol>","help_tip": "💡 If something does not save (\"No connection…\"), you do not lose it — it stays saved on this computer and the page retries by itself, waiting a little longer each time, until the cloud answers (shown at the bottom right). If the cloud did not answer when opening, the page goes into \"local-only mode\": nothing is uploaded until you reload."}};
+function t(k, v){
+  let s = (I18N[LANG] && I18N[LANG][k]!==undefined) ? I18N[LANG][k] : (I18N.es[k]!==undefined ? I18N.es[k] : k);
+  if(v) s = s.replace(/\{(\w+)\}/g, (m,x)=>{ if(v[x]===undefined) return m; const val=v[x]; return (typeof val==='string' && val[0]==='@') ? t(val.slice(1)) : val; });
+  return s;
+}
+function otroIdioma(L){ return L==='en' ? 'es' : 'en'; }
+const TR_KEYS=['title','carta','ing','proc'];
+function hasTxt(s){ return typeof s==='string' && s.trim()!==''; }
+function trVacio(){ return {title:'', carta:'', ing:'', proc:'', ts:0}; }
+// Texto de un campo en el idioma L: {txt, ok}. ok=false → se muestra el del otro idioma ("sin traducir").
+function trText(c, L, k){
+  const tr=c && c.tr;
+  if(tr && typeof tr==='object'){
+    if(tr[L] && hasTxt(tr[L][k])) return {txt:tr[L][k], ok:true};
+    const o=tr[otroIdioma(L)]; if(o && hasTxt(o[k])) return {txt:o[k], ok:false};
+    const v=(c && typeof c[k]==='string') ? c[k] : '';
+    return {txt:v, ok: L==='en' || !hasTxt(v)};
+  }
+  const v=(c && typeof c[k]==='string') ? c[k] : '';
+  return {txt:v, ok: L==='en' || !hasTxt(v)};
+}
+function pendientesTr(c, L){ return TR_KEYS.filter(k=>!trText(c,L,k).ok); }
+// tr → campos viejos (campo por campo: inglés; si no hay, español).
+function mirrorLegacy(c){
+  if(!c || !c.tr || typeof c.tr!=='object') return;
+  for(const k of TR_KEYS){ const en=c.tr.en, es=c.tr.es; c[k] = (en && hasTxt(en[k])) ? en[k] : ((es && hasTxt(es[k])) ? es[k] : ''); }
+}
+function ensureTr(c){
+  if(!c.tr || typeof c.tr!=='object') c.tr={en:{title:c.title||'', carta:c.carta||'', ing:c.ing||'', proc:c.proc||'', ts:+c.ts||0}};
+  return c.tr;
+}
+// Edición en el idioma L: escribe SOLO tr[L] (el otro idioma no se toca).
+function setTr(c, L, k, v){
+  const tr=ensureTr(c); if(!tr[L]) tr[L]=trVacio();
+  tr[L][k]=v; tr[L].ts=Date.now();
+  mirrorLegacy(c); touch(c);
+}
+// Campos viejos → tr: si una pestaña con la página anterior (o "Importar universal") cambió
+// title/carta/ing/proc, ese texto ya no coincide con tr; se pasa al idioma que ese campo representa.
+function reconcileLegacy(c){
+  if(!c || !c.tr || typeof c.tr!=='object') return false;
+  let ch=false;
+  for(const k of TR_KEYS){
+    const en=c.tr.en, es=c.tr.es;
+    const exp=(en && hasTxt(en[k])) ? en[k] : ((es && hasTxt(es[k])) ? es[k] : '');
+    const cur=(typeof c[k]==='string') ? c[k] : '';
+    if(cur===exp || (!hasTxt(cur) && !hasTxt(exp))) continue;
+    const L=((en && hasTxt(en[k])) || !(es && hasTxt(es[k]))) ? 'en' : 'es';
+    if(!c.tr[L]) c.tr[L]=trVacio();
+    c.tr[L][k]=cur; c.tr[L].ts=Math.max(+c.tr[L].ts||0, +c.ts||0); ch=true;
+  }
+  if(ch) mirrorLegacy(c);
+  return ch;
+}
+// Fusión por idioma: en la ficha que gana se queda, de cada idioma, la versión más nueva (tr[L].ts) de
+// las dos. Así dos equipos que editan idiomas distintos de la misma ficha conservan los dos cambios.
+function combinarTr(win, lose){
+  if(!lose || !lose.tr || typeof lose.tr!=='object') return win;
+  const teniaTr=!!(win.tr && typeof win.tr==='object');
+  const tr=teniaTr ? JSON.parse(JSON.stringify(win.tr)) : {};
+  let ch=false;
+  for(const L of LANGS){
+    const a=tr[L], b=lose.tr[L]; if(!b) continue;
+    if(!a || (+b.ts||0) > (+a.ts||0)){ tr[L]=JSON.parse(JSON.stringify(b)); ch=true; }
+  }
+  if(!ch) return win;
+  const out=Object.assign({}, win, {tr});
+  if(teniaTr) mirrorLegacy(out); else reconcileLegacy(out);   // sin tr propio: su texto viejo es lo más nuevo
+  return out;
+}
+function ordenar(x){
+  if(Array.isArray(x)) return x.map(ordenar);
+  if(x && typeof x==='object'){ const o={}; Object.keys(x).sort().forEach(k=>{ o[k]=ordenar(x[k]); }); return o; }
+  return x;
+}
+/* ----- etiquetas del menú ----- */
+let MENU_I18N_NUBE={};   // data.menu_i18n
+function mergeMenuI18n(a, b){
+  const out=Object.assign({}, (a && typeof a==='object') ? a : {}); let cambio=false;
+  Object.entries((b && typeof b==='object') ? b : {}).forEach(([k,v])=>{
+    if(!v || typeof v!=='object') return;
+    const cur=out[k];
+    if(!cur){ out[k]=v; cambio=true; return; }
+    if((+v.ts||0) > (+cur.ts||0) && JSON.stringify(ordenar(cur))!==JSON.stringify(ordenar(v))){ out[k]=v; cambio=true; }
+  });
+  return {map:out, cambio};
+}
+function lblCat(k){ const m=MENU_I18N.cats[k]; if(m && hasTxt(m[LANG])) return m[LANG]; return CATMAP[k] ? CATMAP[k].label : (k||''); }
+function entradasGrupo(g){ return [MENU_I18N_NUBE['g:'+g], MENU_I18N.groups[g]].filter(Boolean); }
+function lblGrupo(g){ for(const x of entradasGrupo(g)) if(hasTxt(x[LANG])) return x[LANG]; return g; }
+function grupoPend(g){ if(entradasGrupo(g).some(x=>hasTxt(x[LANG]))) return false; return ((MENU_I18N_NUBE['g:'+g]||{}).src||'en')!==LANG; }
+function entradasPlatillo(n){ return [MENU_I18N_NUBE['d:'+n], MENU_I18N.dishes[n]].filter(Boolean); }
+function srcPlatillo(n){ return (MENU_I18N_NUBE['d:'+n]||{}).src || 'en'; }
+// Nombre / descripción del platillo n en el idioma L; null si no se conoce en ese idioma.
+function nombrePlatillo(n, L){ for(const x of entradasPlatillo(n)) if(x[L] && hasTxt(x[L].name)) return x[L].name; return srcPlatillo(n)===L ? n : null; }
+function descPlatillo(svc, grp, n, L){ for(const x of entradasPlatillo(n)) if(x[L] && typeof x[L].desc==='string' && (hasTxt(x[L].desc) || hasTxt(x[L].name))) return x[L].desc; return srcPlatillo(n)===L ? descOf(svc,grp,n) : null; }
+function lblPlatillo(n){ const v=nombrePlatillo(n, LANG); return v!==null ? v : n; }
+function platilloPend(n){ return nombrePlatillo(n, LANG)===null; }
+function nombresDe(c){ const s=new Set([norm(c.title)]); if(c.tr) LANGS.forEach(L=>{ if(c.tr[L] && hasTxt(c.tr[L].title)) s.add(norm(c.tr[L].title)); }); s.delete(''); return s; }
+function nombresPlatillo(n){ const s=new Set([norm(n)]); LANGS.forEach(L=>{ const v=nombrePlatillo(n,L); if(v) s.add(norm(v)); }); s.delete(''); return s; }
+function esPlatillo(c, n){ const a=nombresDe(c); for(const x of nombresPlatillo(n)) if(a.has(x)) return true; return false; }
+// Elegir un platillo del menú: nombre y descripción en los dos idiomas que se conozcan.
+function aplicarPlatillo(c, svc, grp, n){
+  const tr=ensureTr(c); const now=Date.now();
+  for(const L of LANGS){
+    const nm=nombrePlatillo(n, L), ds=descPlatillo(svc, grp, n, L);
+    if(!tr[L]) tr[L]=trVacio();
+    tr[L].title = nm!==null ? nm : ''; tr[L].carta = ds!==null ? ds : ''; tr[L].ts=now;
+  }
+  mirrorLegacy(c); touch(c);
+}
+function limpiarPlatillo(c){ const tr=ensureTr(c); const now=Date.now(); for(const L of LANGS){ if(!tr[L]) tr[L]=trVacio(); tr[L].title=''; tr[L].carta=''; tr[L].ts=now; } mirrorLegacy(c); touch(c); }
+function registrarI18n(clave, valor){
+  const cur=MENU_I18N_NUBE[clave];
+  const e=cur ? JSON.parse(JSON.stringify(cur)) : {src:LANG};
+  e[LANG]=valor; e.ts=Date.now();
+  MENU_I18N_NUBE[clave]=e;
+}
+function nombreArchivo(c, i){ return (trText(c, LANG, 'title').txt||('ficha_'+(i+1))).trim().replace(/[^\w\sÀ-ÿ-]/g,'').replace(/\s+/g,'_').toUpperCase() || ('FICHA_'+(i+1)); }
+function countTxt(){ return t(cards.length===1 ? 'count_1' : 'count_n', {n:cards.length}); }
+function applyStaticI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('doc_title');
+  const tb=document.querySelector('header.app .t b'); if(tb) tb.textContent=t('app_title');
+  const bh=document.querySelector('header.app > a[href="../"]'); if(bh && I18N.es.back_home) bh.textContent=t('back_home');
+  [['addBtn','btn_add'],['newBtn','btn_new'],['pngBtn','btn_png'],['pdfBtn','btn_pdf'],['saveBtn','btn_save'],['loadBtn','btn_load'],
+   ['exportUnivBtn','btn_export'],['importUnivBtn','btn_import'],['clearBtn','btn_clear']].forEach(([id,k])=>{ const b=document.getElementById(id); if(b && !b.disabled) b.textContent=t(k); });
+  const eb=document.getElementById('exportUnivBtn'); if(eb) eb.title=t('btn_export_t');
+  const ib=document.getElementById('importUnivBtn'); if(ib) ib.title=t('btn_import_t');
+  const ft=document.querySelector('footer'); if(ft) ft.textContent=t('footer');
+  const sw=document.getElementById('langsw'); if(sw){ sw.title=t('lang_t'); sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
+  const lb=document.getElementById('localonlybanner'); if(lb) lb.textContent=t('local_only');
+  if(_ss) aplicarSaveState();
+  renderArchivoAviso();
+}
+function setLang(L){
+  if(!LANGS.includes(L) || L===LANG) return;
+  LANG=L;
+  try{ localStorage.setItem(LANG_KEY, L); }catch(e){}
+  applyStaticI18n();
+  renderQuiet();   // cambiar de idioma no es un cambio de datos: no dispara guardado
+}
 
 /* ===== Menú oficial NOOK transcrito (sin bebidas) — fuente de la lista de platillos ===== */
 const MENU = {
@@ -485,6 +655,8 @@ const MENU = {
 // se lee junto con `cards` en la misma fila de la nube (ver payload en scheduleSave/autoload),
 // así que una vez agregado un platillo aquí queda indexado igual que uno oficial: aparece en
 // el Índice, en los 3 desplegables de cada ficha, y su descripción se autocompleta igual.
+// 22-oct-2026: traducciones del menú oficial (nombres internos en inglés). Se llena con el cargador de F&B.
+const MENU_I18N = {cats:{}, groups:{}, dishes:{}};
 let CUSTOM_MENU = {};
 function groupsOf(svc){
   const oficiales = svc && MENU[svc] ? Object.keys(MENU[svc].groups) : [];
@@ -498,7 +670,7 @@ function dishesOf(svc,grp){
 }
 function descOf(svc,grp,name){ const d = dishesOf(svc,grp).find(x=>x[0]===name); return d ? d[1] : ''; }
 function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
-function findCard(svc,name){ return cards.find(c=> c.cat===svc && norm(c.title)===norm(name)); }
+function findCard(svc,name){ return cards.find(c=> c.cat===svc && esPlatillo(c, name)); }
 // Agrega un platillo nuevo al índice (no oficial). Devuelve false sin hacer nada si falta un
 // dato o si ya existe uno con el mismo nombre en ese grupo (oficial o custom) -- nunca duplica.
 function addCustomDish(svc, grp, name, desc){
@@ -545,7 +717,7 @@ function addFiles(fileList){
   const imgs = [...fileList].filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
   imgs.forEach(async f=>{
     try{ addCard({img: await fileToFoto(f)}); }
-    catch(err){ alert('No se pudo leer la foto '+f.name+': '+err.message); }
+    catch(err){ alert(t('a_photo_read', {f:f.name, e:err.message})); }
   });
 }
 function addCard(data){
@@ -569,10 +741,10 @@ function render(){
   cardsEl.style.display = (showIndex||showHelp) ? 'none' : '';
   $('#filterbar').style.display = (showIndex||showHelp) ? 'none' : '';
   drop.style.display = (showIndex||showHelp) ? 'none' : '';
-  $('#indexBtn').textContent = showIndex ? 'Ver fichas' : 'Índice';
-  $('#helpBtn').textContent = showHelp ? 'Ver fichas' : '❓ Cómo llenar';
-  if(showHelp){ renderHelp(); $('#count').textContent = cards.length + (cards.length===1?' fichero':' ficheros'); return; }
-  if(showIndex){ renderIndex(); $('#count').textContent = cards.length + (cards.length===1?' fichero':' ficheros'); return; }
+  $('#indexBtn').textContent = showIndex ? t('btn_view') : t('btn_index');
+  $('#helpBtn').textContent = showHelp ? t('btn_view') : t('btn_help');
+  if(showHelp){ renderHelp(); $('#count').textContent = countTxt(); return; }
+  if(showIndex){ renderIndex(); $('#count').textContent = countTxt(); return; }
 
   cardsEl.innerHTML='';
   let shown=0;
@@ -582,14 +754,12 @@ function render(){
   });
   if(shown===0 && cards.length){
     const e=document.createElement('div'); e.className='empty';
-    e.textContent='No hay fichas en este servicio.'; cardsEl.appendChild(e);
+    e.textContent=t('empty_filter'); cardsEl.appendChild(e);
   }
-  $('#count').textContent = cards.length + (cards.length===1?' fichero':' ficheros');
+  $('#count').textContent = countTxt();
   drop.classList.toggle('mini', cards.length>0);
-  if(cards.length){
-    drop.querySelector('.big').textContent='Agregar más fotos';
-    drop.querySelector('.sub').textContent='se crea un fichero por cada imagen';
-  }
+  drop.querySelector('.big').textContent = cards.length ? t('drop_big_more') : t('drop_big');
+  drop.querySelector('.sub').textContent = cards.length ? t('drop_sub_more') : t('drop_sub');
   renderFilter();
   requestAnimationFrame(fitAll);
 }
@@ -608,7 +778,7 @@ function renderIndex(){
 
     const sec = document.createElement('div'); sec.className='idx-svc';
     const h = document.createElement('h3');
-    h.innerHTML = `<span class="dotc" style="background:${ct.color}"></span>${m.label} <span class="idx-prog">${done}/${total} completas</span>`;
+    h.innerHTML = `<span class="dotc" style="background:${ct.color}"></span>${esc(lblCat(svc)||m.label)} <span class="idx-prog">${t('idx_done',{d:done,t:total})}</span>`;
     sec.appendChild(h);
     const bar = document.createElement('div'); bar.className='idx-bar';
     bar.innerHTML = `<i style="width:${total? Math.round(done/total*100):0}%"></i>`;
@@ -616,22 +786,33 @@ function renderIndex(){
 
     grupos.forEach(grp=>{
       const list = dishesOf(svc,grp);
-      const gh=document.createElement('div'); gh.className='idx-grp'; gh.textContent=grp; sec.appendChild(gh);
+      const gh=document.createElement('div'); gh.className='idx-grp'; gh.textContent=lblGrupo(grp);
+      if(grupoPend(grp)){ const tp=document.createElement('span'); tp.className='idx-tr'; tp.textContent=t('idx_tr_pend'); gh.appendChild(tp); }
+      const ge=document.createElement('button'); ge.className='idx-ed'; ge.textContent='✎'; ge.title=t('tr_edit_t');
+      ge.onclick=()=>{ const v=prompt(t('p_tr_grp',{g:lblGrupo(grp)}), grupoPend(grp) ? '' : lblGrupo(grp)); if(v===null) return; if(!v.trim()){ alert(t('a_need_name')); return; }
+        registrarI18n('g:'+grp, v.trim()); scheduleSave(); renderIndex(); };
+      gh.appendChild(ge); sec.appendChild(gh);
       list.forEach(d=>{
         const name=d[0]; const card=findCard(svc,name);
         const item=document.createElement('div'); item.className='idx-item';
-        const nm=document.createElement('span'); nm.className='nm'; nm.textContent=name; item.appendChild(nm);
+        const nm=document.createElement('span'); nm.className='nm'; nm.textContent=lblPlatillo(name);
+        if(platilloPend(name)){ const tp=document.createElement('span'); tp.className='idx-tr'; tp.textContent=t('idx_tr_pend'); nm.appendChild(tp); }
+        const de=document.createElement('button'); de.className='idx-ed'; de.textContent='✎'; de.title=t('tr_edit_t');
+        de.onclick=()=>{ const pend=platilloPend(name); const v=prompt(t('p_tr_name',{n:lblPlatillo(name)}), pend ? '' : lblPlatillo(name)); if(v===null) return; if(!v.trim()){ alert(t('a_need_name')); return; }
+          const d0=descPlatillo(svc,grp,name,LANG); const ds=prompt(t('p_tr_desc',{n:v.trim()}), d0!==null ? d0 : ''); if(ds===null) return;
+          registrarI18n('d:'+name, {name:v.trim(), desc:ds.trim()}); scheduleSave(); renderIndex(); };
+        nm.appendChild(de); item.appendChild(nm);
         const st=document.createElement('span'); st.className='idx-status'; item.appendChild(st);
         const act=document.createElement('button'); act.className='idx-act'; item.appendChild(act);
         if(!card){
-          st.classList.add('st-none'); st.textContent='Sin ficha';
-          act.textContent='Crear ficha';
-          act.onclick=()=>{ addCard({cat:svc, group:grp, title:name, carta:descOf(svc,grp,name)}); showIndex=false; render(); goToCard(cards[cards.length-1].id); };
+          st.classList.add('st-none'); st.textContent=t('st_none');
+          act.textContent=t('act_create');
+          act.onclick=()=>{ addCard({cat:svc, group:grp, title:name, carta:descOf(svc,grp,name)}); aplicarPlatillo(cards[cards.length-1], svc, grp, name); showIndex=false; render(); goToCard(cards[cards.length-1].id); };
         } else {
           const miss=missingOf(card);
-          if(miss.length){ st.classList.add('st-part'); st.textContent='Faltan: '+miss.join(', '); }
-          else { st.classList.add('st-ok'); st.textContent='Completa'; }
-          act.textContent='Ir a la ficha';
+          if(miss.length){ st.classList.add('st-part'); st.textContent=t('st_missing',{lista:miss.map(x=>t('miss_'+x.replace('ingredientes','ing').replace('procedimiento','proc'))).join(', ')}); }
+          else { st.classList.add('st-ok'); st.textContent=t('st_ok'); }
+          act.textContent=t('act_go');
           act.onclick=()=>{ showIndex=false; filter='all'; render(); goToCard(card.id); };
         }
         sec.appendChild(item);
@@ -641,13 +822,14 @@ function renderIndex(){
       // 3 desplegables de cualquier ficha de ese servicio/grupo, con autocompletado igual
       // que uno oficial (ver CUSTOM_MENU/addCustomDish más arriba).
       const addItem=document.createElement('div'); addItem.className='idx-item idx-add';
-      const addBtn=document.createElement('button'); addBtn.className='idx-act'; addBtn.textContent='+ Agregar platillo nuevo';
+      const addBtn=document.createElement('button'); addBtn.className='idx-act'; addBtn.textContent=t('idx_add');
       addBtn.onclick=()=>{
-        const name=prompt('Nombre del platillo nuevo (se agrega al grupo "'+grp+'"):');
+        const name=prompt(t('p_new_dish',{g:lblGrupo(grp)}));
         if(name===null) return;
-        if(!name.trim()){ alert('Escribe un nombre.'); return; }
-        const desc=prompt('Descripción para la carta (opcional, se puede dejar en blanco):','') || '';
-        if(!addCustomDish(svc, grp, name, desc)){ alert('Ya existe un platillo con ese nombre en este grupo.'); return; }
+        if(!name.trim()){ alert(t('a_need_name')); return; }
+        const desc=prompt(t('p_desc'),'') || '';
+        if(!addCustomDish(svc, grp, name, desc)){ alert(t('a_dup_dish')); return; }
+        registrarI18n('d:'+name.trim(), {name:name.trim(), desc:desc.trim()});
         scheduleSave();
         renderIndex();
       };
@@ -663,16 +845,9 @@ function renderHelp(){
   const hp = $('#helppanel');
   hp.innerHTML = `
     <div class="help-box">
-      <h2>Cómo llenar una ficha, paso a paso</h2>
-      <ol class="help-steps">
-        <li><span class="n">1</span><span><b>Elige el platillo.</b> En cada ficha hay 3 listas: Servicio (Breakfast/Lunch/Pool·Bar/Dinner), Grupo, y Platillo. Si el platillo que buscas no aparece en la última lista, elige <b>"+ Otro / nuevo platillo…"</b>, o mejor: agrégalo primero desde <b>Índice → "+ Agregar platillo nuevo"</b> para que quede disponible para todos.</span></li>
-        <li><span class="n">2</span><span><b>El nombre se puede escribir directo.</b> Dale clic donde dice el nombre del platillo, arriba de la ficha, y escribe — es un texto normal, no un botón.</span></li>
-        <li><span class="n">3</span><span><b>Descripción, ingredientes y procedimiento son igual de simples.</b> Dale clic donde dice "describe el procedimiento…" (o cualquier texto en gris) y empieza a escribir. No hay que darle a ningún botón de "Guardar" para ese texto.</span></li>
-        <li><span class="n">4</span><span><b>Agrega la foto.</b> Arrastra la imagen directo sobre la ficha, o usa el botón "Cargar fotos" de arriba para varias a la vez.</span></li>
-        <li><span class="n">5</span><span><b>Ordena las fichas.</b> Usa las flechas <b>↑ / ↓</b> junto a cada ficha para moverla de lugar.</span></li>
-        <li><span class="n">6</span><span><b>No hace falta guardar nada a mano.</b> Todo se guarda solo, unos segundos después de escribir. Abajo a la derecha dice "Guardando…" y luego "Guardado ✓" cuando ya quedó en la nube — así lo ve cualquier otra computadora, no solo la tuya.</span></li>
-      </ol>
-      <div class="help-tip">💡 Si algo no se guarda ("Sin conexión…"), no lo pierdes — se queda guardado en esta computadora y la página reintenta sola, cada vez con más espera, hasta que la nube responda (lo dice abajo a la derecha). Si la nube no respondía al abrir, la página entra en "modo solo local": no sube nada hasta que recargues.</div>
+      ${t('help_html')}
+      <div class="help-tip">${t('help_tip')}</div>
+      <div class="help-tip">${t('help_lang')}</div>
     </div>`;
 }
 
@@ -688,8 +863,8 @@ function renderFilter(){
   if(!cards.length){ fb.innerHTML=''; return; }
   const counts={}; CATS.forEach(c=>counts[c.k]=0);
   cards.forEach(c=>{ if(c.cat) counts[c.cat]=(counts[c.cat]||0)+1; });
-  let h = chip('all','Todas',null,cards.length);
-  CATS.forEach(c=> h += chip(c.k, c.label, c.color, counts[c.k]||0));
+  let h = chip('all',t('all'),null,cards.length);
+  CATS.forEach(c=> h += chip(c.k, esc(lblCat(c.k)), c.color, counts[c.k]||0));
   fb.innerHTML = h;
   fb.querySelectorAll('.fchip').forEach(el=> el.onclick=()=>{ filter=el.dataset.f; render(); });
 }
@@ -703,7 +878,7 @@ function buildRow(c, i){
 
   // control bar
   const bar = document.createElement('div'); bar.className='rowbar';
-  bar.innerHTML = `<span class="idx">Ficha ${String(i+1).padStart(2,'0')}</span>`;
+  bar.innerHTML = `<span class="idx">${t('card_n',{n:String(i+1).padStart(2,'0')})}</span>`;
 
   // service category selector
   const catwrap = document.createElement('span'); catwrap.className='catwrap';
@@ -711,16 +886,16 @@ function buildRow(c, i){
   dot.style.background = c.cat ? CATMAP[c.cat].color : 'transparent';
   dot.style.borderColor = c.cat ? CATMAP[c.cat].color : '#cdbfa9';
   const catSel = document.createElement('select'); catSel.className='catsel';
-  let opts = `<option value="">— Servicio —</option>`;
-  CATS.forEach(ct => opts += `<option value="${ct.k}" ${c.cat===ct.k?'selected':''}>${ct.label}</option>`);
+  let opts = `<option value="">${t('sel_svc')}</option>`;
+  CATS.forEach(ct => opts += `<option value="${ct.k}" ${c.cat===ct.k?'selected':''}>${esc(lblCat(ct.k))}</option>`);
   catSel.innerHTML = opts;
   catSel.onchange = () => { c.cat = catSel.value; c.group=''; touch(c); render(); };
   catwrap.append(dot, catSel);
 
   // group selector (depends on service)
   const grpSel = document.createElement('select'); grpSel.className='catsel';
-  let gopts = `<option value="">— Grupo —</option>`;
-  groupsOf(c.cat).forEach(g => gopts += `<option value="${g.replace(/"/g,'&quot;')}" ${c.group===g?'selected':''}>${g}</option>`);
+  let gopts = `<option value="">${t('sel_grp')}</option>`;
+  groupsOf(c.cat).forEach(g => gopts += `<option value="${g.replace(/"/g,'&quot;')}" ${c.group===g?'selected':''}>${esc(lblGrupo(g))}</option>`);
   grpSel.innerHTML = gopts; grpSel.disabled = !c.cat;
   grpSel.onchange = () => { c.group = grpSel.value; touch(c); render(); };
 
@@ -733,30 +908,35 @@ function buildRow(c, i){
   // sobreescribe ningún platillo existente del menú oficial ni de otras fichas.
   const dishSel = document.createElement('select'); dishSel.className='catsel';
   const dishesAqui = dishesOf(c.cat, c.group);
-  const esPlatilloNuevo = c.title && !dishesAqui.some(d=>d[0]===c.title);
-  let dopts = `<option value="">— Platillo —</option>`;
-  dishesAqui.forEach(d => dopts += `<option value="${d[0].replace(/"/g,'&quot;')}" ${c.title===d[0]?'selected':''}>${d[0]}</option>`);
-  dopts += `<option value="__nuevo__" ${esPlatilloNuevo?'selected':''}>+ Otro / nuevo platillo…</option>`;
+  const elegido = dishesAqui.find(d=>esPlatillo(c, d[0]));
+  const esPlatilloNuevo = c.title && !elegido;
+  let dopts = `<option value="">${t('sel_dish')}</option>`;
+  dishesAqui.forEach(d => dopts += `<option value="${d[0].replace(/"/g,'&quot;')}" ${elegido===d?'selected':''}>${esc(lblPlatillo(d[0]))}</option>`);
+  dopts += `<option value="__nuevo__" ${esPlatilloNuevo?'selected':''}>${t('sel_new')}</option>`;
   dishSel.innerHTML = dopts; dishSel.disabled = !c.group;
   dishSel.onchange = () => {
-    if(dishSel.value === '__nuevo__'){ c.title=''; c.carta=''; touch(c); render(); return; }
-    c.title = dishSel.value; c.carta = descOf(c.cat, c.group, dishSel.value); touch(c); render();
+    if(dishSel.value === '__nuevo__'){ limpiarPlatillo(c); render(); return; }
+    aplicarPlatillo(c, c.cat, c.group, dishSel.value); render();
   };
 
   const seg = document.createElement('div'); seg.className='seg'; seg.style.marginLeft='auto';
-  seg.innerHTML = `<button data-fit="cover" class="${c.fit==='cover'?'on':''}">Llenar</button>
-                   <button data-fit="contain" class="${c.fit==='contain'?'on':''}">Completa</button>`;
+  seg.innerHTML = `<button data-fit="cover" class="${c.fit==='cover'?'on':''}">${t('fit_cover')}</button>
+                   <button data-fit="contain" class="${c.fit==='contain'?'on':''}">${t('fit_contain')}</button>`;
   seg.onclick = e => { const f=e.target.dataset.fit; if(f){ c.fit=f; touch(c); render(); } };
-  const up = iconBtn('↑','Subir', ()=>move(i,-1));
-  const dn = iconBtn('↓','Bajar', ()=>move(i, 1));
-  const del = iconBtn('✕','Eliminar', ()=>{ if(confirm('¿Eliminar esta ficha?')) borrarFicha(c); }); del.classList.add('del');
+  const up = iconBtn('↑',t('up'), ()=>move(i,-1));
+  const dn = iconBtn('↓',t('down'), ()=>move(i, 1));
+  const del = iconBtn('✕',t('del'), ()=>{ if(confirm(t('c_del'))) borrarFicha(c); }); del.classList.add('del');
   // 22-oct-2026 (Mario): cambiar la foto de una ficha ya creada. La foto anterior no se pierde
   // (va al archivo con motivo 'foto_reemplazada'); también se puede soltar una foto encima.
   const fotoBtn = document.createElement('button'); fotoBtn.className='btn ghost fotobtn';
-  fotoBtn.textContent = c.img ? '📷 Cambiar foto' : '📷 Agregar foto';
+  fotoBtn.textContent = c.img ? t('foto_change') : t('foto_add');
   fotoBtn.onclick = ()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,.heic,.heif';
     inp.onchange=()=>{ if(inp.files[0]) cambiarFoto(c, inp.files[0]); }; inp.click(); };
-  bar.append(catwrap, grpSel, dishSel, fotoBtn, seg, up, dn, del);
+  // Marca "sin traducir" (solo pantalla: la barra no sale en el PNG ni en el PDF).
+  const trTag = document.createElement('span'); trTag.className='tr-tag';
+  const marcaTr = ()=>{ const p=pendientesTr(c, LANG); trTag.hidden=!p.length; trTag.textContent=t('tr_mark'); trTag.title=t('tr_mark_t',{campos:p.map(k=>t('fld_'+k)).join(', ')}); };
+  marcaTr();
+  bar.append(catwrap, grpSel, dishSel, trTag, fotoBtn, seg, up, dn, del);
 
   // fichero
   const fich = document.createElement('div'); fich.className='fichero'; fich.dataset.id=c.id;
@@ -767,7 +947,7 @@ function buildRow(c, i){
     photo.style.backgroundImage = `url("${c.img}")`;
     photo.style.backgroundPosition = `${c.posx}% ${c.posy}%`;
   } else {
-    const ph=document.createElement('div'); ph.className='ph'; ph.textContent='sin foto';
+    const ph=document.createElement('div'); ph.className='ph'; ph.textContent=t('ph_nophoto');
     photo.appendChild(ph);
   }
   if(c.img && c.fit==='cover') enablePan(photo, c);
@@ -777,21 +957,27 @@ function buildRow(c, i){
     const f=[...(e.dataTransfer.files||[])].find(x=>x.type.startsWith('image/')||/\.(heic|heif)$/i.test(x.name)); if(f) cambiarFoto(c,f); });
 
   const panel = document.createElement('div'); panel.className='panel';
+  const TX = k=>trText(c, LANG, k).txt, TP = k=>trText(c, LANG, k).ok ? '' : ' tr-pend';
   panel.innerHTML = `
     <img class="fan"  src="${ASSET.fan}"  alt="">
     <img class="dash" src="${ASSET.dash}" alt="">
     <img class="deco deco-rings" src="${ASSET.rings}" alt="">
     <img class="deco deco-waves" src="${ASSET.waves}" alt="">
     <img class="nook" src="${ASSET.logo}" alt="NOOK">
-    <h2 class="f-title ed" contenteditable data-ph="NOMBRE DEL PLATILLO" data-k="title">${esc(c.title)}</h2>
-    <div class="f-carta ed" contenteditable data-ph="descripción de carta (se autocompleta al elegir el platillo)" data-k="carta">${esc(c.carta)}</div>
-    <p class="f-meta">Portion: <span class="ed" contenteditable data-ph="1" data-k="portion">${esc(c.portion)}</span> | Target Time: <span class="ed" contenteditable data-ph="10-12" data-k="time">${esc(c.time)}</span> min | Rush: <span class="ed" contenteditable data-ph="15" data-k="rush">${esc(c.rush)}</span> min</p>
-    <div class="f-ing ed" contenteditable data-ph="Un ingrediente por línea…" data-k="ing">${esc(c.ing)}</div>
-    <div class="f-proc"><b>Procedure:</b> <span class="ed" contenteditable data-ph="describe el procedimiento…" data-k="proc">${esc(c.proc)}</span></div>
+    <h2 class="f-title ed${TP('title')}" contenteditable data-ph="${esc(t('ph_title'))}" data-k="title">${esc(TX('title'))}</h2>
+    <div class="f-carta ed${TP('carta')}" contenteditable data-ph="${esc(t('ph_carta'))}" data-k="carta">${esc(TX('carta'))}</div>
+    <p class="f-meta">${t('f_portion')}: <span class="ed" contenteditable data-ph="1" data-k="portion">${esc(c.portion)}</span> | ${t('f_time')}: <span class="ed" contenteditable data-ph="10-12" data-k="time">${esc(c.time)}</span> ${t('f_min')} | ${t('f_rush')}: <span class="ed" contenteditable data-ph="15" data-k="rush">${esc(c.rush)}</span> ${t('f_min')}</p>
+    <div class="f-ing ed${TP('ing')}" contenteditable data-ph="${esc(t('ph_ing'))}" data-k="ing">${esc(TX('ing'))}</div>
+    <div class="f-proc"><b>${t('f_proc')}:</b> <span class="ed${TP('proc')}" contenteditable data-ph="${esc(t('ph_proc'))}" data-k="proc">${esc(TX('proc'))}</span></div>
     <div class="f-by">by <span class="g">D</span>e la <span class="g">M</span>ora <span class="g">Z</span>umarán · Kitchen Support</div>`;
 
   panel.querySelectorAll('.ed').forEach(el=>{
-    el.addEventListener('input', ()=>{ c[el.dataset.k] = el.innerText; touch(c); scheduleSave(); requestAnimationFrame(()=>fitPanel(panel)); });
+    el.addEventListener('input', ()=>{
+      const k=el.dataset.k;
+      if(TR_KEYS.includes(k)){ setTr(c, LANG, k, el.innerText); el.classList.toggle('tr-pend', !trText(c, LANG, k).ok); marcaTr(); }
+      else { c[k] = el.innerText; touch(c); }
+      scheduleSave(); requestAnimationFrame(()=>fitPanel(panel));
+    });
   });
 
   fich.append(photo, panel);
@@ -852,31 +1038,34 @@ $('#addBtn').onclick = ()=> $('#file').click();
 $('#newBtn').onclick = ()=> { showIndex=false; addCard({}); };
 $('#indexBtn').onclick = ()=> { showIndex=!showIndex; if(showIndex) showHelp=false; render(); };
 $('#helpBtn').onclick = ()=> { showHelp=!showHelp; if(showHelp) showIndex=false; render(); };
-$('#clearBtn').onclick = ()=>{ if(cards.length && confirm('¿Eliminar todos los ficheros?')){ cards=[]; render(); } };
+$('#clearBtn').onclick = ()=>{ if(cards.length && confirm(t('c_clear'))){ cards=[]; render(); } };
+document.querySelectorAll('#langsw button').forEach(b=> b.onclick = ()=> setLang(b.dataset.lang));
 
 /* ---------- export PNG (zip) ---------- */
 $('#pngBtn').onclick = async ()=>{
-  if(!cards.length) return alert('Crea o carga al menos una ficha.');
-  const btn=$('#pngBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='Generando…';
+  if(!cards.length) return alert(t('a_need_card'));
+  const btn=$('#pngBtn'); btn.disabled=true; btn.textContent=t('btn_generating');
   try{
     const zip = new JSZip();
     const nodes = [...document.querySelectorAll('.fichero')];
     for(let i=0;i<nodes.length;i++){
       const node = nodes[i];
       const c = cards.find(x=> x.id == node.dataset.id) || {};
-      const canvas = await html2canvas(node, {scale:1920/node.offsetWidth, backgroundColor:'#ffffff', useCORS:true, logging:false});
+      // 22-oct-2026: el PNG sale en el idioma activo y sin las marcas de "sin traducir" (solo pantalla).
+      const canvas = await html2canvas(node, {scale:1920/node.offsetWidth, backgroundColor:'#ffffff', useCORS:true, logging:false,
+        onclone: doc=>{ doc.querySelectorAll('.tr-pend').forEach(e=>e.classList.remove('tr-pend')); doc.querySelectorAll('.tr-tag').forEach(e=>e.remove()); }});
       const blob = await new Promise(r=>canvas.toBlob(r,'image/png'));
       const code = c.cat ? CODE[c.cat]+'_' : '';
-      const name = (c.title||('ficha_'+(i+1))).trim().replace(/[^\w\sÀ-ÿ-]/g,'').replace(/\s+/g,'_').toUpperCase() || ('FICHA_'+(i+1));
+      const name = nombreArchivo(c, i);
       zip.file(`${String(i+1).padStart(2,'0')}_${code}${name}.png`, blob);
     }
     const out = await zip.generateAsync({type:'blob'});
     dl(out, 'NOOK_Ficheros.zip');
-  }catch(err){ alert('Error al exportar: '+err.message); }
-  btn.disabled=false; btn.textContent=old;
+  }catch(err){ alert(t('a_export_err',{e:err.message})); }
+  btn.disabled=false; btn.textContent=t('btn_png');
 };
 
-$('#pdfBtn').onclick = ()=>{ if(!cards.length) return alert('Crea o carga al menos una ficha.'); window.print(); };
+$('#pdfBtn').onclick = ()=>{ if(!cards.length) return alert(t('a_need_card')); fitAll(); window.print(); };
 
 /* ---------- save / load project ---------- */
 // "Guardar proyecto" (20-oct-2026): respaldo AUTOCONTENIDO -- las fotos viven en el bucket, pero
@@ -889,7 +1078,7 @@ async function urlToDataUrl(u){
   return await readAsDataURL(await r.blob());
 }
 $('#saveBtn').onclick = async ()=>{
-  const btn=$('#saveBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='Preparando…';
+  const btn=$('#saveBtn'); btn.disabled=true; btn.textContent=t('btn_preparing');
   try{
     const out=[]; const fallas=[];
     const incrustar=async c=>{
@@ -904,12 +1093,12 @@ $('#saveBtn').onclick = async ()=>{
     // 20-oct-2026 (#21): las versiones archivadas por conflicto también van en el respaldo.
     const arch=[];
     for(const e of ARCHIVO) arch.push(Object.assign({}, e, {version: await incrustar(e.version||{})}));
-    if(fallas.length && !confirm(fallas.length+' foto(s) no se pudieron descargar ('+fallas.join(', ')+'). ¿Guardar el archivo de todos modos? Esas fichas llevarán solo el enlace a la foto, no la foto.')) return;
+    if(fallas.length && !confirm(t('c_save_fallas',{n:fallas.length, lista:fallas.join(', ')}))) return;
     // 20-oct-2026 (#22): el archivo lleva el registro de borrados y su fecha (ts): al abrirlo en otro
     // equipo, una ficha sin ts propio toma esa fecha para la regla de "gana la más nueva".
-    const blob = new Blob([JSON.stringify({v:3, cards:out, customMenu:CUSTOM_MENU, archivo_conflictos:arch, borrados:BORRADOS, ts:Date.now()}, null, 0)], {type:'application/json'});
+    const blob = new Blob([JSON.stringify({v:3, cards:out, customMenu:CUSTOM_MENU, menu_i18n:MENU_I18N_NUBE, archivo_conflictos:arch, borrados:BORRADOS, ts:Date.now()}, null, 0)], {type:'application/json'});
     dl(blob, 'NOOK_Ficheros_proyecto.json');
-  } finally { btn.disabled=false; btn.textContent=old; }
+  } finally { btn.disabled=false; btn.textContent=t('btn_save'); }
 };
 $('#loadBtn').onclick = ()=> $('#projFile').click();
 $('#projFile').addEventListener('change', e=>{
@@ -917,9 +1106,11 @@ $('#projFile').addEventListener('change', e=>{
   const r=new FileReader();
   r.onload = async ev=>{
     let d;
-    try{ d=JSON.parse(ev.target.result); }catch(err){ return alert('Archivo de proyecto no válido.'); }
-    if(!d || !Array.isArray(d.cards)) return alert('Archivo de proyecto no válido.');
+    try{ d=JSON.parse(ev.target.result); }catch(err){ return alert(t('a_bad_project')); }
+    if(!d || !Array.isArray(d.cards)) return alert(t('a_bad_project'));
     const cm=mergeMenus(CUSTOM_MENU, d.customMenu);
+    MENU_I18N_NUBE=mergeMenuI18n(MENU_I18N_NUBE, d.menu_i18n).map;
+    cards.forEach(reconcileLegacy); d.cards.forEach(reconcileLegacy);
     const arch=await mergeArchivo(ARCHIVO, d.archivo_conflictos);
     // Fecha del archivo (#22.2): d.ts si lo trae (archivos desde el 20-oct-2026); si no, la fecha de
     // modificación del propio archivo en el equipo (archivos viejos sin ts).
@@ -928,7 +1119,7 @@ $('#projFile').addEventListener('change', e=>{
     CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; cards.forEach(ensureUniversalFields);
     uid=nextUid();
     filter='all'; render(); renderArchivoAviso();
-    alert(`Proyecto abierto y fusionado: ${m.st.agregadas} ficha(s) nueva(s), ${m.st.reemplazadas} actualizada(s), ${m.st.iguales} ya estaban igual.`+(m.st.archivadas||m.st.yaArchivadas ? ` ${m.st.archivadas+m.st.yaArchivadas} versión(es) en conflicto quedaron archivadas (no se muestran como ficha; van incluidas en “Guardar proyecto”).` : ''));
+    alert(t('a_opened',{a:m.st.agregadas, r:m.st.reemplazadas, i:m.st.iguales})+(m.st.archivadas||m.st.yaArchivadas ? t('a_opened_arch',{n:m.st.archivadas+m.st.yaArchivadas}) : ''));
   };
   r.readAsText(f); e.target.value='';
 });
@@ -958,7 +1149,7 @@ function toUniversalRow(c){
   };
 }
 $('#exportUnivBtn').onclick = ()=>{
-  if(!cards.length) return alert('Crea o carga al menos una ficha.');
+  if(!cards.length) return alert(t('a_need_card'));
   const rows = cards.map(toUniversalRow);
   const blob = new Blob([JSON.stringify(rows, null, 2)], {type:'application/json'});
   dl(blob, 'NOOK_universal_generador.json');
@@ -970,7 +1161,7 @@ $('#univFile').addEventListener('change', e=>{
   r.onload = ev=>{
     try{
       const rows = JSON.parse(ev.target.result);
-      if(!Array.isArray(rows)) throw new Error('el archivo no es un array de platillos');
+      if(!Array.isArray(rows)) throw new Error(t('a_univ_notarray'));
       let matched=0, created=0;
       rows.forEach(row=>{
         const nm = norm(row.platillo);
@@ -992,9 +1183,10 @@ $('#univFile').addEventListener('change', e=>{
         if(Array.isArray(row.insumos) && row.insumos.length) c.ing = row.insumos.join('\n');
         if(typeof row.disponible === 'boolean') c.disponible = row.disponible;
       });
+      cards.forEach(reconcileLegacy);   // lo importado entra a los campos viejos: se pasa al idioma que representan
       render();
-      alert(`Importado: ${matched} ficha(s) actualizadas, ${created} nueva(s) sin foto (agrégala arrastrando la imagen).`);
-    }catch(err){ alert('Archivo universal no válido: '+err.message); }
+      alert(t('a_univ_ok',{m:matched, c:created}));
+    }catch(err){ alert(t('a_univ_bad',{e:err.message})); }
   };
   r.readAsText(f); e.target.value='';
 });
@@ -1042,13 +1234,12 @@ let _anc=null;            // Map id→firma de cada ficha en la última versión
 // queda en modo solo local. No se sabe qué tiene la nube, así que NINGÚN guardado sube nada: se
 // guarda en este equipo y se avisa en pantalla.
 let _localOnly=false;
-const LOCAL_ONLY_MSG='Sin conexión a la nube al abrir — modo solo local: los cambios se guardan en este equipo y NO se suben. Recarga cuando vuelva la conexión (usa “Guardar proyecto” si editas).';
 function showLocalOnlyBanner(){
   if(document.getElementById('localonlybanner')) return;
   const b=document.createElement('div');
   b.id='localonlybanner'; b.setAttribute('role','alert');
   b.style.cssText='position:sticky;top:0;z-index:999;background:#7A2E3A;color:#fff;padding:8px 14px;font:600 13px/1.35 system-ui,sans-serif;text-align:center';
-  b.textContent=LOCAL_ONLY_MSG;
+  b.textContent=t('local_only');
   document.body.prepend(b);
 }
 function touch(c){ if(c) c.ts=Date.now(); }
@@ -1158,6 +1349,7 @@ async function fileToFoto(f){
 function canon(c){
   const o=Object.assign({receta:'', precio:'', disponible:true}, c);
   delete o.ts; delete o.img; delete o.img_url;
+  if(o.tr) o.tr=ordenar(o.tr);   // 22-oct-2026: el cambio de una traducción también cuenta (orden de llaves estable)
   return JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]]));
 }
 async function sigCard(c){ return canon(c)+'|'+(await imgKey(c)); }
@@ -1227,7 +1419,7 @@ function firmaBorrados(l){ return JSON.stringify((l||[]).map(m=>[String(m.id), +
 // 'borrado' (no se pierde) y queda la marca {id, ts_borrado, por}. ts_borrado nunca es menor que el ts
 // de la propia ficha (si el reloj de otro equipo iba adelantado, la marca igual la cubre).
 async function cambiarFoto(c, file){
-  let d; try{ d=await fileToFoto(file); }catch(err){ return alert('No se pudo leer la foto '+file.name+': '+err.message); }
+  let d; try{ d=await fileToFoto(file); }catch(err){ return alert(t('a_photo_read',{f:file.name, e:err.message})); }
   if(!d) return;
   if(c.img){
     const e={id:c.id, version:Object.assign({},c), origen:'local', motivo:'foto_reemplazada', ts_archivado:Date.now()};
@@ -1311,8 +1503,9 @@ async function mergeCards(base, extra, o){
     let ganaL, motivo;
     if(tc && tl && tc!==tl){ ganaL=tl>tc; motivo='mas_reciente'; }
     else{ ganaL = cur.origen!==origenL; motivo = (tc && tl) ? 'empate_fecha' : 'sin_fecha'; }
-    if(ganaL){ await archivar(cur.c, cur.origen, motivo); slots[i]={c:l, origen:origenL}; st.reemplazadas++; }
-    else await archivar(l, origenL, motivo);
+    // 22-oct-2026: de cada idioma se queda la traducción más nueva de las dos versiones (combinarTr).
+    if(ganaL){ await archivar(cur.c, cur.origen, motivo); slots[i]={c:combinarTr(l, cur.c), origen:origenL}; st.reemplazadas++; }
+    else { await archivar(l, origenL, motivo); slots[i]={c:combinarTr(cur.c, l), origen:cur.origen}; }
   };
   for(const c0 of base){
     const c=sellar(c0, o.tsBase);
@@ -1395,8 +1588,8 @@ async function idbGet(k){ if(!_db)_db=await idbOpen(); return new Promise((res,r
 // ts del contenedor = momento del guardado. No falsea la regla de fechas: toda ficha ya lleva su
 // propio ts (sellado al fusionar o puesto al editarla), así que este ts solo cuenta para fichas
 // que de verdad no traen fecha.
-function payloadNow(){ return {v:2, build:BUILD, cards, customMenu:CUSTOM_MENU, archivo_conflictos:ARCHIVO, borrados:BORRADOS, ts:Date.now()}; }
-function sigOf(p){ return JSON.stringify([p.cards, p.customMenu, p.archivo_conflictos||[], p.borrados||[]]); }
+function payloadNow(){ return {v:2, build:BUILD, cards, customMenu:CUSTOM_MENU, menu_i18n:MENU_I18N_NUBE, archivo_conflictos:ARCHIVO, borrados:BORRADOS, ts:Date.now()}; }
+function sigOf(p){ return JSON.stringify([p.cards, p.customMenu, p.archivo_conflictos||[], p.borrados||[], ordenar(p.menu_i18n||{})]); }
 async function localSave(p){
   if(!_idbWritable){ _idbok=false; return; }
   try{ await idbSet('project', p); _idbok=true; }catch(e){ _idbok=false; }
@@ -1407,30 +1600,32 @@ async function setAnc(list){
   _anc=await ancOf(list);
   if(_idbWritable){ try{ await idbSet('anc', [..._anc.entries()]); }catch(e){} }
 }
-function setSaveState(t){ const el=$('#savestate'); if(el) el.textContent=t; }
+// El estado se guarda como llave + valores para volver a mostrarlo en el otro idioma al cambiar.
+let _ss=null;
+function aplicarSaveState(){ const el=$('#savestate'); if(el && _ss) el.textContent=t(_ss[0], _ss[1]); }
+function setSaveState(k, v){ _ss=[k, v]; aplicarSaveState(); }
 // Aviso discreto, solo para gerencia (#21): cuántas versiones quedaron archivadas por conflicto.
 let _rolPerfil=null;
 function renderArchivoAviso(){
   const el=$('#archivoaviso'); if(!el) return;
   const n=ARCHIVO.length;
   el.hidden = !(_rolPerfil==='gerencia' && n>0);
-  el.textContent = n===1 ? '1 versión archivada (conflicto o borrado)' : n+' versiones archivadas (conflictos y borrados)';
-  el.title='Versiones de una ficha que perdieron al fusionar equipos (se quedó visible la más reciente) y fichas borradas con ✕. No se perdieron: van dentro de “Guardar proyecto” (archivo_conflictos).';
+  el.textContent = n===1 ? t('arch_1') : t('arch_n',{n});
+  el.title=t('arch_t');
 }
 if(window.NOOK_PERFIL && window.NOOK_PERFIL.then) window.NOOK_PERFIL.then(p=>{ _rolPerfil=p && p.rol; _emailPerfil=(p && p.email) || null; renderArchivoAviso(); });
 function renderQuiet(){ _quiet=true; try{ render(); } finally { _quiet=false; } }
 function scheduleSave(){
   if(_booting || _quiet) return;
   _pending=true;
-  setSaveState('Guardando…');
+  setSaveState('ss_saving');
   clearTimeout(_saveT);
   _saveT=setTimeout(()=>{ _pending=false; doSave(); }, 600);
 }
 function scheduleRetry(motivo){
   clearTimeout(_retryT);
   const ms=Math.min(5000*Math.pow(2,_retryN), 300000); _retryN++;
-  const local=_idbok ? 'tus cambios están guardados en este equipo' : 'sin guardado local — usa “Guardar proyecto”';
-  setSaveState(`${motivo} — ${local}. Reintento automático en ${Math.round(ms/1000)} s (intento ${_retryN}).`);
+  setSaveState('ss_retry', {motivo:'@'+motivo, local:_idbok ? '@ss_l_ok' : '@ss_l_no', s:Math.round(ms/1000), n:_retryN});
   _retryT=setTimeout(doSave, ms);
 }
 async function doSave(){
@@ -1440,17 +1635,17 @@ async function doSave(){
     await localSave(payloadNow());
     // Modo solo local (la carga inicial falló): nunca tocar la nube.
     if(_localOnly){
-      setSaveState(_idbok ? 'Guardado solo en este equipo ✓ (sin conexión a la nube al abrir)' : 'Sin autoguardado — usa “Guardar proyecto”');
+      setSaveState(_idbok ? 'ss_local_only_ok' : 'ss_noauto');
       return;
     }
     // Nunca mandar un proyecto vacío por el camino automático (incidente 18-sep-2026; la base de
     // datos también lo rechaza).
     if(!cards.length){
-      setSaveState(_idbok ? 'Guardado local ✓ (proyecto vacío no se sube a la nube)' : 'Sin autoguardado — usa “Guardar proyecto”');
+      setSaveState(_idbok ? 'ss_empty_local' : 'ss_noauto');
       return;
     }
     try{ await subirFotosPendientes(); }
-    catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
+    catch(e){ return scheduleRetry('ss_m_foto'); }
     // 20-oct-2026 (#22.2): toda ficha que sube lleva card.ts (el servidor rechaza la que no). Las fichas
     // ya llevan su ts efectivo sellado al fusionar; una sin ninguna fecha conocida (ni propia ni de su
     // contenedor: en la práctica no ocurre) sube con ts=1 = "fecha desconocida, la más antigua".
@@ -1458,13 +1653,13 @@ async function doSave(){
     for(let intento=0; intento<4; intento++){
       const p=payloadNow();
       const sig=sigOf(p);
-      if(sig===_lastCloudSig){ _retryN=0; await localSave(p); setSaveState('Guardado ✓ '+new Date().toLocaleTimeString()); return; }
+      if(sig===_lastCloudSig){ _retryN=0; await localSave(p); setSaveState('ss_saved', {h:new Date().toLocaleTimeString()}); return; }
       const r=await cloudSave(p);
       if(r && r.ok){
         _base=r.updated_at; _lastCloudSig=sig; _retryN=0;
         await localSave(p);
         await setAnc(JSON.parse(JSON.stringify(p.cards)));
-        setSaveState('Guardado ✓ '+new Date().toLocaleTimeString());
+        setSaveState('ss_saved', {h:new Date().toLocaleTimeString()});
         return;
       }
       if(r && r.conflict){
@@ -1472,14 +1667,15 @@ async function doSave(){
         const l=await cloudLoad();
         if(!l.ok) break;
         const cm=mergeMenus(l.data && l.data.customMenu, CUSTOM_MENU);
-        const nube=(l.data && l.data.cards) || [];
+        MENU_I18N_NUBE=mergeMenuI18n(l.data && l.data.menu_i18n, MENU_I18N_NUBE).map;
+        const nube=(l.data && l.data.cards) || []; nube.forEach(reconcileLegacy);
         const arch=await mergeArchivo(l.data && l.data.archivo_conflictos, ARCHIVO);
         const m=await mergeCards(nube, cards, {origenBase:'nube', origenExtra:'local', anc:_anc, conBorrado:true, archivo:arch,
           tsBase:l.data && l.data.ts, tsExtra:null, borrados:mergeBorrados(l.data && l.data.borrados, BORRADOS)});
         CUSTOM_MENU=cm.menu; cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; uid=nextUid();
         renderArchivoAviso();
         // Lo archivado en esta fusión puede traer fotos en base64: se suben antes de reintentar.
-        try{ await subirFotosPendientes(); }catch(e){ return scheduleRetry('No se pudo subir una foto a la nube'); }
+        try{ await subirFotosPendientes(); }catch(e){ return scheduleRetry('ss_m_foto'); }
         _base=l.updated_at; _lastCloudSig=null;
         await setAnc(nube);
         renderQuiet();
@@ -1488,7 +1684,7 @@ async function doSave(){
       }
       break;
     }
-    scheduleRetry('Sin conexión con la nube');
+    scheduleRetry('ss_m_nube');
   } finally {
     _saving=false;
     if(_again){ _again=false; doSave(); }
@@ -1506,6 +1702,7 @@ async function autoload(){
   if(_idbWritable){ try{ const a=await idbGet('anc'); if(Array.isArray(a)) ancLocal=new Map(a); }catch(e){} }
   if(!r.ok){
     if(local && local.customMenu) CUSTOM_MENU=local.customMenu;
+    if(local && local.menu_i18n && typeof local.menu_i18n==='object') MENU_I18N_NUBE=local.menu_i18n;
     if(local && Array.isArray(local.archivo_conflictos)) ARCHIVO=local.archivo_conflictos;
     if(local && Array.isArray(local.borrados)) BORRADOS=local.borrados;
     if(local && local.cards && local.cards.length){ cards=local.cards; loadedBuild=local.build||0; }
@@ -1518,20 +1715,24 @@ async function autoload(){
   _cloudHadData = cc.length>0;
   const cm=mergeMenus(cloud.customMenu, local && local.customMenu);
   CUSTOM_MENU=cm.menu;
+  const mi=mergeMenuI18n(cloud.menu_i18n, local && local.menu_i18n); MENU_I18N_NUBE=mi.map;
+  // Texto viejo editado por una pestaña con la página anterior → se pasa a tr antes de fusionar.
+  let reconc=false; for(const c of cc) if(reconcileLegacy(c)) reconc=true; for(const c of lc) reconcileLegacy(c);
   const archNube=Array.isArray(cloud.archivo_conflictos) ? cloud.archivo_conflictos : [];
   const arch=await mergeArchivo(archNube, local && local.archivo_conflictos);
   const borrNube=Array.isArray(cloud.borrados) ? cloud.borrados : [];
   const m=await mergeCards(cc, lc, {origenBase:'nube', origenExtra:'local', anc:ancLocal, conBorrado:false, archivo:arch,
     tsBase:cloud.ts, tsExtra:local && local.ts, borrados:mergeBorrados(borrNube, local && local.borrados)});
   cards=m.cards; ARCHIVO=arch.concat(m.archivados); BORRADOS=m.borrados; _mergeSt=m.st; _cloudCardsAtOpen=cc;
-  _mergeChanged = m.st.cambio || cm.cambio || ARCHIVO.length!==archNube.length || firmaBorrados(BORRADOS)!==firmaBorrados(borrNube);
+  _mergeChanged = m.st.cambio || cm.cambio || mi.cambio || reconc || ARCHIVO.length!==archNube.length || firmaBorrados(BORRADOS)!==firmaBorrados(borrNube);
   loadedBuild = cc.length ? (cloud.build||0) : ((local && local.build)||0);
   uid=nextUid();
   // Sin cambios: cards = fichas de la nube con su ts efectivo sellado (mismo contenido, misma fecha).
-  if(!_mergeChanged && cc.length) _lastCloudSig=sigOf({cards, customMenu:cloud.customMenu||{}, archivo_conflictos:archNube, borrados:BORRADOS});
+  if(!_mergeChanged && cc.length) _lastCloudSig=sigOf({cards, customMenu:cloud.customMenu||{}, menu_i18n:MENU_I18N_NUBE, archivo_conflictos:archNube, borrados:BORRADOS});
 }
 
 /* arranque: recuperar lo guardado, fusionar y luego pintar */
+applyStaticI18n();
 autoload().then(async ()=>{
   // 20-oct-2026: sin SEED. Nube y caché vacías → 0 fichas (no se inventa ninguna plantilla).
   renderArchivoAviso();
@@ -1548,19 +1749,19 @@ autoload().then(async ()=>{
   // 19-oct-2026 (#14): se pinta con _booting=true (render() llama a scheduleSave()).
   render();
   _booting=false;
-  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? LOCAL_ONLY_MSG : 'Sin conexión a la nube y sin autoguardado — usa “Guardar proyecto”'); return; }
+  if(_localOnly){ showLocalOnlyBanner(); setSaveState(_idbok ? 'local_only' : 'ss_noconn_noauto'); return; }
   // Nube alcanzada y fusión hecha: la caché de este equipo pasa a ser el resultado fusionado (que
   // contiene todo lo que tenía) junto con la versión base de la nube, en ese orden.
   if(_cloudCardsAtOpen){ await localSave(payloadNow()); await setAnc(_cloudCardsAtOpen); }
   if(_mergeChanged && cards.length){
     // Lo de este equipo que la nube no tenía: se sube ya.
     const s=_mergeSt||{};
-    setSaveState(`Subiendo lo de este equipo a la nube (${s.agregadas||0} nueva(s), ${s.reemplazadas||0} actualizada(s)${s.archivadas ? ', '+s.archivadas+' versión(es) archivada(s)' : ''})…`);
+    setSaveState('ss_uploading', {a:s.agregadas||0, r:s.reemplazadas||0, x: s.archivadas ? t('ss_uploading_arch',{n:s.archivadas}) : ''});
     doSave();
     return;
   }
-  if(!_cloudHadData) setSaveState(cards.length ? 'La nube está vacía — lo de este equipo se sube con tu primera edición' : 'Guardado automático activo');
-  else setSaveState('Cargado de la nube ✓ '+new Date().toLocaleTimeString());
+  if(!_cloudHadData) setSaveState(cards.length ? 'ss_cloud_empty' : 'ss_auto');
+  else setSaveState('ss_loaded', {h:new Date().toLocaleTimeString()});
 });
 
 /* flush inmediato al cerrar/ocultar la pestaña (solo si quedó un cambio real sin enviar) */
