@@ -284,9 +284,10 @@ const CATS = [
   {k:'lunch',     label:'Lunch',     color:'#2E5FA3'},
   {k:'poolbar',   label:'Pool · Bar',color:'#2F9E8F'},
   {k:'dinner',    label:'Dinner',    color:'#1F3864'},
+  {k:'dinner_oct',label:'Dinner · Oct 2026', color:'#7A2E3A'},
 ];
 const CATMAP = Object.fromEntries(CATS.map(c=>[c.k,c]));
-const CODE   = {breakfast:'BRK', lunch:'LUN', poolbar:'POOL', dinner:'DIN'};
+const CODE   = {breakfast:'BRK', lunch:'LUN', poolbar:'POOL', dinner:'DIN', dinner_oct:'DIO'};
 
 /* ===== Menú oficial NOOK transcrito (sin bebidas) — fuente de la lista de platillos ===== */
 const MENU = {
@@ -376,6 +377,25 @@ const MENU = {
     ],
   }},
   dinner: { label:'Dinner', groups: {
+    'Main Course': [
+      ['Filet with Béarnaise Sauce','6 oz grilled beef filet served over sourdough bread with Dijon mustard, accompanied by truffle French fries and Parmesan cheese.'],
+      ['Grilled Octopus with Plantain Purée & Rémoulade','Char-grilled octopus with garlic-parsley persillade, smooth plantain purée, rémoulade sauce, baby corn, carrots, beets and crispy chickpeas.'],
+      ['Rib Eye in Three-Chili Cream Sauce','6 oz Rib eye steak in a creamy three-chili sauce, served with baby potatoes, baby corn and green peas.'],
+      ['Beef Fillet with Wild Mushroom Sauce','6 oz beef fillet in a rich sauce of dried and fresh mushrooms, accompanied by crispy Brussels sprouts and spinach mashed potatoes.'],
+      ['Chicken Breast','Sous-vide chicken breast stuffed with goat cheese, Serrano ham and dates, oven-finished and served with its natural jus and sautéed vegetables.'],
+      ['Tuna Steak','Seared tuna marinated in ginger tare, served with cabbage compote, bok choy and miso sauce.'],
+    ],
+    'Sides': [
+      ['Truffle French Fries',''],
+      ['French Fries',''],
+      ['Sautéed Vegetables',''],
+      ['Plantain Pure',''],
+      ['Mashed Potatoes',''],
+    ],
+  }},
+  // 22-oct-2026 (decisión de Mario): el menú de octubre 2026 es OTRO registro. `dinner` vuelve a
+  // la carta anterior (tal cual antes de 6055042) y la carta nueva vive en su propia categoría.
+  dinner_oct: { label:'Dinner · Oct 2026', groups: {
     // Fuente: carta impresa NOOK Dinner Menu, octubre 2026 (fotos IMG_0083/0084/0085 enviadas por
     // Mario el 20-oct-2026). Texto 1:1, sin precios; erratas de origen sin corregir. Reemplaza el
     // Dinner anterior (Main Course + Sides). Las fichas ya existentes de un platillo que salió de
@@ -856,7 +876,7 @@ $('#projFile').addEventListener('change', e=>{
    familia usa aquí los mismos códigos que fichas/: LUNCH · POOL · DIN · BREAKFAST · OTROS.
    Este generador no tiene bucket OTROS/SIN propio (solo maneja los 4 servicios reales),
    así que una fila importada con esas familias se crea sin asignar servicio (queda '— Servicio —'). */
-const FAMILIA_BY_CAT = {breakfast:'BREAKFAST', lunch:'LUNCH', poolbar:'POOL', dinner:'DIN'};
+const FAMILIA_BY_CAT = {breakfast:'BREAKFAST', lunch:'LUNCH', poolbar:'POOL', dinner:'DIN', dinner_oct:'DIN'}; // Oct 2026 sigue siendo familia Dinner para las demás herramientas
 const CAT_BY_FAMILIA = {BREAKFAST:'breakfast', LUNCH:'lunch', POOL:'poolbar', DIN:'dinner'};
 function ensureUniversalFields(c){
   if(c.receta===undefined) c.receta='';
