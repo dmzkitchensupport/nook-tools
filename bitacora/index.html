@@ -180,6 +180,13 @@ table.hist button:hover{color:var(--navy);}
     <div class="row money"><label>Market Place</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-marketplace"></div>
     <div class="row money"><label>Desayuno</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-desayuno"></div>
     <div class="row money"><label>Comidas y cenas</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-comidascenas"></div>
+    <div class="row money"><label>Evento</label><span class="prefix">$</span><input type="number" step="0.01" id="f-v-evento"></div>
+  </div>
+
+  <div class="card brown">
+    <h2>Hotel y meta <span class="col2">para el corte diario</span></h2>
+    <div class="row money"><label>Venta del hotel (día)</label><span class="prefix">$</span><input type="number" step="0.01" id="f-ho-venta"></div>
+    <div class="row money"><label>Meta F&amp;B del mes</label><span class="prefix">$</span><input type="number" step="0.01" id="f-ho-meta"></div>
   </div>
 
   <div class="card brown">
@@ -208,7 +215,7 @@ table.hist button:hover{color:var(--navy);}
     <span id="saveState"></span>
     <span id="cloudState" style="font-size:12px;color:var(--muted);align-self:center;"></span>
   </div>
-  <p class="nota">"Ventas totales" se calcula solo (suma de las 5 áreas). "Ventas en efectivo" se captura a mano porque no se puede derivar de lo demás.</p>
+  <p class="nota">"Ventas totales" se calcula solo (suma de las áreas). "Ventas en efectivo" se captura a mano porque no se puede derivar de lo demás.</p>
 </div>
 
 <!-- ===== HISTORIAL ===== -->
@@ -227,6 +234,12 @@ table.hist button:hover{color:var(--navy);}
     <label style="font-size:13px;font-weight:700;color:var(--navy);">Mes:</label>
     <select id="mesSelect"></select>
   </div>
+
+  <div class="actions" style="margin-top:0;">
+    <button class="btn accent" id="btnCortePdf">Descargar corte PDF</button>
+    <button class="btn accent" id="btnCorteShare">Enviar corte a WhatsApp</button>
+  </div>
+  <div id="corteResumenWrap" class="nota"></div>
 
   <h2 style="font-size:14px;color:var(--navy);">Ventas y proyección diaria</h2>
   <p class="nota">Proyección = (acumulado ÷ días transcurridos) × días del mes. Se recalcula solo con cada día capturado.</p>
@@ -251,7 +264,7 @@ const FIELDS = [
 ];
 const NUM_FIELDS = [
   'cp-desayuno-monto','cp-desayuno-pax','cp-comidas-monto','cp-comidas-pax',
-  'v-roomservice','v-bar','v-marketplace','v-desayuno','v-comidascenas',
+  'v-roomservice','v-bar','v-marketplace','v-desayuno','v-comidascenas','v-evento','ho-venta','ho-meta',
   'oc-gih','oc-incl','oc-noshow','oc-pay','oc-locales'
 ];
 const $ = s => document.querySelector(s);
@@ -324,7 +337,7 @@ function collectForm(){
   FIELDS.forEach(k => e.campos[k] = $('#f-'+k).value);
   NUM_FIELDS.forEach(k => e.num[k] = parseFloat($('#f-'+k).value) || 0);
   e.efectivo = parseFloat($('#f-t-efectivo').value) || 0;
-  e.ventasTotales = e.num['v-roomservice'] + e.num['v-bar'] + e.num['v-marketplace'] + e.num['v-desayuno'] + e.num['v-comidascenas'];
+  e.ventasTotales = e.num['v-roomservice'] + e.num['v-bar'] + e.num['v-marketplace'] + e.num['v-desayuno'] + e.num['v-comidascenas'] + e.num['v-evento'];
   return e;
 }
 
@@ -463,6 +476,7 @@ function buildPdfDoc(e){
     ['Market Place', '$' + e.num['v-marketplace'].toFixed(2)],
     ['Desayuno', '$' + e.num['v-desayuno'].toFixed(2)],
     ['Comidas y cenas', '$' + e.num['v-comidascenas'].toFixed(2)],
+    ['Evento', '$' + e.num['v-evento'].toFixed(2)],
   ], brown);
 
   section('TOTALES DEL DÍA', [
@@ -548,34 +562,82 @@ function poblarMesSelect(){
 }
 function diasEnMes(mesStr){ const [y,m] = mesStr.split('-').map(Number); return new Date(y, m, 0).getDate(); }
 
+const dinero = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+/* Una sola fuente para pantalla y PDF. La proyección divide entre días capturados, no entre un número fijo. */
+function calcularCorte(entries, mes){
+  const fechas = Object.keys(entries).filter(f=>f.startsWith(mes)).sort();
+  const totalDias = diasEnMes(mes);
+  let acumulado = 0, hotel = 0, meta = 0;
+  const filas = fechas.map((f,i)=>{
+    const e = entries[f], n = e.num||{}, val = k => Number(n[k])||0;
+    acumulado += Number(e.ventasTotales)||0; hotel += val('ho-venta');
+    if(val('ho-meta')) meta = val('ho-meta');
+    const totalGuest = val('oc-incl') - val('oc-noshow') + val('oc-pay');
+    const total = totalGuest + val('oc-locales');
+    return { fecha:f, dia:f.slice(8)+'-'+mes.slice(5), venta:Number(e.ventasTotales)||0, acumulado,
+      proyeccion: acumulado/(i+1)*totalDias, hotel:val('ho-venta'), pctHotel: val('ho-venta') ? (Number(e.ventasTotales)||0)/val('ho-venta')*100 : null,
+      gih:val('oc-gih'), incl:val('oc-incl'), noshow:val('oc-noshow'), pay:val('oc-pay'), totalGuest,
+      pct: val('oc-gih') ? total/val('oc-gih')*100 : null, locales:val('oc-locales'), total };
+  });
+  const ultimo = filas[filas.length-1];
+  const faltan = [];
+  for(let d=1; d<=(ultimo?Number(ultimo.fecha.slice(8)):0); d++){ const k = mes+'-'+String(d).padStart(2,'0'); if(!entries[k]) faltan.push(d); }
+  const proyeccion = ultimo ? ultimo.proyeccion : 0;
+  return { mes, filas, totalDias, acumulado, hotel, meta, proyeccion, pctMeta: meta ? proyeccion/meta*100 : null, faltan, cerrado: filas.length===totalDias };
+}
 function renderCortes(){
   poblarMesSelect();
   const mes = $('#mesSelect').value || mesesDisponibles()[0];
-  const fechas = Object.keys(db.entries).filter(f=>f.startsWith(mes)).sort();
-  const totalDias = diasEnMes(mes);
-
-  let acumulado = 0;
-  let rowsVentas = '<table class="hist"><thead><tr><th>Día</th><th>Venta</th><th>Acumulado</th><th>Proyección</th></tr></thead><tbody>';
-  fechas.forEach((f,i)=>{
-    const e = db.entries[f];
-    acumulado += e.ventasTotales;
-    const proyeccion = (acumulado / (i+1)) * totalDias;
-    rowsVentas += `<tr><td>${f.slice(8)}-${mes.slice(5)}</td><td class="num">$${e.ventasTotales.toFixed(2)}</td><td class="num">$${acumulado.toFixed(2)}</td><td class="num">$${proyeccion.toFixed(2)}</td></tr>`;
-  });
-  rowsVentas += '</tbody></table>';
-  $('#corteVentasWrap').innerHTML = fechas.length ? rowsVentas : '<div class="empty">Sin bitácoras capturadas este mes.</div>';
-
-  let rowsOcup = '<table class="hist"><thead><tr><th>Día</th><th>Guest in House</th><th>Incl.</th><th>No Show</th><th>Pay</th><th>Total Guest</th><th>%</th><th>Locales</th><th>Total</th></tr></thead><tbody>';
-  fechas.forEach(f=>{
-    const e = db.entries[f]; const n = e.num;
-    const totalGuest = n['oc-incl'] - n['oc-noshow'] + n['oc-pay'];
-    const total = totalGuest + n['oc-locales'];
-    const pct = n['oc-gih'] ? (total / n['oc-gih'] * 100) : 0;
-    rowsOcup += `<tr><td>${f.slice(8)}-${mes.slice(5)}</td><td class="num">${n['oc-gih']}</td><td class="num">${n['oc-incl']}</td><td class="num">${n['oc-noshow']}</td><td class="num">${n['oc-pay']}</td><td class="num">${totalGuest}</td><td class="num">${pct.toFixed(0)}%</td><td class="num">${n['oc-locales']}</td><td class="num">${total}</td></tr>`;
-  });
-  rowsOcup += '</tbody></table>';
-  $('#corteOcupacionWrap').innerHTML = fechas.length ? rowsOcup : '<div class="empty">Sin bitácoras capturadas este mes.</div>';
+  const c = calcularCorte(db.entries, mes);
+  if(!c.filas.length){
+    $('#corteResumenWrap').textContent = '';
+    $('#corteVentasWrap').innerHTML = $('#corteOcupacionWrap').innerHTML = '<div class="empty">Sin bitácoras capturadas este mes.</div>';
+    return;
+  }
+  $('#corteResumenWrap').textContent = (c.cerrado ? 'Mes cerrado: ' : 'Acumulado: ') + dinero(c.acumulado)
+    + (c.cerrado ? '' : ' · Proyección: ' + dinero(c.proyeccion))
+    + (c.meta ? ' · Meta: ' + dinero(c.meta) + ' (' + c.pctMeta.toFixed(1) + '%)' : ' · Meta sin capturar')
+    + (c.faltan.length ? ' · Faltan días: ' + c.faltan.join(', ') + ' (la proyección puede no ser exacta)' : '');
+  $('#corteVentasWrap').innerHTML = '<table class="hist"><thead><tr><th>Día</th><th>Venta F&amp;B</th><th>Acumulado</th><th>Proyección</th><th>Venta hotel</th><th>%</th></tr></thead><tbody>'
+    + c.filas.map(r=>`<tr><td>${r.dia}</td><td class="num">${dinero(r.venta)}</td><td class="num">${dinero(r.acumulado)}</td><td class="num">${dinero(r.proyeccion)}</td><td class="num">${dinero(r.hotel)}</td><td class="num">${r.pctHotel===null?'—':r.pctHotel.toFixed(2)+'%'}</td></tr>`).join('')
+    + `<tr><td><b>Total</b></td><td class="num"><b>${dinero(c.acumulado)}</b></td><td></td><td></td><td class="num"><b>${dinero(c.hotel)}</b></td><td class="num"><b>${c.hotel?(c.acumulado/c.hotel*100).toFixed(2)+'%':'—'}</b></td></tr></tbody></table>`;
+  $('#corteOcupacionWrap').innerHTML = '<table class="hist"><thead><tr><th>Día</th><th>Guest in House</th><th>Incl.</th><th>No Show</th><th>Pay</th><th>Total Guest</th><th>%</th><th>Locales</th><th>Total</th></tr></thead><tbody>'
+    + c.filas.map(r=>`<tr><td>${r.dia}</td><td class="num">${r.gih}</td><td class="num">${r.incl}</td><td class="num">${r.noshow}</td><td class="num">${r.pay}</td><td class="num">${r.totalGuest}</td><td class="num">${r.pct===null?'—':r.pct.toFixed(0)+'%'}</td><td class="num">${r.locales}</td><td class="num">${r.total}</td></tr>`).join('')
+    + '</tbody></table>';
 }
+function buildCortePdf(c){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const navy=[43,74,94], ink=[40,40,40];
+  let y;
+  function tabla(titulo, cols, xs, filas){
+    doc.addPage(); y = 40;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...navy);
+    doc.text(titulo + ' · ' + c.mes, 40, y); y += 18;
+    doc.setFontSize(8); doc.setFillColor(...navy); doc.rect(40, y-10, 515, 15, 'F'); doc.setTextColor(255,255,255);
+    cols.forEach((t,i)=> doc.text(t, xs[i], y, {align:'right'})); y += 15;
+    doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+    filas.forEach(f=>{ f.forEach((t,i)=> doc.text(String(t), xs[i], y, {align:'right'})); y += 15; });
+  }
+  tabla('Ventas y proyección diaria',['Día','Venta F&B','Acumulado','Proyección','Venta hotel','%'],[75,170,265,360,460,550],
+    c.filas.map(r=>[r.dia,dinero(r.venta),dinero(r.acumulado),dinero(r.proyeccion),dinero(r.hotel),r.pctHotel===null?'—':r.pctHotel.toFixed(2)+'%'])
+      .concat([['Total',dinero(c.acumulado),'','',dinero(c.hotel),c.hotel?(c.acumulado/c.hotel*100).toFixed(2)+'%':'—']]));
+  if(c.meta){ doc.setFontSize(9); doc.text('Meta: '+dinero(c.meta)+' · Avance proyectado: '+c.pctMeta.toFixed(1)+'%', 40, y+8); }
+  tabla('Comparativo desayunos / ocupación',['Día','Guest in House','Incl.','No Show','Pay','Total Guest','%','Locales','Total'],[75,150,200,255,305,370,425,485,550],
+    c.filas.map(r=>[r.dia,r.gih,r.incl,r.noshow,r.pay,r.totalGuest,r.pct===null?'—':r.pct.toFixed(0)+'%',r.locales,r.total]));
+  doc.deletePage(1);
+  return doc;
+}
+function corteActual(){ return calcularCorte(db.entries, $('#mesSelect').value || mesesDisponibles()[0]); }
+$('#btnCortePdf').onclick = ()=>{ const c = corteActual(); if(c.filas.length) buildCortePdf(c).save('Corte_NOOK_'+c.mes+'.pdf'); };
+$('#btnCorteShare').onclick = async ()=>{
+  const c = corteActual(); if(!c.filas.length) return;
+  const doc = buildCortePdf(c), nombre = 'Corte_NOOK_'+c.mes+'.pdf';
+  const file = new File([doc.output('blob')], nombre, { type:'application/pdf' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file], title:'Corte NOOK '+c.mes, text:'Corte diario NOOK — '+c.mes }); }catch(err){ /* usuario canceló */ }
+  } else { alert('Este navegador no soporta compartir archivos directo. Se descargará el PDF — adjúntalo manualmente en WhatsApp.'); doc.save(nombre); }
+};
 $('#mesSelect').addEventListener('change', renderCortes);
 
 /* ---------- Tabs ---------- */
