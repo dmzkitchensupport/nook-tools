@@ -27,7 +27,7 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
 ## Resultados (`resultados/`)
 
 Estado de resultados de A&B, ventas del punto de venta y consumos de almacén, por mes.
-Solo rol `gerencia`. **Es la única herramienta con información financiera, y por eso
+Solo la lista cerrada de `resultados_acceso` (hoy: Mario, Eduardo y Rosy; Mario la administra desde la propia página), además de cuenta aprobada. **Es la única herramienta con información financiera, y por eso
 no trae ningún dato en el repo**: la página lee todo de Supabase con `resultados_get()`
 (tabla `resultados_fb`, sin acceso directo para `anon`/`authenticated`). Mario actualiza
 el cierre desde la propia página, sección "Actualizar los datos", subiendo
