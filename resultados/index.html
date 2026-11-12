@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>NOOK · Resultados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../assets/auth.js?v=2"></script>
+<style>
+:root{
+  --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
+  --cream:#faf7ee; --paper:#fffdf8; --ink:#2a2723; --muted:#7d766a; --border:#e3ddd0; --rule:#cfc7b6;
+  --ok:#3f7a4f; --warn:#a13a3a; --otros:#a9a294;
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:'Poppins',-apple-system,"Helvetica Neue",Arial,sans-serif;margin:0;background:var(--cream);color:var(--ink);
+  font-size:14px;line-height:1.5;padding-bottom:80px;font-variant-numeric:tabular-nums;}
+header.app{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--cream);padding:13px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;}
+header.app .id{display:flex;align-items:center;gap:14px;}
+header.app img{height:24px;display:block;}
+header.app .name{font-size:14px;font-weight:600;border-left:1px solid rgba(250,247,238,.3);padding-left:14px;}
+a.back{color:var(--tan-line);text-decoration:none;font-size:12.5px;font-weight:600;}
+a.back:hover,a.back:focus-visible{color:#fff;}
+main{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+/* Meses: la navegacion es el propio resultado de cada mes */
+.meses{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);margin:0 0 34px;}
+.meses button{font-family:inherit;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;
+  padding:22px 4px 16px;text-align:left;cursor:pointer;color:var(--muted);}
+.meses button:hover{color:var(--ink);}
+.meses button:focus-visible{outline:2px solid var(--navy);outline-offset:-2px;}
+.meses button.on{border-bottom-color:var(--navy);color:var(--ink);}
+.meses .m{display:block;font-size:13px;font-weight:500;}
+.meses .r{display:block;font-size:19px;font-weight:600;margin-top:2px;letter-spacing:-.01em;}
+.meses .r.neg{color:var(--warn);} .meses .r.pos{color:var(--ok);} .meses .r.cero{color:var(--muted);}
+.meses .n{display:block;font-size:11.5px;margin-top:1px;}
+
+/* Titular del mes */
+.titular{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:start;margin-bottom:44px;}
+.titular h1{font-size:34px;line-height:1.18;font-weight:600;letter-spacing:-.02em;margin:0 0 14px;color:var(--navy);text-wrap:balance;}
+.titular h1.neg{color:var(--warn);}
+.titular p{margin:0;color:#4d483f;font-size:15px;max-width:44ch;}
+.cien h2{font-size:14px;font-weight:600;margin:6px 0 14px;}
+.barra{position:relative;height:46px;display:flex;border-radius:3px;overflow:hidden;background:#ece6d8;}
+.barra span{display:block;height:100%;}
+.barra-wrap{position:relative;padding-top:20px;}
+.barra-wrap .marca{position:absolute;top:0;bottom:-6px;border-left:2px solid var(--ink);}
+.barra-wrap .marca b{position:absolute;top:-2px;left:6px;font-size:11px;font-weight:600;white-space:nowrap;}
+.barra-wrap .marca.izq b{left:auto;right:6px;}
+.leyenda{list-style:none;margin:16px 0 0;padding:0;}
+.leyenda li{display:grid;grid-template-columns:14px 1fr auto auto;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.leyenda li:last-child{border-bottom:none;font-weight:600;}
+.leyenda i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+.leyenda .v{color:var(--muted);min-width:92px;text-align:right;}
+.leyenda .p{min-width:64px;text-align:right;font-weight:600;}
+
+section{margin-bottom:44px;}
+section > h2{font-size:18px;font-weight:600;margin:0 0 4px;color:var(--navy);}
+section > p.sub{margin:0 0 16px;color:var(--muted);font-size:12.5px;}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+.dos > div > h3,.bloque > h3{font-size:14px;font-weight:600;margin:0 0 12px;}
+.hoja{background:var(--paper);border:1px solid var(--border);border-radius:6px;}
+
+ul.lectura{list-style:none;margin:0;padding:0;}
+ul.lectura li{position:relative;padding:11px 0 11px 22px;border-bottom:1px solid var(--border);font-size:13.5px;}
+ul.lectura li:last-child{border-bottom:none;}
+ul.lectura li::before{content:"";position:absolute;left:2px;top:18px;width:8px;height:8px;border-radius:50%;background:var(--otros);}
+ul.lectura li.bad::before{background:var(--warn);} ul.lectura li.ok::before{background:var(--ok);} ul.lectura li.warn::before{background:var(--tan-line);}
+
+.t-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11.5px;font-weight:600;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);white-space:nowrap;}
+td{padding:8px 14px;border-bottom:1px solid var(--border);}
+tbody tr:last-child td{border-bottom:none;}
+th.num,td.num{text-align:right;white-space:nowrap;}
+td.pct{color:var(--muted);font-size:12px;}
+tr.grupo td{font-weight:600;border-top:1px solid var(--rule);background:#f6f1e4;}
+tr.sub td:first-child{padding-left:30px;color:#4d483f;}
+#plHead th,#plBody td{padding-left:9px;padding-right:9px;}
+#plBody td{font-size:12.5px;}
+#plBody tr.sub td:first-child{padding-left:24px;}
+@media(min-width:861px){#plBody td:first-child{white-space:nowrap;}}
+td.sel,th.sel{background:rgba(43,74,94,.07);}
+tr.grupo td.sel{background:rgba(43,74,94,.13);}
+td.neg{color:var(--warn);}
+td.vacio{color:var(--muted);padding:18px 14px;}
+
+.filas{display:grid;grid-template-columns:max-content 1fr max-content;gap:9px 12px;align-items:center;font-size:13px;}
+.filas .b{height:16px;background:#ece6d8;border-radius:2px;overflow:hidden;}
+.filas .b span{display:block;height:100%;background:var(--navy);}
+.filas.tan .b span{background:var(--tan-line);}
+.filas .v{text-align:right;font-weight:600;}
+.filas .v small{font-weight:400;color:var(--muted);margin-left:6px;font-size:11.5px;}
+svg text{font-family:'Poppins',sans-serif;}
+.nota{color:var(--muted);font-size:12.5px;margin:10px 0 0;}
+.sin{padding:22px 0;color:var(--muted);font-size:13.5px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+.carga{border-top:1px solid var(--rule);padding-top:22px;display:none;}
+.carga h2{font-size:14px;font-weight:600;margin:0 0 6px;color:var(--ink);}
+.carga p{margin:0 0 12px;color:var(--muted);font-size:12.5px;max-width:70ch;}
+.carga button,.carga label.btn{font-family:inherit;font-size:13px;font-weight:600;background:var(--navy);color:var(--cream);border:none;border-radius:6px;padding:9px 16px;cursor:pointer;display:inline-block;}
+.carga button:disabled{opacity:.5;cursor:default;}
+.carga input[type=file]{position:absolute;opacity:0;width:1px;height:1px;}
+.carga label.btn:focus-within{outline:2px solid var(--tan-line);outline-offset:2px;}
+.carga .estado{font-size:12.5px;margin-left:12px;}
+.pie{margin-top:40px;color:var(--muted);font-size:11.5px;}
+#vacio{display:none;padding:70px 0;max-width:52ch;}
+#vacio h1{font-size:26px;font-weight:600;color:var(--navy);margin:0 0 10px;}
+
+@media(max-width:860px){
+  .titular,.dos{grid-template-columns:1fr;gap:28px;}
+  .titular h1{font-size:27px;}
+  main{padding:0 16px;} header.app{padding:12px 16px;}
+  .meses .r{font-size:15px;} .meses .n{display:none;}
+  .filas{grid-template-columns:1fr max-content;} .filas .b{grid-column:1 / -1;order:3;margin-top:-4px;}
+}
+@media print{header.app,.carga,#nook-badge{display:none !important;} body{background:#fff;} section{break-inside:avoid;}}
+</style>
+</head><body>
+<header class="app">
+  <div class="id"><img src="../assets/nook-logo-cream.png" alt="NOOK"><span class="name">Resultados</span></div>
+  <a class="back" href="../">Volver a herramientas</a>
+</header>
+<main>
+  <div id="vacio"><h1>Todavía no hay resultados cargados</h1><p id="vacioTxt">Cuando se cargue el cierre del mes, aquí aparecen el estado de resultados, las ventas y los consumos.</p></div>
+  <div id="contenido" hidden>
+    <nav class="meses" id="meses" aria-label="Mes"></nav>
+
+    <div class="titular">
+      <div><h1 id="tit"></h1><p id="titSub"></p></div>
+      <div class="cien">
+        <h2>A dónde se fue cada $100 de ingreso</h2>
+        <div class="barra-wrap"><div class="barra" id="barra"></div><div class="marca" id="marca"><b>$100 de ingreso</b></div></div>
+        <ul class="leyenda" id="leyenda"></ul>
+      </div>
+    </div>
+
+    <section class="dos">
+      <div><h3>Lectura del mes</h3><ul class="lectura" id="lectura"></ul></div>
+      <div><h3>Ingreso contra gasto total, por mes</h3><div id="tendencia"></div></div>
+    </section>
+
+    <section>
+      <h2>Estado de resultados</h2>
+      <p class="sub">Balance de alimentos y bebidas del hotel, en dólares. Los costos y gastos van entre paréntesis.</p>
+      <div class="hoja t-scroll"><table><thead id="plHead"></thead><tbody id="plBody"></tbody></table></div>
+    </section>
+
+    <section>
+      <h2>Ventas</h2>
+      <p class="sub" id="ventasSub"></p>
+      <div id="ventasCuerpo">
+        <div class="dos" style="margin-bottom:34px;">
+          <div><h3>Por centro de venta</h3><div class="filas" id="centros"></div></div>
+          <div><h3>Por categoría</h3><div class="filas" id="cats"></div></div>
+        </div>
+        <div class="bloque" style="margin-bottom:34px;"><h3>Por hora del día</h3><div id="horas"></div></div>
+        <div class="bloque" style="margin-bottom:34px;"><h3>Los 15 artículos que más vendieron</h3>
+          <div class="hoja t-scroll"><table><thead><tr><th>Artículo</th><th>Familia</th><th class="num">Cantidad</th><th class="num">Venta neta</th><th class="num">% de la venta</th></tr></thead><tbody id="items"></tbody></table></div></div>
+        <div class="dos">
+          <div><h3>Cómo pagaron</h3><div class="hoja t-scroll"><table><thead><tr><th>Medio</th><th class="num">Operaciones</th><th class="num">Total</th><th class="num">%</th></tr></thead><tbody id="pagos"></tbody></table></div></div>
+          <div><h3>Descuentos, anulaciones y servicio</h3><div class="hoja t-scroll"><table><thead><tr><th>Concepto</th><th class="num">Veces</th><th class="num">Importe</th><th class="num">% de la venta</th></tr></thead><tbody id="control"></tbody></table></div></div>
+        </div>
+      </div>
+      <div class="sin" id="ventasSin" hidden></div>
+    </section>
+
+    <section>
+      <h2>Consumos de almacén</h2>
+      <p class="sub" id="consSub"></p>
+      <div class="dos">
+        <div><h3>Por centro de consumo</h3><div class="filas tan" id="consCentros"></div></div>
+        <div><h3>Los 15 insumos de mayor costo</h3><div class="hoja t-scroll"><table><thead><tr><th>Insumo</th><th>Centro</th><th class="num">Cantidad</th><th class="num">Costo</th></tr></thead><tbody id="consTop"></tbody></table></div></div>
+      </div>
+    </section>
+
+    <section id="avisosSec">
+      <h2>Antes de usar estas cifras</h2>
+      <p class="sub">Pendientes y supuestos de los archivos fuente de este mes.</p>
+      <ul class="lectura" id="avisos"></ul>
+    </section>
+  </div>
+
+  <div class="carga" id="carga">
+    <h2>Actualizar los datos</h2>
+    <p>Solo tú ves esta sección. Sube el archivo <b>resultados.data.json</b> del cierre; reemplaza lo que hay y queda visible para gerencia. Los datos se guardan en la base con acceso por cuenta, no en esta página.</p>
+    <label class="btn">Elegir archivo<input type="file" id="archivo" accept=".json,application/json"></label>
+    <span class="estado" id="cargaEstado"></span>
+  </div>
+  <p class="pie" id="pie"></p>
+</main>
+
+<script>
+/* ============ NOOK · Resultados ============
+   Los datos NO viven en este archivo ni en el repo (es publico): se leen de Supabase
+   con resultados_get(), que exige sesion con rol gerencia aprobado. */
+var R = null, MES = null, PERFIL = null;
+var META_COSTO = 25;
+var CENTROS = {'BAR ALCOHOLIC BEVERAGES':'Bar, alcohol','BAR FOOD':'Bar, alimentos','BAR NON-ALCOHOLIC BEVERAGES':'Bar, sin alcohol','BAR OTHER':'Bar, otros',
+  'KITCHEN ALCOHOLIC BEVERAGES':'Cocina, alcohol','KITCHEN FOOD':'Cocina, alimentos','KITCHEN NON-ALCOHOLIC BEVERAGES':'Cocina, sin alcohol','KITCHEN OTHER':'Cocina, otros'};
+var CATS = {'Food':'Alimentos','Liquor':'Licores','Non-Alcoholic Beverages':'Sin alcohol','Retail':'Retail','Beer':'Cerveza','Wine':'Vino','Miscellaneous':'Varios'};
+var COL = {costo:'#b8935a', mo:'#5b4636', otros:'#a9a294', res:'#3f7a4f', navy:'#2b4a5e', warn:'#a13a3a'};
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function n2(v){ return Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function n0(v){ return Math.round(Math.abs(v)).toLocaleString('en-US'); }
+function usd(v){ return (v < 0 ? '−$' : '$') + n2(v); }
+function usd0(v){ return (v < 0 ? '−$' : '$') + n0(v); }
+function pct(a, b){ return b ? a / b * 100 : 0; }
+function p1(v){ return v.toFixed(1) + '%'; }
+function cant(v){ return (Math.round(v * 100) / 100).toLocaleString('en-US',{maximumFractionDigits:2}); }
+
+function setMes(m){ MES = m; pintar(); }
+
+function filasBarras(el, items, total){
+  var max = Math.max.apply(null, items.map(function(i){ return i.v; }).concat([1]));
+  el.innerHTML = items.map(function(i){
+    return '<div>' + esc(i.l) + '</div><div class="b"><span style="width:' + Math.max(0.6, i.v / max * 100) + '%"></span></div><div class="v">' + usd0(i.v) + '<small>' + p1(pct(i.v, total)) + '</small></div>';
+  }).join('');
+}
+
+function columnas(labels, series, o){
+  o = o || {};
+  var W = 560, H = o.h || 220, pl = 44, pb = o.pb || 26, pt = 10, max = 0;
+  series.forEach(function(s){ s.v.forEach(function(x){ if (x > max) max = x; }); });
+  var paso = Math.pow(10, Math.floor(Math.log10(max || 1))); if (max / paso < 2.5) paso /= 2; if (max / paso > 6) paso *= 2;
+  var top = Math.ceil(max / paso) * paso, ph = H - pt - pb, pw = W - pl - 4, gw = pw / labels.length;
+  var bw = Math.min(o.bw || 30, (gw - 8) / series.length - 2), y = function(v){ return pt + (top - v) / top * ph; };
+  var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + esc(o.aria || '') + '">';
+  for (var t = 0; t <= top + 1e-9; t += paso) {
+    h += '<line x1="' + pl + '" x2="' + W + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t ? '#e3ddd0' : '#cfc7b6') + '"/>';
+    h += '<text x="' + (pl - 7) + '" y="' + (y(t) + 3.5) + '" font-size="10.5" text-anchor="end" fill="#7d766a">' + (t >= 1000 ? (t / 1000) + ' mil' : t) + '</text>';
+  }
+  labels.forEach(function(l, i){
+    var x0 = pl + i * gw + (gw - (bw + 2) * series.length + 2) / 2;
+    series.forEach(function(s, j){
+      h += '<rect x="' + (x0 + j * (bw + 2)) + '" y="' + y(s.v[i]) + '" width="' + bw + '" height="' + Math.max(0.5, y(0) - y(s.v[i])) + '" fill="' + s.c + '"' + (o.sel != null && o.sel !== i ? ' opacity=".45"' : '') + '><title>' + esc(s.n + ', ' + l + ': ' + usd(s.v[i])) + '</title></rect>';
+    });
+    h += '<text x="' + (pl + i * gw + gw / 2) + '" y="' + (H - pb + 15) + '" font-size="11" text-anchor="middle" fill="#2a2723"' + (o.sel === i ? ' font-weight="600"' : '') + '>' + esc(l) + '</text>';
+    if (o.bajo) h += '<text x="' + (pl + i * gw + gw / 2) + '" y="' + (H - pb + 30) + '" font-size="10.5" text-anchor="middle" fill="' + o.bajo[i].c + '">' + esc(o.bajo[i].t) + '</text>';
+  });
+  h += '</svg>';
+  if (series.length > 1) h += '<p class="nota">' + series.map(function(s){ return '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + s.c + ';margin:0 6px 0 0;vertical-align:-1px;"></span>' + esc(s.n); }).join('<span style="display:inline-block;width:18px;"></span>') + '</p>';
+  return h;
+}
+
+function pintar(){
+  var M = R.meses, b = R.balance[MES], s = R.symphony[MES], c = R.consumos[MES], nom = R.nombres[MES];
+  var ip = M.indexOf(MES) - 1, bp = ip >= 0 ? R.balance[M[ip]] : null;
+  var mo = b.personal + b.contractLabor, otros = b.mantenimiento + b.generales;
+  var cP = pct(b.costoDirecto, b.ingreso), moP = pct(mo, b.ingreso), oP = pct(otros, b.ingreso), tot = cP + moP + oP;
+  var prelim = Math.abs(b.resultado) <= 0.5;
+
+  // Meses
+  $('meses').innerHTML = M.map(function(m){
+    var x = R.balance[m], pre = Math.abs(x.resultado) <= 0.5;
+    return '<button' + (m === MES ? ' class="on" aria-current="true"' : '') + ' onclick="setMes(\'' + m + '\')"><span class="m">' + esc(R.nombres[m]) + '</span>' +
+      '<span class="r ' + (pre ? 'cero' : (x.resultado < 0 ? 'neg' : 'pos')) + '">' + usd0(x.resultado) + '</span>' +
+      '<span class="n">' + (pre ? 'cierre preliminar' : 'resultado operativo') + '</span></button>'; }).join('');
+
+  // Titular
+  var t = $('tit'); t.className = (!prelim && b.resultado < 0) ? 'neg' : '';
+  t.textContent = prelim ? nom + ' cierra en cero: las cifras son preliminares.'
+    : (b.resultado < 0 ? nom + ' cerró con una pérdida de ' + usd0(-b.resultado) + '.' : nom + ' dejó ' + usd0(b.resultado) + ' de resultado operativo.');
+  $('titSub').textContent = 'Entraron ' + usd0(b.ingreso) + ' y salieron ' + usd0(b.costoDirecto + b.gastoOperativo) + ' entre costo directo y gasto operativo.' +
+    (bp ? ' El ingreso ' + (b.ingreso >= bp.ingreso ? 'subió ' : 'bajó ') + p1(Math.abs(pct(b.ingreso - bp.ingreso, bp.ingreso))) + ' contra ' + R.nombres[M[ip]].toLowerCase() + '.' : '');
+
+  // Cada $100
+  var esc100 = Math.max(100, tot), seg = [['Costo directo', cP, b.costoDirecto, COL.costo], ['Mano de obra', moP, mo, COL.mo], ['Mantenimiento y gastos generales', oP, otros, COL.otros]];
+  $('barra').innerHTML = seg.map(function(x){ return '<span style="width:' + (x[1] / esc100 * 100) + '%;background:' + x[3] + '" title="' + esc(x[0] + ': $' + x[1].toFixed(2)) + '"></span>'; }).join('') +
+    (tot < 100 ? '<span style="width:' + ((100 - tot) / esc100 * 100) + '%;background:' + COL.res + '"></span>' : '');
+  var mk = $('marca'); mk.style.left = 'calc(' + (100 / esc100 * 100) + '% - 1px)'; mk.className = 'marca' + (100 / esc100 > 0.7 ? ' izq' : '');
+  $('leyenda').innerHTML = seg.map(function(x){ return '<li><i style="background:' + x[3] + '"></i><span>' + x[0] + '</span><span class="v">' + usd0(x[2]) + '</span><span class="p">$' + x[1].toFixed(2) + '</span></li>'; }).join('') +
+    '<li><i style="background:' + (tot > 100.01 ? COL.warn : COL.res) + '"></i><span>' + (tot > 100.01 ? 'Gastado de más por cada $100' : 'Queda por cada $100') + '</span><span class="v">' + usd0(b.resultado) + '</span><span class="p">$' + Math.abs(100 - tot).toFixed(2) + '</span></li>';
+
+  // Lectura
+  var L = [], A = [];
+  L.push({t: moP <= 35 ? 'ok' : (moP <= 45 ? 'warn' : 'bad'), x:'La mano de obra pesa <b>' + p1(moP) + '</b> del ingreso: ' + usd0(b.personal) + ' de nómina y ' + usd0(b.contractLabor) + ' de contract labor.' + (moP > 100 ? ' Sola, ya es mayor que todo lo que entró.' : '')});
+  L.push({t: cP <= META_COSTO ? 'ok' : (cP <= META_COSTO + 3 ? 'warn' : 'bad'), x:'El costo directo está en <b>' + p1(cP) + '</b>, contra un objetivo de ' + META_COSTO + '%. Alimentos ' + p1(pct(b.cFood, b.vFood + b.vMarket)) + ' sobre su venta, bebidas alcohólicas ' + p1(pct(b.cAlc, b.vAlc)) + ' y sin alcohol ' + p1(pct(b.cNoAlc, b.vNoAlc)) + '.'});
+  if (bp) { var dmo = mo - (bp.personal + bp.contractLabor);
+    L.push({t: (b.ingreso < bp.ingreso && dmo > 0) ? 'bad' : '', x:'Contra ' + R.nombres[M[ip]].toLowerCase() + ', el ingreso ' + (b.ingreso >= bp.ingreso ? 'creció ' : 'cayó ') + usd0(Math.abs(b.ingreso - bp.ingreso)) + ' y la mano de obra ' + (dmo >= 0 ? 'subió ' : 'bajó ') + usd0(Math.abs(dmo)) + '.'}); }
+  if (s) { var des = 0; s.items.forEach(function(i){ if (i.fam === 'FULL BEAKFAST') des += i.neta; });
+    L.push({t: pct(des, s.ventaNeta) <= 25 ? 'ok' : 'warn', x:'Los desayunos son <b>' + p1(pct(des, s.ventaNeta)) + '</b> de la venta del mes (' + usd0(des) + ').'});
+    L.push({t:'', x:'Ticket promedio de ' + usd(s.ventaNeta / s.tickets) + ' en ' + s.tickets.toLocaleString('en-US') + ' tickets.'}); }
+  $('lectura').innerHTML = L.map(function(x){ return '<li class="' + x.t + '">' + x.x + '</li>'; }).join('');
+
+  if (prelim) A.push('El gasto operativo de ' + nom.toLowerCase() + ' es igual a la utilidad bruta, así que el resultado da ' + usd(b.resultado) + '. Hay que confirmar con contabilidad si es el cierre definitivo.');
+  if (b._alt) A.push('Hay dos versiones del balance de ' + nom.toLowerCase() + '. Aquí se usa la más reciente (' + usd(b.resultado) + '); la anterior daba ' + usd(b._alt.resultado) + '. La diferencia está en gastos generales: ' + usd(b._alt.generales) + ' contra ' + usd(b.generales) + '. Es un supuesto por confirmar.');
+  if (!s) A.push('No se recibió el reporte de ventas del punto de venta de ' + nom.toLowerCase() + '.');
+  if (s) { A.push('El punto de venta reporta ' + usd(s.ventaNeta) + ' de venta neta y el balance ' + usd(b.ingreso) + ' de ingreso: ' + usd(s.ventaNeta - b.ingreso) + ' de diferencia. Se muestran las dos cifras sin ajustar.');
+    if (s.clientes > s.tickets * 3) A.push('El punto de venta registra ' + s.clientes.toLocaleString('en-US') + ' comensales en ' + s.tickets.toLocaleString('en-US') + ' tickets. Ese conteo no es confiable, por eso aquí se usa ticket promedio y no gasto por comensal.'); }
+  if (c.sinDetalle) A.push('El archivo de consumos de ' + nom.toLowerCase() + ' que se recibió es una copia del de septiembre. Solo hay total por centro de consumo, sin detalle por insumo.');
+  A.push('Almacén registra ' + usd(c.total) + ' de consumos y el balance ' + usd(b.cFood + b.cAlc + b.cNoAlc) + ': ' + usd(c.total - (b.cFood + b.cAlc + b.cNoAlc)) + ' de diferencia.');
+  $('avisos').innerHTML = A.map(function(x){ return '<li class="warn">' + x + '</li>'; }).join('');
+
+  // Tendencia
+  $('tendencia').innerHTML = columnas(M.map(function(m){ return R.nombres[m]; }), [
+    {n:'Ingreso', c:COL.navy, v:M.map(function(m){ return R.balance[m].ingreso; })},
+    {n:'Costo directo más gasto operativo', c:COL.costo, v:M.map(function(m){ return R.balance[m].costoDirecto + R.balance[m].gastoOperativo; })}
+  ], {sel:M.indexOf(MES), pb:42, h:240, aria:'Ingreso contra gasto total por mes',
+      bajo:M.map(function(m){ var r = R.balance[m].resultado; return {t:usd0(r), c: Math.abs(r) <= 0.5 ? '#7d766a' : (r < 0 ? COL.warn : COL.res)}; })});
+
+  // Estado de resultados
+  var F = [['Ingreso','ingreso',1,0],['Alimentos','vFood',0,0],['Bebidas alcohólicas','vAlc',0,0],['Bebidas sin alcohol','vNoAlc',0,0],['Market','vMarket',0,0],
+    ['Costo directo','costoDirecto',1,1],['Consumo de alimentos','cFood',0,1],['Consumo de bebidas alcohólicas','cAlc',0,1],['Consumo de bebidas sin alcohol','cNoAlc',0,1],['Auditoría de calidad','cAudit',0,1],
+    ['Utilidad bruta','utilidadBruta',1,0],['Personal: nómina y prestaciones','personal',0,1],['Contract labor','contractLabor',0,1],['Mantenimiento','mantenimiento',0,1],['Gastos generales','generales',0,1],
+    ['Gasto operativo','gastoOperativo',1,1],['Resultado operativo','resultado',1,0]];
+  $('plHead').innerHTML = '<tr><th></th>' + M.map(function(m){ return '<th class="num' + (m === MES ? ' sel' : '') + '">' + esc(R.nombres[m]) + '</th><th class="num' + (m === MES ? ' sel' : '') + '">% ingreso</th>'; }).join('') + '<th class="num">Acumulado</th></tr>';
+  var val = function(v, par){ return par ? '(' + n2(v) + ')' : (v < 0 ? '−' + n2(v) : n2(v)); };
+  $('plBody').innerHTML = F.map(function(f){
+    var ac = 0, tds = M.map(function(m){ var x = R.balance[m], v = x[f[1]] || 0, sel = m === MES ? ' sel' : ''; ac += v;
+      return '<td class="num' + sel + (f[1] === 'resultado' && v < 0 ? ' neg' : '') + '">' + val(v, f[3]) + '</td><td class="num pct' + sel + '">' + p1(pct(v, x.ingreso)) + '</td>'; }).join('');
+    return '<tr class="' + (f[2] ? 'grupo' : 'sub') + '"><td>' + f[0] + '</td>' + tds + '<td class="num' + (f[1] === 'resultado' && ac < 0 ? ' neg' : '') + '">' + val(ac, f[3]) + '</td></tr>'; }).join('');
+
+  // Ventas
+  $('ventasCuerpo').hidden = !s; $('ventasSin').hidden = !!s;
+  if (s) {
+    $('ventasSub').textContent = 'Punto de venta Symphony, ' + s.periodo.replace(' - ', ' al ') + '. Venta neta de ' + usd(s.ventaNeta) + '.';
+    filasBarras($('centros'), s.centros.map(function(x){ return {l:x.n, v:x.venta}; }), s.ventaNeta);
+    filasBarras($('cats'), Object.keys(s.categorias).map(function(k){ return {l:CATS[k] || k, v:s.categorias[k].neta}; }).sort(function(a, z){ return z.v - a.v; }), s.ventaNeta);
+    var hs = s.horas.filter(function(x){ return x.h >= 6; });
+    $('horas').innerHTML = '<div style="max-width:760px;">' + columnas(hs.map(function(x){ return x.h + ' h'; }), [{n:'Venta neta', c:COL.navy, v:hs.map(function(x){ return x.venta; })}], {bw:22, h:200, aria:'Venta neta por hora'}) + '</div>';
+    $('items').innerHTML = s.items.filter(function(i){ return i.neta > 0; }).slice(0, 15).map(function(i){
+      return '<tr><td>' + esc(i.n) + '</td><td class="pct">' + esc(i.fam || CATS[i.cat] || '') + '</td><td class="num">' + cant(i.q) + '</td><td class="num">' + usd(i.neta) + '</td><td class="num pct">' + p1(pct(i.neta, s.ventaNeta)) + '</td></tr>'; }).join('');
+    var tp = 0; s.pagos.forEach(function(p){ tp += p.total; });
+    $('pagos').innerHTML = s.pagos.map(function(p){ return '<tr><td>' + esc(p.n) + '</td><td class="num">' + p.n_ops.toLocaleString('en-US') + '</td><td class="num">' + usd(p.total) + '</td><td class="num pct">' + p1(pct(p.total, tp)) + '</td></tr>'; }).join('');
+    $('control').innerHTML = [['Descuentos', null, s.descuentos],['Anulaciones', s.anulaciones.n, s.anulaciones.m],['Anulaciones de gerente', s.anulMgr.n, s.anulMgr.m],['Correcciones', s.correcciones.n, s.correcciones.m],
+      ['Cancelaciones', s.cancelaciones.n, s.cancelaciones.m],['Cargos por servicio', null, s.servicio],['Propinas', null, s.propinas]].map(function(x){
+      return '<tr><td>' + x[0] + '</td><td class="num">' + (x[1] == null ? '' : x[1]) + '</td><td class="num">' + usd(x[2]) + '</td><td class="num pct">' + p1(pct(Math.abs(x[2]), s.ventaNeta)) + '</td></tr>'; }).join('');
+  } else {
+    $('ventasSub').textContent = '';
+    $('ventasSin').textContent = 'Falta el reporte de ventas del punto de venta de ' + nom.toLowerCase() + '. Cuando se cargue, aquí aparecen la venta por centro, por categoría, por hora y por artículo.';
+  }
+
+  // Consumos
+  $('consSub').textContent = 'Salidas de almacén del mes: ' + usd(c.total) + (c.dias ? ' en ' + c.dias + ' días con movimiento.' : '.');
+  filasBarras($('consCentros'), Object.keys(c.centros).map(function(k){ return {l:CENTROS[k] || k, v:c.centros[k]}; }).sort(function(a, z){ return z.v - a.v; }), c.total);
+  $('consTop').innerHTML = c.top.length ? c.top.slice(0, 15).map(function(p){
+    return '<tr><td>' + esc(p.n) + '</td><td class="pct">' + esc(CENTROS[p.c] || p.c) + '</td><td class="num">' + cant(p.cant) + '</td><td class="num">' + usd(p.costo) + '</td></tr>'; }).join('')
+    : '<tr><td class="vacio" colspan="4">Sin detalle por insumo en ' + nom.toLowerCase() + '.</td></tr>';
+}
+
+function mostrar(payload, cuando){
+  R = payload; MES = R.meses[R.meses.length - 1];
+  $('vacio').style.display = 'none'; $('contenido').hidden = false;
+  $('pie').textContent = 'NOOK World Cuisine, VOCO Surfside Aruba. Datos actualizados el ' + new Date(cuando).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) + '. Un desarrollo de DMZ by LiTa Support.';
+  pintar();
+}
+
+async function cargar(){
+  var r = await NookAuth.client().rpc('resultados_get');
+  if (r.error) { $('vacio').style.display = 'block'; $('vacioTxt').textContent = 'No se pudieron leer los resultados: ' + r.error.message; return; }
+  if (!r.data || !r.data.payload) { $('vacio').style.display = 'block'; return; }
+  mostrar(r.data.payload, r.data.updated_at);
+}
+
+$('archivo').addEventListener('change', async function(ev){
+  var f = ev.target.files[0], est = $('cargaEstado'); if (!f) return;
+  est.style.color = ''; est.textContent = 'Leyendo ' + f.name + '…';
+  try {
+    var p = JSON.parse(await f.text());
+    if (!p || !Array.isArray(p.meses) || !p.balance || !p.consumos || !p.symphony) throw new Error('El archivo no tiene la estructura de resultados (meses, balance, symphony, consumos).');
+    p.meses.forEach(function(m){ if (!p.balance[m] || !p.consumos[m]) throw new Error('Falta balance o consumos de ' + m + '.'); });
+    est.textContent = 'Guardando…';
+    var r = await NookAuth.client().rpc('resultados_save', { p_payload: p });
+    if (r.error) throw new Error(r.error.message);
+    est.style.color = 'var(--ok)'; est.textContent = 'Datos actualizados: ' + p.meses.length + ' meses.';
+    mostrar(p, new Date().toISOString());
+  } catch (e) { est.style.color = 'var(--warn)'; est.textContent = 'No se cargó: ' + e.message; }
+  ev.target.value = '';
+});
+
+NookAuth.guard({ allow: ['gerencia'], home: '../' }).then(function(profile){
+  if (!profile) return;
+  PERFIL = profile;
+  if ((profile.email || '').toLowerCase() === 'mario@delamorazumaran.com') $('carga').style.display = 'block';
+  cargar();
+});
+</script>
+</body></html>

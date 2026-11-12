@@ -19,9 +19,21 @@ paleta de la marca (navy `#2b4a5e`, tostado `#9a7367`/`#b8935a`, crema `#faf9f6`
 - **`formatos/`** — primer formato real: **Display de Sabores — Breakfast/Buffet
   (B-04b)**, digitalizado a partir del PDF real de DMZ (ver sección propia abajo).
   Ya no es placeholder — marcado `activa` en `herramientas`.
+- **`resultados/`** — Resultados mensuales de A&B, solo gerencia (ver sección propia abajo).
 - **`herramienta/`** — loader genérico para herramientas subidas desde el panel de
   Configuración (ver abajo). No es una herramienta en sí, es la página que valida el
   rol y sirve el archivo subido en un iframe aislado.
+
+## Resultados (`resultados/`)
+
+Estado de resultados de A&B, ventas del punto de venta y consumos de almacén, por mes.
+Solo rol `gerencia`. **Es la única herramienta con información financiera, y por eso
+no trae ningún dato en el repo**: la página lee todo de Supabase con `resultados_get()`
+(tabla `resultados_fb`, sin acceso directo para `anon`/`authenticated`). Mario actualiza
+el cierre desde la propia página, sección "Actualizar los datos", subiendo
+`resultados.data.json` (`resultados_save`, solo su correo; la versión anterior queda en
+`resultados_fb_historial`). Ese archivo se genera fuera de este repo, a partir de los
+Excel del balance, Symphony y almacén — **nunca se commitea aquí**.
 
 ## Display de Sabores — Breakfast/Buffet (`formatos/`)
 
