@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/auth.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="parser.js?v=1"></script>
+<script src="parser.js?v=2"></script>
 <style>
 :root{
   --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
@@ -120,8 +120,26 @@ svg text{font-family:'Poppins',sans-serif;}
 .zona:focus-within{outline:2px solid var(--tan-line);outline-offset:2px;}
 .zona b{display:block;font-size:14px;color:var(--navy);}
 .zona span{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
-.anio{margin:12px 0 0;font-size:12.5px;color:var(--muted);}
-.anio select{font-family:inherit;font-size:13px;margin-left:6px;padding:4px 8px;border:1px solid var(--rule);border-radius:6px;background:#fff;}
+.mes-carga{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 18px;font-size:13px;}
+.mes-carga label{font-weight:600;margin-right:4px;}
+.mes-carga #cMesNota{color:var(--muted);font-size:12px;margin-left:6px;}
+ol.guia{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+ol.guia > li{background:var(--paper);border:1px solid var(--border);border-top:3px solid var(--rule);border-radius:6px;padding:14px 16px;}
+ol.guia > li.ok{border-top-color:var(--ok);} ol.guia > li.warn{border-top-color:var(--tan-line);} ol.guia > li.bad{border-top-color:var(--warn);}
+.g-cab{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.g-cab b{font-size:13.5px;flex:1;}
+.g-n{width:22px;height:22px;border-radius:50%;background:var(--navy);color:var(--cream);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.g-est{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap;}
+li.ok .g-est{color:var(--ok);} li.warn .g-est{color:#8a6a2e;} li.bad .g-est{color:var(--warn);}
+li.ok .g-n{background:var(--ok);}
+.g-cuerpo p{margin:0 0 6px;font-size:12.5px;color:#4d483f;max-width:none;}
+.g-cuerpo ul{margin:0 0 6px;padding-left:16px;font-size:12px;color:var(--muted);}
+.g-cuerpo ul li{margin:2px 0;}
+.g-cuerpo p.g-det{margin:8px 0 0;font-size:12px;font-weight:500;color:var(--ink);}
+.g-cuerpo p.g-det:empty{display:none;}
+#otros:empty{display:none;} #otros{max-width:720px;margin-top:10px;}
+@media(max-width:860px){ol.guia{grid-template-columns:1fr;}}
+.anio select,.mes-carga select{font-family:inherit;font-size:13px;margin-left:6px;padding:4px 8px;border:1px solid var(--rule);border-radius:6px;background:#fff;}
 #revision{margin-top:20px;max-width:720px;}
 #revision h3{font-size:14px;font-weight:600;margin:0 0 8px;}
 ul.encontrado{list-style:none;margin:0 0 6px;padding:0;}
@@ -218,18 +236,67 @@ ul.encontrado li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--bord
 
   <div class="carga" id="carga">
     <h2>Cargar el cierre del mes</h2>
-    <p>Solo tú ves esta sección. Arrastra aquí los Excel del mes, todos juntos: el balance del hotel, el reporte de ventas de Symphony y los consumos de almacén (detalle o resumen). La página reconoce cada archivo por su contenido, te muestra qué encontró y no guarda nada hasta que lo confirmes. Lo que ya estaba cargado de otros meses se conserva.</p>
+    <p>Solo tú ves esta sección. Elige el mes, junta los tres archivos de abajo y arrástralos juntos. Cada paso se marca en verde cuando el archivo es el correcto. Nada se publica hasta que das Guardar.</p>
+
+    <div class="mes-carga">
+      <label for="cMes">Mes que vas a cargar</label>
+      <select id="cMes"></select><select id="cAnio" aria-label="Año"></select>
+      <span id="cMesNota"></span>
+    </div>
+
+    <ol class="guia">
+      <li id="g-balance">
+        <div class="g-cab"><span class="g-n">1</span><b>Balance de A&amp;B del hotel</b><span class="g-est">Pendiente</span></div>
+        <div class="g-cuerpo">
+          <p>Estado de resultados por cuenta de contabilidad, sección NOOK RESTAURANT (F&amp;B).</p>
+          <ul>
+            <li>Una columna por mes (Balance July, Balance August…). Puede traer varios meses; se toman todos.</li>
+            <li>Debe incluir la columna del mes que vas a cargar.</li>
+            <li>Excel (.xlsx), con la primera columna Account.</li>
+          </ul>
+          <p class="g-det"></p>
+        </div>
+      </li>
+      <li id="g-ventas">
+        <div class="g-cab"><span class="g-n">2</span><b>Ventas de Symphony</b><span class="g-est">Pendiente</span></div>
+        <div class="g-cuerpo">
+          <p>Reporte general de ventas del punto de venta, el que trae venta neta, tickets, venta por hora, por artículo y medios de pago. Un archivo por mes.</p>
+          <ul>
+            <li>Fechas de negocio: del día 1 al último día del mes.</li>
+            <li>Ubicaciones: AUALB Voco Surfside Aruba.</li>
+            <li>Centros de venta: All.</li>
+            <li>Franjas horarias: Todos.</li>
+            <li>Exportar a Excel.</li>
+          </ul>
+          <p class="g-det"></p>
+        </div>
+      </li>
+      <li id="g-consumos">
+        <div class="g-cab"><span class="g-n">3</span><b>Consumos de almacén</b><span class="g-est">Pendiente</span></div>
+        <div class="g-cuerpo">
+          <p>Reporte LOG - Inventory Consumption Logistic, con el detalle por insumo. Un archivo por mes.</p>
+          <ul>
+            <li>Todos los centros de consumo, de Bar y de Kitchen.</li>
+            <li>Solo el mes que vas a cargar. De preferencia con la columna Date; sin ella, el mes se lee del nombre de la hoja.</li>
+            <li>Los mismos filtros de CODORIGEN y Operation type de todos los meses.</li>
+            <li>El reporte resumido por mes también se acepta, pero solo da totales por centro.</li>
+          </ul>
+          <p class="g-det"></p>
+        </div>
+      </li>
+    </ol>
+
     <label class="zona" id="zona">
       <input type="file" id="archivo" multiple accept=".xlsx,.xls,.json">
-      <b>Arrastra los archivos o haz clic para elegirlos</b>
-      <span>Excel (.xlsx, .xls). También acepta un respaldo .json completo.</span>
+      <b>Arrastra aquí los archivos o haz clic para elegirlos</b>
+      <span>Puedes soltarlos todos a la vez. Excel (.xlsx, .xls); también acepta un respaldo .json completo.</span>
     </label>
-    <div class="anio">Año de los archivos que no traen fecha (balance y consumos sin día):
-      <select id="anio"></select></div>
+    <ul class="lectura" id="otros"></ul>
+
     <div id="revision" hidden>
-      <h3>Esto se encontró</h3>
-      <ul class="encontrado" id="encontrado"></ul>
+      <h3>Antes de guardar</h3>
       <ul class="lectura" id="revAvisos"></ul>
+      <ul class="encontrado" id="encontrado"></ul>
       <div class="acciones"><button type="button" id="guardar">Guardar y publicar</button><button type="button" class="sec" id="descartar">Descartar</button></div>
     </div>
     <span class="estado" id="cargaEstado"></span>
@@ -404,6 +471,7 @@ function mostrar(payload, cuando){
   $('vacio').style.display = 'none'; $('contenido').hidden = false;
   $('pie').textContent = 'NOOK World Cuisine, VOCO Surfside Aruba. Datos actualizados el ' + new Date(cuando).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) + '. Un desarrollo de DMZ by LiTa Support.';
   pintar();
+  if (typeof pintarGuia === 'function') pintarGuia(ULTIMO);
 }
 
 async function cargar(){
@@ -420,11 +488,44 @@ async function cargar(){
   mostrar(r.data.payload, r.data.updated_at);
 }
 
-var PENDIENTE = null;
+var PENDIENTE = null, NOMBRES_MES = NookResultadosParser.NOMBRES;
 (function(){
-  var y = new Date().getFullYear(), sel = $('anio'), dflt = new Date(new Date().setMonth(new Date().getMonth() - 1)).getFullYear();
-  for (var i = y - 2; i <= y; i++) sel.insertAdjacentHTML('beforeend', '<option' + (i === dflt ? ' selected' : '') + '>' + i + '</option>');
+  var hoy = new Date(), prev = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+  $('cMes').innerHTML = NOMBRES_MES.map(function(n, i){ return '<option value="' + i + '"' + (i === prev.getMonth() ? ' selected' : '') + '>' + n + '</option>'; }).join('');
+  for (var y = hoy.getFullYear() - 2; y <= hoy.getFullYear(); y++) $('cAnio').insertAdjacentHTML('beforeend', '<option' + (y === prev.getFullYear() ? ' selected' : '') + '>' + y + '</option>');
+  ['cMes','cAnio'].forEach(function(id){ $(id).addEventListener('change', function(){ ULTIMO ? pintarGuia(ULTIMO) : pintarGuia(null); }); });
 })();
+var ULTIMO = null;
+function mesSel(){ return NookResultadosParser.clave(+$('cAnio').value, +$('cMes').value); }
+function nomK(k){ return NOMBRES_MES[+k.slice(5) - 1] + ' ' + k.slice(0, 4); }
+function pasoEst(id, clase, est, det){ var li = $(id); li.className = clase; li.querySelector('.g-est').textContent = est; li.querySelector('.g-det').innerHTML = det || ''; }
+function pintarGuia(res){
+  var k = mesSel(), prev = R ? NookResultadosParser.migrar(R) : null, A = res ? res.archivos : [];
+  $('cMesNota').textContent = prev && prev.meses.indexOf(k) >= 0 ? nomK(k) + ' ya tiene datos; lo que subas lo reemplaza.' : '';
+  function paso(id, tipos, yaHay){
+    var fs = A.filter(function(a){ return tipos.indexOf(a.tipo) >= 0; });
+    var bien = fs.filter(function(a){ return a.meses.indexOf(k) >= 0; });
+    var mal = fs.filter(function(a){ return a.meses.indexOf(k) < 0; });
+    var det = fs.map(function(a){
+      var t = esc(a.nombre) + ': ';
+      if (a.meses.length && a.meses.indexOf(k) < 0) return t + 'trae ' + a.meses.map(nomK).join(', ') + ', no ' + nomK(k) + '. No se usará para este mes.';
+      if (a.error) return t + esc(a.error);
+      return t + (a.tipo === 'resumen' ? 'solo totales por centro de ' + nomK(k) + '.' : 'correcto' + (a.meses.length > 1 ? ' (también trae ' + a.meses.filter(function(x){ return x !== k; }).map(nomK).join(', ') + ')' : '') + '.');
+    }).join('<br>');
+    if (bien.length && bien.every(function(a){ return a.tipo !== 'resumen' && !a.error; })) pasoEst(id, 'ok', 'Recibido', det);
+    else if (bien.some(function(a){ return a.tipo !== 'resumen'; })) pasoEst(id, 'warn', 'Recibido, revisar aviso', det);
+    else if (bien.length) pasoEst(id, 'warn', 'Solo totales', det);
+    else if (mal.length) pasoEst(id, 'bad', 'Revisar', det);
+    else if (yaHay) pasoEst(id, '', 'Ya cargado', 'Ya hay datos de ' + nomK(k) + '; súbelo solo si cambió.');
+    else pasoEst(id, '', 'Pendiente', '');
+  }
+  paso('g-balance', ['balance'], prev && prev.balance[k]);
+  paso('g-ventas', ['ventas'], prev && prev.symphony[k]);
+  paso('g-consumos', ['consumos','resumen'], prev && prev.consumos[k] && !prev.consumos[k].sinDetalle);
+  var otros = A.filter(function(a){ return !a.tipo; });
+  $('otros').innerHTML = otros.map(function(a){ return '<li class="bad">' + esc(a.nombre) + ': ' + esc(a.error) + '</li>'; }).join('');
+}
+pintarGuia(null);
 function leerArchivo(f){
   return new Promise(function(ok, mal){
     var r = new FileReader();
@@ -444,14 +545,20 @@ async function recibir(files){
     }
     var base = json || R, res;
     if (json && (!Array.isArray(json.meses) || !json.balance)) throw new Error('El .json no tiene la estructura de resultados.');
-    res = NookResultadosParser.procesar(XLSX, excel, base, +$('anio').value);
+    res = NookResultadosParser.procesar(XLSX, excel, base, +$('cAnio').value); ULTIMO = res; pintarGuia(res);
     if (json) res.log.unshift('Respaldo ' + files[0].name + ' con ' + json.meses.length + ' meses.');
     if (!res.payload.meses.length) throw new Error('No quedó ningún mes con balance. Incluye el Excel del balance del hotel.');
     PENDIENTE = res.payload;
     var antes = R ? NookResultadosParser.migrar(R).meses : [];
     $('encontrado').innerHTML = res.log.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') +
       '<li><b>Quedarán ' + res.payload.meses.length + ' meses:</b> ' + res.payload.meses.map(function(k){ return esc(res.payload.nombres[k]) + (antes.indexOf(k) < 0 ? ' (nuevo)' : ''); }).join(', ') + '.</li>';
-    $('revAvisos').innerHTML = res.avisos.map(function(x){ return '<li class="warn">' + esc(x) + '</li>'; }).join('');
+    var k = mesSel(), falta = [];
+    if (!res.payload.balance[k]) falta.push('el balance');
+    if (!res.payload.symphony[k]) falta.push('las ventas de Symphony');
+    if (!res.payload.consumos[k] || res.payload.consumos[k].sinDetalle) falta.push('los consumos con detalle');
+    var av = res.avisos.slice();
+    if (falta.length) av.unshift('Para ' + nomK(k) + ' falta ' + falta.join(', ').replace(/, ([^,]*)$/, ' y $1') + '. Puedes guardar así y completarlo después; la página lo marcará como pendiente.');
+    $('revAvisos').innerHTML = av.map(function(x){ return '<li class="warn">' + esc(x) + '</li>'; }).join('');
     $('revision').hidden = false; est.textContent = 'Revisa y confirma.';
   } catch (e) { est.style.color = 'var(--warn)'; est.textContent = 'No se pudo leer: ' + e.message; }
 }
@@ -459,7 +566,7 @@ $('archivo').addEventListener('change', function(ev){ var fs = Array.prototype.s
 ['dragenter','dragover'].forEach(function(t){ $('zona').addEventListener(t, function(e){ e.preventDefault(); $('zona').classList.add('sobre'); }); });
 ['dragleave','drop'].forEach(function(t){ $('zona').addEventListener(t, function(e){ e.preventDefault(); $('zona').classList.remove('sobre'); }); });
 $('zona').addEventListener('drop', function(e){ var fs = Array.prototype.slice.call(e.dataTransfer.files); if (fs.length) recibir(fs); });
-$('descartar').addEventListener('click', function(){ PENDIENTE = null; $('revision').hidden = true; $('cargaEstado').textContent = 'Descartado; no se guardó nada.'; });
+$('descartar').addEventListener('click', function(){ PENDIENTE = null; ULTIMO = null; pintarGuia(null); $('revision').hidden = true; $('cargaEstado').textContent = 'Descartado; no se guardó nada.'; });
 $('guardar').addEventListener('click', async function(){
   if (!PENDIENTE) return;
   var est = $('cargaEstado'), btn = this; btn.disabled = true; est.style.color = ''; est.textContent = 'Guardando…';
@@ -467,7 +574,7 @@ $('guardar').addEventListener('click', async function(){
   btn.disabled = false;
   if (r.error) { est.style.color = 'var(--warn)'; est.textContent = 'No se guardó: ' + r.error.message; return; }
   est.style.color = 'var(--ok)'; est.textContent = 'Publicado: ' + PENDIENTE.meses.length + ' meses. La versión anterior quedó respaldada.';
-  $('revision').hidden = true; mostrar(PENDIENTE, new Date().toISOString()); PENDIENTE = null;
+  $('revision').hidden = true; mostrar(PENDIENTE, new Date().toISOString()); PENDIENTE = null; ULTIMO = null; pintarGuia(null);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 

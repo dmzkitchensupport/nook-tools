@@ -151,7 +151,7 @@
 
   /* archivos: [{nombre, wb}] ; base: payload actual o null ; anio: año para balance/consumos sin fecha */
   function procesar(XLSX, archivos, base, anio) {
-    var P = migrar(base), log = [], avisos = [], firmas = {};
+    var P = migrar(base), log = [], avisos = [], firmas = {}, det = [];
     function asegura(k) { if (P.meses.indexOf(k) < 0) P.meses.push(k); var mi = +k.slice(5) - 1; P.nombres[k] = NOMBRES[mi] + (+k.slice(0, 4) !== anio ? ' ' + k.slice(0, 4) : ''); }
     var orden = { resumen: 0, balance: 1, ventas: 2, consumos: 3 }, lista = [];
     archivos.forEach(function (a) { var R = filas(XLSX, a.wb); lista.push({ a: a, R: R, t: tipo(R) }); });
@@ -159,17 +159,17 @@
     lista.forEach(function (x) {
       var a = x.a, R = x.R;
       try {
-        if (!x.t) { avisos.push(a.nombre + ': no se reconoce el tipo de archivo; se ignoró.'); return; }
-        if (x.t === 'balance') { var b = balance(R, anio); Object.keys(b).forEach(function (k) { asegura(k); P.balance[k] = b[k]; }); log.push(a.nombre + ': balance de ' + Object.keys(b).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
-        if (x.t === 'ventas') { var v = ventas(R); asegura(v.clave); P.symphony[v.clave] = v.datos; avisos = avisos.concat(v.avisos); log.push(a.nombre + ': ventas de ' + P.nombres[v.clave] + ' (' + v.datos.items.length + ' artículos).'); }
-        if (x.t === 'resumen') { var s = resumen(R, anio); Object.keys(s).forEach(function (k) { asegura(k); if (!P.consumos[k] || P.consumos[k].sinDetalle) P.consumos[k] = s[k]; }); log.push(a.nombre + ': resumen de consumos de ' + Object.keys(s).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
+        if (!x.t) { det.push({ nombre: a.nombre, tipo: null, meses: [], error: 'No es un balance, un reporte de ventas de Symphony ni un reporte de consumos.' }); avisos.push(a.nombre + ': no se reconoce el tipo de archivo; se ignoró.'); return; }
+        if (x.t === 'balance') { var b = balance(R, anio); Object.keys(b).forEach(function (k) { asegura(k); P.balance[k] = b[k]; }); det.push({ nombre: a.nombre, tipo: 'balance', meses: Object.keys(b) }); log.push(a.nombre + ': balance de ' + Object.keys(b).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
+        if (x.t === 'ventas') { var v = ventas(R); asegura(v.clave); P.symphony[v.clave] = v.datos; det.push({ nombre: a.nombre, tipo: 'ventas', meses: [v.clave], error: v.avisos[0] }); avisos = avisos.concat(v.avisos); log.push(a.nombre + ': ventas de ' + P.nombres[v.clave] + ' (' + v.datos.items.length + ' artículos).'); }
+        if (x.t === 'resumen') { var s = resumen(R, anio); Object.keys(s).forEach(function (k) { asegura(k); if (!P.consumos[k] || P.consumos[k].sinDetalle) P.consumos[k] = s[k]; }); det.push({ nombre: a.nombre, tipo: 'resumen', meses: Object.keys(s) }); log.push(a.nombre + ': resumen de consumos de ' + Object.keys(s).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
         if (x.t === 'consumos') {
           var c = consumos(R, a.wb.SheetNames[0], a.nombre, anio), f = c.datos.total + '|' + c.datos.lineas;
-          if (firmas[f]) { avisos.push(a.nombre + ' es idéntico a ' + firmas[f] + '; se ignoró. Pide el archivo correcto.'); return; }
-          firmas[f] = a.nombre; asegura(c.clave); P.consumos[c.clave] = c.datos; avisos = avisos.concat(c.avisos);
+          if (firmas[f]) { det.push({ nombre: a.nombre, tipo: 'consumos', meses: [], error: 'Es idéntico a ' + firmas[f] + '; se ignoró.' }); avisos.push(a.nombre + ' es idéntico a ' + firmas[f] + '; se ignoró. Pide el archivo correcto.'); return; }
+          firmas[f] = a.nombre; asegura(c.clave); P.consumos[c.clave] = c.datos; avisos = avisos.concat(c.avisos); det.push({ nombre: a.nombre, tipo: 'consumos', meses: [c.clave], error: c.avisos[0] });
           log.push(a.nombre + ': consumos de ' + P.nombres[c.clave] + ' (' + c.datos.lineas + ' líneas).');
         }
-      } catch (e) { avisos.push(a.nombre + ': ' + e.message); }
+      } catch (e) { det.push({ nombre: a.nombre, tipo: x.t, meses: [], error: e.message }); avisos.push(a.nombre + ': ' + e.message); }
     });
     P.meses.sort();
     P.meses.forEach(function (k) {
@@ -178,7 +178,7 @@
     });
     P.meses = P.meses.filter(function (k) { return !!P.balance[k]; });
     P.generado = new Date().toISOString().slice(0, 10);
-    return { payload: P, log: log, avisos: avisos };
+    return { payload: P, log: log, avisos: avisos, archivos: det };
   }
 
   /* Convierte el formato viejo (claves JUL, AGO...) a AAAA-MM. SUPUESTO: año 2026. */
@@ -196,6 +196,6 @@
     return P;
   }
 
-  var api = { procesar: procesar, migrar: migrar, tipo: tipo };
+  var api = { procesar: procesar, migrar: migrar, tipo: tipo, clave: clave, NOMBRES: NOMBRES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.NookResultadosParser = api;
 })(this);
