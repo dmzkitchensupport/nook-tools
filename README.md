@@ -30,7 +30,9 @@ Estado de resultados de A&B, ventas del punto de venta y consumos de almacén, p
 Solo la lista cerrada de `resultados_acceso` (hoy: Mario, Eduardo y Rosy; Mario la administra desde la propia página), además de cuenta aprobada. **Es la única herramienta con información financiera, y por eso
 no trae ningún dato en el repo**: la página lee todo de Supabase con `resultados_get()`
 (tabla `resultados_fb`, sin acceso directo para `anon`/`authenticated`). Mario actualiza
-el cierre desde la propia página, sección "Actualizar los datos", subiendo
+el cierre desde la propia página, sección "Cargar el cierre del mes", arrastrando los
+Excel del mes (balance, ventas Symphony, consumos); `resultados/parser.js` los reconoce por
+contenido y muestra qué encontró antes de guardar. También acepta un respaldo
 `resultados.data.json` (`resultados_save`, solo su correo; la versión anterior queda en
 `resultados_fb_historial`). Ese archivo se genera fuera de este repo, a partir de los
 Excel del balance, Symphony y almacén — **nunca se commitea aquí**.

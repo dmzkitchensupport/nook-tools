@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/auth.js?v=2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="parser.js?v=1"></script>
 <style>
 :root{
   --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
@@ -106,8 +108,31 @@ svg text{font-family:'Poppins',sans-serif;}
 .carga button,.carga label.btn{font-family:inherit;font-size:13px;font-weight:600;background:var(--navy);color:var(--cream);border:none;border-radius:6px;padding:9px 16px;cursor:pointer;display:inline-block;}
 .carga button:disabled{opacity:.5;cursor:default;}
 .carga input[type=file]{position:absolute;opacity:0;width:1px;height:1px;}
+.zona input[type=file]{inset:0;width:100%;height:100%;cursor:pointer;}
 .carga label.btn:focus-within{outline:2px solid var(--tan-line);outline-offset:2px;}
 .carga .estado{font-size:12.5px;margin-left:12px;}
+.zona{display:block;position:relative;border:1.5px dashed var(--rule);border-radius:8px;padding:26px 20px;background:var(--paper);cursor:pointer;max-width:720px;}
+.zona:hover,.zona.sobre{border-color:var(--navy);background:#fff;}
+.zona:focus-within{outline:2px solid var(--tan-line);outline-offset:2px;}
+.zona b{display:block;font-size:14px;color:var(--navy);}
+.zona span{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
+.anio{margin:12px 0 0;font-size:12.5px;color:var(--muted);}
+.anio select{font-family:inherit;font-size:13px;margin-left:6px;padding:4px 8px;border:1px solid var(--rule);border-radius:6px;background:#fff;}
+#revision{margin-top:20px;max-width:720px;}
+#revision h3{font-size:14px;font-weight:600;margin:0 0 8px;}
+ul.encontrado{list-style:none;margin:0 0 6px;padding:0;}
+ul.encontrado li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);}
+.acciones{display:flex;gap:10px;margin-top:14px;}
+.carga button.sec{background:none;color:var(--navy);border:1px solid var(--rule);}
+#revision ul.lectura li{font-size:12.5px;}
+.carga .estado{display:block;margin:10px 0 0;}
+.acceso{margin-top:36px;}
+.acceso ul{list-style:none;margin:0 0 12px;padding:0;max-width:560px;}
+.acceso li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.acceso li span small{color:var(--muted);margin-left:8px;}
+.acceso li button{background:none;color:var(--warn);padding:4px 8px;font-weight:500;}
+.acceso form{display:flex;gap:8px;flex-wrap:wrap;max-width:560px;}
+.acceso input[type=text],.acceso input[type=email]{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:#fff;flex:1 1 160px;}
 .pie{margin-top:40px;color:var(--muted);font-size:11.5px;}
 #vacio{display:none;padding:70px 0;max-width:52ch;}
 #vacio h1{font-size:26px;font-weight:600;color:var(--navy);margin:0 0 10px;}
@@ -187,10 +212,33 @@ svg text{font-family:'Poppins',sans-serif;}
   </div>
 
   <div class="carga" id="carga">
-    <h2>Actualizar los datos</h2>
-    <p>Solo tú ves esta sección. Sube el archivo <b>resultados.data.json</b> del cierre; reemplaza lo que hay y queda visible para gerencia. Los datos se guardan en la base con acceso por cuenta, no en esta página.</p>
-    <label class="btn">Elegir archivo<input type="file" id="archivo" accept=".json,application/json"></label>
+    <h2>Cargar el cierre del mes</h2>
+    <p>Solo tú ves esta sección. Arrastra aquí los Excel del mes, todos juntos: el balance del hotel, el reporte de ventas de Symphony y los consumos de almacén (detalle o resumen). La página reconoce cada archivo por su contenido, te muestra qué encontró y no guarda nada hasta que lo confirmes. Lo que ya estaba cargado de otros meses se conserva.</p>
+    <label class="zona" id="zona">
+      <input type="file" id="archivo" multiple accept=".xlsx,.xls,.json">
+      <b>Arrastra los archivos o haz clic para elegirlos</b>
+      <span>Excel (.xlsx, .xls). También acepta un respaldo .json completo.</span>
+    </label>
+    <div class="anio">Año de los archivos que no traen fecha (balance y consumos sin día):
+      <select id="anio"></select></div>
+    <div id="revision" hidden>
+      <h3>Esto se encontró</h3>
+      <ul class="encontrado" id="encontrado"></ul>
+      <ul class="lectura" id="revAvisos"></ul>
+      <div class="acciones"><button type="button" id="guardar">Guardar y publicar</button><button type="button" class="sec" id="descartar">Descartar</button></div>
+    </div>
     <span class="estado" id="cargaEstado"></span>
+    <div class="acceso">
+      <h2>Quién puede ver esta página</h2>
+      <p>Además de tener cuenta aprobada en NOOK, el correo debe estar en esta lista. Si alguien aún no tiene cuenta, agrégalo igual: verá los resultados en cuanto se registre y lo apruebes.</p>
+      <ul id="accesoLista"></ul>
+      <form id="accesoForm">
+        <input type="text" id="accesoNombre" placeholder="Nombre" autocomplete="off">
+        <input type="email" id="accesoEmail" placeholder="correo@ejemplo.com" required autocomplete="off">
+        <button type="submit">Dar acceso</button>
+      </form>
+      <span class="estado" id="accesoEstado" style="margin-left:0;display:block;margin-top:8px;"></span>
+    </div>
   </div>
   <p class="pie" id="pie"></p>
 </main>
@@ -295,7 +343,7 @@ function pintar(){
   if (!s) A.push('No se recibió el reporte de ventas del punto de venta de ' + nom.toLowerCase() + '.');
   if (s) { A.push('El punto de venta reporta ' + usd(s.ventaNeta) + ' de venta neta y el balance ' + usd(b.ingreso) + ' de ingreso: ' + usd(s.ventaNeta - b.ingreso) + ' de diferencia. Se muestran las dos cifras sin ajustar.');
     if (s.clientes > s.tickets * 3) A.push('El punto de venta registra ' + s.clientes.toLocaleString('en-US') + ' comensales en ' + s.tickets.toLocaleString('en-US') + ' tickets. Ese conteo no es confiable, por eso aquí se usa ticket promedio y no gasto por comensal.'); }
-  if (c.sinDetalle) A.push('El archivo de consumos de ' + nom.toLowerCase() + ' que se recibió es una copia del de septiembre. Solo hay total por centro de consumo, sin detalle por insumo.');
+  if (c.sinDetalle) A.push(c.total ? 'De ' + nom.toLowerCase() + ' solo hay consumos totales por centro, sin detalle por insumo. Carga el Excel de consumos con detalle del mes para completarlo.' : 'Falta el Excel de consumos de almacén de ' + nom.toLowerCase() + '.');
   A.push('Almacén registra ' + usd(c.total) + ' de consumos y el balance ' + usd(b.cFood + b.cAlc + b.cNoAlc) + ': ' + usd(c.total - (b.cFood + b.cAlc + b.cNoAlc)) + ' de diferencia.');
   $('avisos').innerHTML = A.map(function(x){ return '<li class="warn">' + x + '</li>'; }).join('');
 
@@ -343,11 +391,11 @@ function pintar(){
   filasBarras($('consCentros'), Object.keys(c.centros).map(function(k){ return {l:CENTROS[k] || k, v:c.centros[k]}; }).sort(function(a, z){ return z.v - a.v; }), c.total);
   $('consTop').innerHTML = c.top.length ? c.top.slice(0, 15).map(function(p){
     return '<tr><td>' + esc(p.n) + '</td><td class="pct">' + esc(CENTROS[p.c] || p.c) + '</td><td class="num">' + cant(p.cant) + '</td><td class="num">' + usd(p.costo) + '</td></tr>'; }).join('')
-    : '<tr><td class="vacio" colspan="4">Sin detalle por insumo en ' + nom.toLowerCase() + '.</td></tr>';
+    : '<tr><td class="vacio" colspan="4">Sin detalle por insumo en ' + nom.toLowerCase() + '. Carga el Excel de consumos con detalle para verlo.</td></tr>';
 }
 
 function mostrar(payload, cuando){
-  R = payload; MES = R.meses[R.meses.length - 1];
+  R = NookResultadosParser.migrar(payload); MES = R.meses[R.meses.length - 1];
   $('vacio').style.display = 'none'; $('contenido').hidden = false;
   $('pie').textContent = 'NOOK World Cuisine, VOCO Surfside Aruba. Datos actualizados el ' + new Date(cuando).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) + '. Un desarrollo de DMZ by LiTa Support.';
   pintar();
@@ -355,31 +403,97 @@ function mostrar(payload, cuando){
 
 async function cargar(){
   var r = await NookAuth.client().rpc('resultados_get');
-  if (r.error) { $('vacio').style.display = 'block'; $('vacioTxt').textContent = 'No se pudieron leer los resultados: ' + r.error.message; return; }
+  if (r.error) {
+    $('vacio').style.display = 'block';
+    if ((r.error.message || '').indexOf('SIN_ACCESO_RESULTADOS') >= 0) {
+      $('vacio').querySelector('h1').textContent = 'Esta página es de acceso restringido';
+      $('vacioTxt').textContent = 'Tu cuenta no está en la lista de personas que pueden ver los resultados. Si necesitas verlos, pídeselo a Mario.';
+    } else { $('vacioTxt').textContent = 'No se pudieron leer los resultados: ' + r.error.message; }
+    return;
+  }
   if (!r.data || !r.data.payload) { $('vacio').style.display = 'block'; return; }
   mostrar(r.data.payload, r.data.updated_at);
 }
 
-$('archivo').addEventListener('change', async function(ev){
-  var f = ev.target.files[0], est = $('cargaEstado'); if (!f) return;
-  est.style.color = ''; est.textContent = 'Leyendo ' + f.name + '…';
+var PENDIENTE = null;
+(function(){
+  var y = new Date().getFullYear(), sel = $('anio'), dflt = new Date(new Date().setMonth(new Date().getMonth() - 1)).getFullYear();
+  for (var i = y - 2; i <= y; i++) sel.insertAdjacentHTML('beforeend', '<option' + (i === dflt ? ' selected' : '') + '>' + i + '</option>');
+})();
+function leerArchivo(f){
+  return new Promise(function(ok, mal){
+    var r = new FileReader();
+    r.onload = function(){ ok(r.result); }; r.onerror = function(){ mal(new Error('No se pudo leer ' + f.name)); };
+    if (/\.json$/i.test(f.name)) r.readAsText(f); else r.readAsArrayBuffer(f);
+  });
+}
+async function recibir(files){
+  var est = $('cargaEstado'); est.style.color = ''; est.textContent = 'Leyendo ' + files.length + ' archivo' + (files.length > 1 ? 's' : '') + '…';
+  $('revision').hidden = true; PENDIENTE = null;
   try {
-    var p = JSON.parse(await f.text());
-    if (!p || !Array.isArray(p.meses) || !p.balance || !p.consumos || !p.symphony) throw new Error('El archivo no tiene la estructura de resultados (meses, balance, symphony, consumos).');
-    p.meses.forEach(function(m){ if (!p.balance[m] || !p.consumos[m]) throw new Error('Falta balance o consumos de ' + m + '.'); });
-    est.textContent = 'Guardando…';
-    var r = await NookAuth.client().rpc('resultados_save', { p_payload: p });
-    if (r.error) throw new Error(r.error.message);
-    est.style.color = 'var(--ok)'; est.textContent = 'Datos actualizados: ' + p.meses.length + ' meses.';
-    mostrar(p, new Date().toISOString());
-  } catch (e) { est.style.color = 'var(--warn)'; est.textContent = 'No se cargó: ' + e.message; }
-  ev.target.value = '';
+    var json = null, excel = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i], d = await leerArchivo(f);
+      if (/\.json$/i.test(f.name)) json = JSON.parse(d);
+      else excel.push({ nombre: f.name, wb: XLSX.read(new Uint8Array(d), { type: 'array' }) });
+    }
+    var base = json || R, res;
+    if (json && (!Array.isArray(json.meses) || !json.balance)) throw new Error('El .json no tiene la estructura de resultados.');
+    res = NookResultadosParser.procesar(XLSX, excel, base, +$('anio').value);
+    if (json) res.log.unshift('Respaldo ' + files[0].name + ' con ' + json.meses.length + ' meses.');
+    if (!res.payload.meses.length) throw new Error('No quedó ningún mes con balance. Incluye el Excel del balance del hotel.');
+    PENDIENTE = res.payload;
+    var antes = R ? NookResultadosParser.migrar(R).meses : [];
+    $('encontrado').innerHTML = res.log.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') +
+      '<li><b>Quedarán ' + res.payload.meses.length + ' meses:</b> ' + res.payload.meses.map(function(k){ return esc(res.payload.nombres[k]) + (antes.indexOf(k) < 0 ? ' (nuevo)' : ''); }).join(', ') + '.</li>';
+    $('revAvisos').innerHTML = res.avisos.map(function(x){ return '<li class="warn">' + esc(x) + '</li>'; }).join('');
+    $('revision').hidden = false; est.textContent = 'Revisa y confirma.';
+  } catch (e) { est.style.color = 'var(--warn)'; est.textContent = 'No se pudo leer: ' + e.message; }
+}
+$('archivo').addEventListener('change', function(ev){ var fs = Array.prototype.slice.call(ev.target.files); ev.target.value = ''; if (fs.length) recibir(fs); });
+['dragenter','dragover'].forEach(function(t){ $('zona').addEventListener(t, function(e){ e.preventDefault(); $('zona').classList.add('sobre'); }); });
+['dragleave','drop'].forEach(function(t){ $('zona').addEventListener(t, function(e){ e.preventDefault(); $('zona').classList.remove('sobre'); }); });
+$('zona').addEventListener('drop', function(e){ var fs = Array.prototype.slice.call(e.dataTransfer.files); if (fs.length) recibir(fs); });
+$('descartar').addEventListener('click', function(){ PENDIENTE = null; $('revision').hidden = true; $('cargaEstado').textContent = 'Descartado; no se guardó nada.'; });
+$('guardar').addEventListener('click', async function(){
+  if (!PENDIENTE) return;
+  var est = $('cargaEstado'), btn = this; btn.disabled = true; est.style.color = ''; est.textContent = 'Guardando…';
+  var r = await NookAuth.client().rpc('resultados_save', { p_payload: PENDIENTE });
+  btn.disabled = false;
+  if (r.error) { est.style.color = 'var(--warn)'; est.textContent = 'No se guardó: ' + r.error.message; return; }
+  est.style.color = 'var(--ok)'; est.textContent = 'Publicado: ' + PENDIENTE.meses.length + ' meses. La versión anterior quedó respaldada.';
+  $('revision').hidden = true; mostrar(PENDIENTE, new Date().toISOString()); PENDIENTE = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+async function pintarAcceso(){
+  var r = await NookAuth.client().rpc('resultados_acceso_list');
+  if (r.error) { $('accesoEstado').style.color = 'var(--warn)'; $('accesoEstado').textContent = 'No se pudo leer la lista: ' + r.error.message; return; }
+  $('accesoLista').innerHTML = r.data.map(function(a){
+    var yo = a.email === 'mario@delamorazumaran.com';
+    return '<li><span>' + esc(a.nombre || a.email) + (a.nombre ? '<small>' + esc(a.email) + '</small>' : '') + '</span>' +
+      (yo ? '' : '<button type="button" data-email="' + esc(a.email) + '">Quitar acceso</button>') + '</li>'; }).join('');
+}
+async function cambiarAcceso(email, nombre, permitir){
+  var est = $('accesoEstado'); est.style.color = '';
+  var r = await NookAuth.client().rpc('resultados_acceso_set', { p_email: email, p_nombre: nombre, p_permitir: permitir });
+  if (r.error) { est.style.color = 'var(--warn)'; est.textContent = 'No se guardó: ' + r.error.message; return false; }
+  est.style.color = 'var(--ok)'; est.textContent = permitir ? 'Acceso dado a ' + email + '.' : 'Acceso quitado a ' + email + '.';
+  pintarAcceso(); return true;
+}
+$('accesoForm').addEventListener('submit', async function(ev){
+  ev.preventDefault();
+  if (await cambiarAcceso($('accesoEmail').value, $('accesoNombre').value, true)) { $('accesoEmail').value = ''; $('accesoNombre').value = ''; }
+});
+$('accesoLista').addEventListener('click', function(ev){
+  var e = ev.target.getAttribute && ev.target.getAttribute('data-email');
+  if (e) cambiarAcceso(e, '', false);
 });
 
 NookAuth.guard({ allow: ['gerencia'], home: '../' }).then(function(profile){
   if (!profile) return;
   PERFIL = profile;
-  if ((profile.email || '').toLowerCase() === 'mario@delamorazumaran.com') $('carga').style.display = 'block';
+  if ((profile.email || '').toLowerCase() === 'mario@delamorazumaran.com') { $('carga').style.display = 'block'; pintarAcceso(); }
   cargar();
 });
 </script>
