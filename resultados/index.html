@@ -26,6 +26,10 @@ header.app{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--c
 header.app .id{display:flex;align-items:center;gap:14px;}
 header.app img{height:24px;display:block;}
 header.app .name{font-size:14px;font-weight:600;border-left:1px solid rgba(250,247,238,.3);padding-left:14px;}
+header.app .acc{display:flex;align-items:center;gap:18px;}
+a.cargar{background:var(--tan-line);color:#26221c;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:6px;}
+a.cargar:hover,a.cargar:focus-visible{background:#cfa86b;}
+#carga{scroll-margin-top:70px;}
 a.back{color:var(--tan-line);text-decoration:none;font-size:12.5px;font-weight:600;}
 a.back:hover,a.back:focus-visible{color:#fff;}
 main{max-width:1180px;margin:0 auto;padding:0 24px;}
@@ -138,6 +142,7 @@ ul.encontrado li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--bord
 #vacio h1{font-size:26px;font-weight:600;color:var(--navy);margin:0 0 10px;}
 
 @media(max-width:860px){
+  a.back{display:none;}
   .titular,.dos{grid-template-columns:1fr;gap:28px;}
   .titular h1{font-size:27px;}
   main{padding:0 16px;} header.app{padding:12px 16px;}
@@ -149,7 +154,7 @@ ul.encontrado li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--bord
 </head><body>
 <header class="app">
   <div class="id"><img src="../assets/nook-logo-cream.png" alt="NOOK"><span class="name">Resultados</span></div>
-  <a class="back" href="../">Volver a herramientas</a>
+  <div class="acc"><a class="cargar" id="irCarga" href="#carga" hidden>Cargar archivos del mes</a><a class="back" href="../">Volver a herramientas</a></div>
 </header>
 <main>
   <div id="vacio"><h1>Todavía no hay resultados cargados</h1><p id="vacioTxt">Cuando se cargue el cierre del mes, aquí aparecen el estado de resultados, las ventas y los consumos.</p></div>
@@ -493,7 +498,7 @@ $('accesoLista').addEventListener('click', function(ev){
 NookAuth.guard({ allow: ['gerencia'], home: '../' }).then(function(profile){
   if (!profile) return;
   PERFIL = profile;
-  if ((profile.email || '').toLowerCase() === 'mario@delamorazumaran.com') { $('carga').style.display = 'block'; pintarAcceso(); }
+  if ((profile.email || '').toLowerCase() === 'mario@delamorazumaran.com') { $('carga').style.display = 'block'; $('irCarga').hidden = false; pintarAcceso(); }
   cargar();
 });
 </script>
