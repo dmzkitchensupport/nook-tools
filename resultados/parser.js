@@ -149,10 +149,52 @@
     return out;
   }
 
+  /* Fecha del libro: modificado; si no trae, creado; si tampoco, null. */
+  function fechaLibro(wb) {
+    var p = (wb && wb.Props) || {}, d = p.ModifiedDate || p.CreatedDate;
+    if (d && !(d instanceof Date)) d = new Date(d);
+    if (!d || isNaN(d.getTime())) return null;
+    d.verbo = p.ModifiedDate ? 'modificado' : 'creado';
+    return d;
+  }
+  var MES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  function fechaCorta(d, otra) {
+    var s = d.getDate() + ' ' + MES_CORTO[d.getMonth()];
+    if (otra && otra.toDateString() === d.toDateString()) s += ' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+    return s;
+  }
+  function cifra(v) { var s = Math.abs(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return (v < 0 ? '−' : '') + s; }
+
   /* archivos: [{nombre, wb}] ; base: payload actual o null ; anio: año para balance/consumos sin fecha */
   function procesar(XLSX, archivos, base, anio) {
     var P = migrar(base), log = [], avisos = [], firmas = {}, det = [];
     function asegura(k) { if (P.meses.indexOf(k) < 0) P.meses.push(k); var mi = +k.slice(5) - 1; P.nombres[k] = NOMBRES[mi] + (+k.slice(0, 4) !== anio ? ' ' + k.slice(0, 4) : ''); }
+    /* Si dos archivos de esta carga traen el mismo mes con cifras distintas, gana el libro
+       modificado más recientemente; el otro queda marcado en archivos[] y se avisa.
+       Sin fecha en alguno (o fechas iguales) se queda el último, como antes, con aviso. */
+    var fuentes = { balance: {}, ventas: {} };
+    var ETQ = { balance: ['balances', 'resultado', 'resultado'], ventas: ['reportes de ventas', 'venta neta', 'ventaNeta'] };
+    function descarta(d, k, msg) {
+      d.descartado = (d.descartado || []).concat([k]);
+      d.error = d.error && d.error !== msg ? d.error + ' ' + msg : msg;
+    }
+    function coloca(t, k, datos, nombre, fecha, d) {
+      var prev = fuentes[t][k], nuevo = { nombre: nombre, fecha: fecha, datos: datos, det: d };
+      if (!prev) { fuentes[t][k] = nuevo; return true; }
+      if (JSON.stringify(prev.datos) === JSON.stringify(datos)) { fuentes[t][k] = nuevo; return true; }
+      var e = ETQ[t], mes = NOMBRES[+k.slice(5) - 1] + ' ' + k.slice(0, 4), gana, pierde, msg;
+      if (prev.fecha && fecha && prev.fecha.getTime() !== fecha.getTime()) {
+        gana = fecha > prev.fecha ? nuevo : prev; pierde = gana === nuevo ? prev : nuevo;
+        msg = mes + ' viene en 2 ' + e[0] + ' distintos: se usa ' + gana.nombre + ' (' + gana.fecha.verbo + ' ' + fechaCorta(gana.fecha, pierde.fecha) + '); se descartó ' + pierde.nombre + ' (' + (pierde.fecha.verbo !== gana.fecha.verbo ? pierde.fecha.verbo + ' ' : '') + fechaCorta(pierde.fecha, gana.fecha) + ').';
+      } else {
+        gana = nuevo; pierde = prev;
+        msg = mes + ' viene en 2 ' + e[0] + ' distintos y no se pudo saber cuál es más reciente; se usa ' + gana.nombre + ' y se descartó ' + pierde.nombre + '. Revisa antes de guardar.';
+      }
+      msg += ' Diferencia en ' + e[1] + ': ' + cifra(gana.datos[e[2]]) + ' vs ' + cifra(pierde.datos[e[2]]) + '.';
+      avisos.push(msg); descarta(pierde.det, k, msg);
+      fuentes[t][k] = gana;
+      return gana === nuevo;
+    }
     var orden = { resumen: 0, balance: 1, ventas: 2, consumos: 3 }, lista = [];
     archivos.forEach(function (a) { var R = filas(XLSX, a.wb); lista.push({ a: a, R: R, t: tipo(R) }); });
     lista.sort(function (x, y) { return (orden[x.t] == null ? 9 : orden[x.t]) - (orden[y.t] == null ? 9 : orden[y.t]); });
@@ -160,8 +202,16 @@
       var a = x.a, R = x.R;
       try {
         if (!x.t) { det.push({ nombre: a.nombre, tipo: null, meses: [], error: 'No es un balance, un reporte de ventas de Symphony ni un reporte de consumos.' }); avisos.push(a.nombre + ': no se reconoce el tipo de archivo; se ignoró.'); return; }
-        if (x.t === 'balance') { var b = balance(R, anio); Object.keys(b).forEach(function (k) { asegura(k); P.balance[k] = b[k]; }); det.push({ nombre: a.nombre, tipo: 'balance', meses: Object.keys(b) }); log.push(a.nombre + ': balance de ' + Object.keys(b).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
-        if (x.t === 'ventas') { var v = ventas(R); asegura(v.clave); P.symphony[v.clave] = v.datos; det.push({ nombre: a.nombre, tipo: 'ventas', meses: [v.clave], error: v.avisos[0] }); avisos = avisos.concat(v.avisos); log.push(a.nombre + ': ventas de ' + P.nombres[v.clave] + ' (' + v.datos.items.length + ' artículos).'); }
+        if (x.t === 'balance') {
+          var b = balance(R, anio), db = { nombre: a.nombre, tipo: 'balance', meses: Object.keys(b) }, fb = fechaLibro(a.wb); det.push(db);
+          Object.keys(b).forEach(function (k) { asegura(k); if (coloca('balance', k, b[k], a.nombre, fb, db)) P.balance[k] = b[k]; });
+          log.push(a.nombre + ': balance de ' + Object.keys(b).map(function (k) { return P.nombres[k]; }).join(', ') + '.');
+        }
+        if (x.t === 'ventas') {
+          var v = ventas(R), dv = { nombre: a.nombre, tipo: 'ventas', meses: [v.clave], error: v.avisos[0] }; det.push(dv); avisos = avisos.concat(v.avisos); asegura(v.clave);
+          if (coloca('ventas', v.clave, v.datos, a.nombre, fechaLibro(a.wb), dv)) P.symphony[v.clave] = v.datos;
+          log.push(a.nombre + ': ventas de ' + P.nombres[v.clave] + ' (' + v.datos.items.length + ' artículos).');
+        }
         if (x.t === 'resumen') { var s = resumen(R, anio); Object.keys(s).forEach(function (k) { asegura(k); if (!P.consumos[k] || P.consumos[k].sinDetalle) P.consumos[k] = s[k]; }); det.push({ nombre: a.nombre, tipo: 'resumen', meses: Object.keys(s) }); log.push(a.nombre + ': resumen de consumos de ' + Object.keys(s).map(function (k) { return P.nombres[k]; }).join(', ') + '.'); }
         if (x.t === 'consumos') {
           var c = consumos(R, a.wb.SheetNames[0], a.nombre, anio), f = c.datos.total + '|' + c.datos.lineas;

@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/auth.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="parser.js?v=2"></script>
+<script src="parser.js?v=3"></script>
 <style>
 :root{
   --navy:#2b4a5e; --navy-deep:#2f443d; --tan:#9a7367; --tan-line:#b8935a; --brown:#5b4636;
@@ -512,7 +512,8 @@ function pintarGuia(res){
       if (a.error) return t + esc(a.error);
       return t + (a.tipo === 'resumen' ? 'solo totales por centro de ' + nomK(k) + '.' : 'correcto' + (a.meses.length > 1 ? ' (también trae ' + a.meses.filter(function(x){ return x !== k; }).map(nomK).join(', ') + ')' : '') + '.');
     }).join('<br>');
-    if (bien.length && bien.every(function(a){ return a.tipo !== 'resumen' && !a.error; })) pasoEst(id, 'ok', 'Recibido', det);
+    if (fs.some(function(a){ return (a.descartado || []).indexOf(k) >= 0; })) pasoEst(id, 'warn', 'Revisar', det);
+    else if (bien.length && bien.every(function(a){ return a.tipo !== 'resumen' && !a.error; })) pasoEst(id, 'ok', 'Recibido', det);
     else if (bien.some(function(a){ return a.tipo !== 'resumen'; })) pasoEst(id, 'warn', 'Recibido, revisar aviso', det);
     else if (bien.length) pasoEst(id, 'warn', 'Solo totales', det);
     else if (mal.length) pasoEst(id, 'bad', 'Revisar', det);
