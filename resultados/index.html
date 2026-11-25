@@ -512,7 +512,8 @@ function pintarGuia(res){
       if (a.error) return t + esc(a.error);
       return t + (a.tipo === 'resumen' ? 'solo totales por centro de ' + nomK(k) + '.' : 'correcto' + (a.meses.length > 1 ? ' (también trae ' + a.meses.filter(function(x){ return x !== k; }).map(nomK).join(', ') + ')' : '') + '.');
     }).join('<br>');
-    if (bien.length && bien.every(function(a){ return a.tipo !== 'resumen' && !a.error; })) pasoEst(id, 'ok', 'Recibido', det);
+    if (fs.some(function(a){ return (a.descartado || []).indexOf(k) >= 0; })) pasoEst(id, 'warn', 'Revisar', det);
+    else if (bien.length && bien.every(function(a){ return a.tipo !== 'resumen' && !a.error; })) pasoEst(id, 'ok', 'Recibido', det);
     else if (bien.some(function(a){ return a.tipo !== 'resumen'; })) pasoEst(id, 'warn', 'Recibido, revisar aviso', det);
     else if (bien.length) pasoEst(id, 'warn', 'Solo totales', det);
     else if (mal.length) pasoEst(id, 'bad', 'Revisar', det);
